@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Models\Product;
+
+use App\Models\Traits\HasAudit;
+use App\Observers\AuditObserver;
+use Database\Factories\Product\BrandFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+#[ObservedBy(AuditObserver::class)]
+class Brand extends Model
+{
+    use HasAudit;
+
+    /** @use HasFactory<BrandFactory> */
+    use HasFactory;
+
+    use SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'website_url',
+        'country',
+        'is_active',
+        'created_by',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    /** @var array<int, string> */
+    public array $searchable = ['name', 'slug', 'description', 'country'];
+
+    /** @var array<int, string> */
+    public array $filterable = ['is_active', 'country'];
+
+    /** @var array<int, string> */
+    public array $sortable = ['id', 'name', 'is_active', 'created_at'];
+
+    /** @var array<int, string> */
+    public array $includable = ['creator'];
+
+    // region Relation
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+    // endregion
+}

@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  # msw is no longer used by this app - it survives only as a transitive peer
+  # dependency of @vitest/browser-playwright. Declining its install script keeps
+  # public/mockServiceWorker.js from being regenerated.
+  msw: false
