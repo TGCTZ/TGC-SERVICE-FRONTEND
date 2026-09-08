@@ -14,7 +14,7 @@ flowchart TD
     CACHE -->|miss| FETCH["run queryFn"]
 
     BOTH --> FETCH
-    FETCH --> APIFN["fetchProducts(params)<br/><b>features/products/data/products-api.ts</b>"]
+    FETCH --> APIFN["fetchProducts(params)<br/><b>features/products/data/api.ts</b>"]
     APIFN --> BUILD["buildListParams(params)<br/><b>lib/api-query.ts</b>"]
     BUILD --> AXIOS["api.get('/products', { params })<br/><b>lib/api.ts</b>"]
     AXIOS --> INTER["request interceptor<br/>attaches Bearer token"]

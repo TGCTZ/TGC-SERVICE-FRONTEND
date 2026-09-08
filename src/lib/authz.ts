@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth-store'
 /**
  * Authorization helpers.
  *
- * Gates are expressed as **permissions** (e.g. `products.create`) rather than
+ * Gates are expressed as **permissions** (e.g. `catalog.add_product`) rather than
  * roles, because that is exactly how the API enforces access. Using the same
  * vocabulary on both sides means the UI and the server can never disagree
  * about what a user may do — a role gate would drift the moment someone edits
@@ -32,7 +32,7 @@ export function toPermissionArray(
  *
  * Takes a bare string or an array. Normalising here rather than at each call
  * site matters: a bare string reaching an array-only signature does not fail
- * type-checking in every position, and `'products.view'.some` is a runtime
+ * type-checking in every position, and `'catalog.view_product'.some` is a runtime
  * TypeError, not a denied permission.
  */
 export function hasAnyPermission(required: string | string[]): boolean {
@@ -50,7 +50,7 @@ export function hasAnyPermission(required: string | string[]): boolean {
  *
  * @example
  * export const Route = createFileRoute('/_authenticated/products/')({
- *   beforeLoad: requirePermission(['products.viewAny']),
+ *   beforeLoad: requirePermission([perm('products', 'view')]),
  *   component: Products,
  * })
  */

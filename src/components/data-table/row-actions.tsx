@@ -16,8 +16,8 @@ import {
  *
  * @example
  * const actions: RowAction[] = [
- *   { label: 'Edit', icon: Pencil, permission: 'products.update', onSelect: openEdit },
- *   { label: 'Delete', icon: Trash, permission: 'products.delete',
+ *   { label: 'Edit', icon: Pencil, permission: perm('products', 'change'), onSelect: openEdit },
+ *   { label: 'Delete', icon: Trash, permission: perm('products', 'delete'),
  *     variant: 'destructive', separatorBefore: true, onSelect: confirmDelete },
  * ]
  */

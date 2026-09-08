@@ -61,7 +61,7 @@ Twelve test files, covering the pre-existing template pieces:
 | State | `src/stores/auth-store.test.ts` |
 | Components | `src/components/config-drawer.test.tsx`, `src/components/confirm-dialog.test.tsx`, `src/components/password-input.test.tsx`, `src/components/sign-out-dialog.test.tsx` |
 | Context | `src/context/search-provider.test.tsx` |
-| Auth forms | `src/features/auth/sign-in/components/user-auth-form.test.tsx`, `src/features/auth/sign-up/components/sign-up-form.test.tsx` |
+| Auth forms | `src/features/auth/sign-in/components/form.test.tsx`, `src/features/auth/sign-up/components/form.test.tsx` |
 
 ## What is not covered — read this before trusting the suite
 

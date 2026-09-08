@@ -1,41 +1,73 @@
 import { z } from 'zod'
 
-/** Pagination metadata returned by every list endpoint. */
-export const metaSchema = z.object({
-  current_page: z.number(),
-  last_page: z.number(),
-  per_page: z.number(),
-  total: z.number(),
-})
+/**
+ * Rows per page when the caller does not ask for a specific size.
+ *
+ * Must track `StandardPagination.page_size` on the API. The value is needed
+ * client-side because the list envelope reports a total row count but not the
+ * page size used to produce it, so `last_page` cannot be derived without it.
+ */
+export const DEFAULT_PAGE_SIZE = 15
 
 /** Pagination metadata for a list response. Pages are 1-based. */
-export type Meta = z.infer<typeof metaSchema>
-
-const linksSchema = z.object({
-  first_page: z.string().nullable(),
-  last_page: z.string().nullable(),
-  previous_page: z.string().nullable(),
-  next_page: z.string().nullable(),
-})
+export type Meta = {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+}
 
 /**
  * Build the schema for a list response.
  *
- * The API keys collections by their plural resource name rather than a generic
- * `data`, so the key is passed in: `paginatedSchema(productSchema, 'products')`.
+ * The API returns a fixed envelope for every collection - a total `count`, the
+ * adjacent page URLs, and the rows under `results` - so unlike a
+ * resource-keyed API there is no collection name to pass in.
  */
-export function paginatedSchema<T extends z.ZodTypeAny>(item: T, key: string) {
+export function paginatedSchema<T extends z.ZodTypeAny>(item: T) {
   return z.object({
-    [key]: z.array(item),
-    links: linksSchema,
-    meta: metaSchema,
+    count: z.number(),
+    next: z.string().nullable(),
+    previous: z.string().nullable(),
+    results: z.array(item),
   })
 }
 
-/** A page of results, normalised so callers never care about the key name. */
+/** A page of results, normalised for the table components. */
 export type Paginated<T> = {
   items: T[]
   meta: Meta
+}
+
+/**
+ * Convert a list envelope into the shape the table components consume.
+ *
+ * The envelope carries `count` but neither the current page nor the page size,
+ * because the client supplied both in the request. They are read back off the
+ * request parameters rather than the response, which is why this takes the same
+ * `params` that produced the call.
+ *
+ * @param envelope - Parsed response from a {@link paginatedSchema}.
+ * @param params - The list parameters the request was built from.
+ * @returns Rows plus 1-based pagination metadata.
+ */
+export function toPaginated<T>(
+  envelope: { count: number; results: T[] },
+  params: ListParams
+): Paginated<T> {
+  const perPage = params.perPage ?? DEFAULT_PAGE_SIZE
+
+  return {
+    items: envelope.results,
+    meta: {
+      current_page: params.page ?? 1,
+      // An empty collection still has one (empty) page; a last_page of 0 makes
+      // the pager render "Page 1 of 0".
+      last_page: Math.max(1, Math.ceil(envelope.count / perPage)),
+      per_page: perPage,
+      total: envelope.count,
+    },
+  }
 }
 
 /**
@@ -75,14 +107,16 @@ export function buildListParams(params: ListParams): Record<string, unknown> {
   const query: Record<string, unknown> = {}
 
   if (params.page) query.page = params.page
-  if (params.perPage) query.per_page = params.perPage
+  if (params.perPage) query.page_size = params.perPage
 
   const search = params.search?.trim()
   if (search) query.search = search
 
+  // Ordering is a single parameter, with a leading `-` for descending, rather
+  // than a field/direction pair.
   if (params.sortBy) {
-    query.sort_by = params.sortBy
-    query.sort_dir = params.sortDir ?? 'asc'
+    const prefix = params.sortDir === 'desc' ? '-' : ''
+    query.ordering = `${prefix}${params.sortBy}`
   }
 
   if (params.include?.length) query.include = params.include.join(',')

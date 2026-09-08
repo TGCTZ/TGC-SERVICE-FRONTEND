@@ -1,6 +1,7 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { requirePermission } from '@/lib/authz'
+import { PERMISSIONS } from '@/lib/permissions'
 import { AuditLogs } from '@/features/audit-logs'
 
 const auditLogsSearchSchema = z.object({
@@ -15,7 +16,7 @@ const auditLogsSearchSchema = z.object({
 })
 
 export const Route = createFileRoute('/_authenticated/audit-logs/')({
-  beforeLoad: requirePermission(['activity-logs.viewAny']),
+  beforeLoad: requirePermission([PERMISSIONS.viewActivityLogs]),
   validateSearch: auditLogsSearchSchema,
   component: AuditLogs,
 })

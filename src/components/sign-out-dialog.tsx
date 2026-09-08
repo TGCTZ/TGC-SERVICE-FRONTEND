@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { logout } from '@/features/auth/data/auth-api'
+import { logout } from '@/features/auth/data/api'
 
 interface SignOutDialogProps {
   open: boolean

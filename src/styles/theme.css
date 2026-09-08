@@ -1,95 +1,198 @@
+/*
+ * TGC Color System v1.1 — role token definitions.
+ *
+ * This file is the single mapping from the TGC palette to the roles the
+ * interface consumes (spec §29). Components reference roles only; no component
+ * should carry a raw hex or a Tailwind palette class such as `amber-500`.
+ *
+ * Two rules govern the naming, both from spec §33:
+ *   - `accent` is shadcn's neutral hover surface, NOT the TGC brand accent.
+ *     Gold lives under `--gold`, because `bg-accent` paints every hovered menu
+ *     item, calendar day and ghost button in the app.
+ *   - `secondary` is shadcn's quiet chip surface, NOT TGC Teal. Teal is a large
+ *     institutional surface (spec §5) and lives under `--institutional`.
+ */
+
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Surfaces and text — spec §12.2 */
+  --background: #f8fafc; /* neutral-50 */
+  --foreground: #0f172a; /* neutral-900 */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --muted: #f1f5f9; /* neutral-100 */
+  --muted-foreground: #64748b; /* neutral-500 */
+  --border: #e2e8f0; /* neutral-200 */
+  --border-strong: #cbd5e1; /* neutral-300 */
+  /* Form outlines use the strong border: a field must read as an affordance,
+   * not as a divider. */
+  --input: #cbd5e1;
+  --ring: #0152a9; /* focus carries brand identity */
+
+  /* Brand — spec §12.3 */
+  --primary: #0152a9; /* TGC Blue, blue-600 */
+  --primary-foreground: #ffffff;
+  --primary-hover: #00458f; /* blue-700 */
+  --primary-active: #00366f; /* blue-800 */
+  --primary-subtle: #eff6ff; /* blue-50 */
+  --institutional: #074c70; /* TGC Teal, teal-800 */
+  --institutional-foreground: #ffffff;
+  --institutional-subtle: #eef8fb; /* teal-50 */
+  --gold: #e4a41e; /* TGC Gold, gold-500 */
+  --gold-foreground: #452a05; /* gold-950 — gold is too light for white text */
+  --gold-subtle: #fffaeb; /* gold-50 */
+
+  /* Framework neutrals. Deliberately not brand-tinted: these paint hover and
+   * low-emphasis chips, which appear too often to carry identity. */
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+
+  /* Semantic quads — spec §12.4. Each role needs a solid fill, the text colour
+   * legible on a plain surface, and a tint. The solid value is never reused as
+   * text: #DC2626 as inline copy fails contrast on a dark ground. */
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --success-text: #15803d;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --warning-text: #b45309;
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+  --danger-text: #b91c1c;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+  --info-text: #1d4ed8;
+
+  /* shadcn spells danger `destructive`; alias rather than duplicate. */
+  --destructive: var(--danger);
+  --destructive-foreground: var(--danger-foreground);
+
+  /*
+   * Derived tints — spec §12.5.
+   *
+   * Defined once and resolved lazily against whichever --card is in scope, so
+   * the dark theme inherits correct tints without redeclaring eight constants
+   * that would drift out of sync over time.
+   */
+  --success-subtle: color-mix(in oklab, var(--success) 12%, var(--card));
+  --success-border: color-mix(in oklab, var(--success) 30%, var(--card));
+  --warning-subtle: color-mix(in oklab, var(--warning) 12%, var(--card));
+  --warning-border: color-mix(in oklab, var(--warning) 30%, var(--card));
+  --danger-subtle: color-mix(in oklab, var(--danger) 12%, var(--card));
+  --danger-border: color-mix(in oklab, var(--danger) 30%, var(--card));
+  --info-subtle: color-mix(in oklab, var(--info) 12%, var(--card));
+  --info-border: color-mix(in oklab, var(--info) 30%, var(--card));
+
+  /* Categorical chart sequence — spec §35. Order is fixed: Blue, Teal, Gold,
+   * then supporting shades, then neutral. */
+  --chart-1: #0152a9;
+  --chart-2: #074c70;
+  --chart-3: #e4a41e;
+  --chart-4: #3d8dd4;
+  --chart-5: #45a6bd;
+  --chart-6: #94a3b8;
 
   /*
    * The sidebar is a distinct surface, not the same sheet as the content.
    *
-   * These were all aliases of their content counterparts, so the chrome and
-   * the data it frames rendered identically. In the default `inset` variant
-   * the page takes --sidebar and the content floats on it as a --background
-   * card, so this one value is what makes the content read as raised.
+   * In the default `inset` variant the page takes --sidebar and the content
+   * floats on it as a --background card, so this one value is what makes the
+   * content read as raised. It carries a teal tint rather than plain grey:
+   * spec §5 assigns navigation to the institutional colour, and §16's light
+   * navigation keeps the tint faint so the active blue still reads.
    */
-  --sidebar: oklch(0.973 0.006 247.9);
+  --sidebar: #eef8fb; /* teal-50 */
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
   /* Distinctly darker than the track, or hover is invisible on the tint. */
-  --sidebar-accent: oklch(0.929 0.012 247.9);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: oklch(0.902 0.016 255.5);
+  --sidebar-accent: #d7eef4; /* teal-100 */
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: #cfe6ee;
   --sidebar-ring: var(--ring);
 
   /*
    * Table headers need their own tone, not --muted.
    *
-   * In light mode --muted is oklch(0.968) against a pure-white background —
-   * about 3% darker, which disappears. Dark mode gets away with --muted only
-   * because it sits far from its background. One token per theme, tuned to the
-   * surface it actually lands on.
+   * --muted is only ~3% darker than a white card, which disappears. This is a
+   * blue-tinted neutral: dark enough to separate the header band, quiet enough
+   * not to compete with the data.
    */
-  --table-header: oklch(0.935 0.011 247.9);
+  --table-header: #e8eef6;
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.14 0.04 259.21);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  /* Surfaces invert; the card lifts *above* the ground — spec §25, §34. */
+  --background: #020617; /* neutral-950 */
+  --foreground: #f8fafc;
+  --card: #0f172a; /* neutral-900 */
+  --card-foreground: #f8fafc;
+  --popover: #1e293b; /* neutral-800 */
+  --popover-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8; /* neutral-400 */
+  --border: #334155; /* neutral-700 */
+  --border-strong: #475569; /* neutral-600 */
+  --input: #475569;
+  --ring: #3d8dd4;
+
+  /*
+   * The inversion rule — spec §34.
+   *
+   * As the ground darkens the brand surface lightens, so its foreground must
+   * darken with it. A light-blue button carrying white text is the standard
+   * dark-mode brand failure; #001A36 on #3D8DD4 clears it comfortably.
+   */
+  --primary: #3d8dd4; /* blue-400 */
+  --primary-foreground: #001a36; /* blue-950 */
+  --primary-hover: #0a6ed1; /* blue-500 */
+  --primary-active: #0152a9; /* blue-600 */
+  --primary-subtle: color-mix(in oklab, var(--primary) 15%, var(--card));
+  /* Teal is already dark, so it deepens rather than lightens. */
+  --institutional: #032637; /* teal-950 */
+  --institutional-foreground: #f8fafc;
+  --institutional-subtle: color-mix(in oklab, #45a6bd 15%, var(--card));
+  --gold: #f0b832; /* gold-400 */
+  --gold-subtle: color-mix(in oklab, var(--gold) 15%, var(--card));
+
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+
+  /*
+   * Solid semantic fills keep their light-mode values — they are dark enough
+   * to carry white text on any ground. Only the text variants lighten, since
+   * #B91C1C as inline copy is unreadable on #020617.
+   */
+  --success-text: #4ade80;
+  --warning-text: #fbbf24;
+  --danger-text: #f87171;
+  --info-text: #60a5fa;
+
+  /* Chart shades lighten to hold their own against the dark ground. */
+  --chart-1: #3d8dd4;
+  --chart-2: #45a6bd;
+  --chart-3: #f0b832;
+  --chart-4: #82b4e5;
+  --chart-5: #7bc4d4;
+  --chart-6: #64748b;
 
   /*
    * Dark mode inverts the relationship: the sidebar recedes *below* the
    * content rather than sitting above it, so the content card still reads as
-   * the raised surface. Lightening it here would flatten the two together
-   * again, which is the bug this replaces.
+   * the raised surface. The teal tint survives at teal-950.
    */
-  --sidebar: oklch(0.104 0.035 264.7);
-  --sidebar-accent: oklch(0.238 0.04 260.031);
-  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar: #032637;
+  --sidebar-accent: #063a56; /* teal-900 */
+  --sidebar-border: #07364d;
 
-  /* Matches the --muted/70 blend that already read correctly here. */
-  --table-header: oklch(0.235 0.038 260.031);
+  --table-header: #1e293b;
 }
 
 @theme inline {
@@ -100,29 +203,67 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-institutional: var(--institutional);
+  --color-institutional-foreground: var(--institutional-foreground);
+  --color-institutional-subtle: var(--institutional-subtle);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-gold-subtle: var(--gold-subtle);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-text: var(--success-text);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-text: var(--warning-text);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-text: var(--danger-text);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-border: var(--danger-border);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-text: var(--info-text);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-border: var(--info-border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+
   --color-table-header: var(--table-header);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);

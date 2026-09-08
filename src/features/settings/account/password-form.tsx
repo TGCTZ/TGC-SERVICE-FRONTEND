@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { PasswordInput } from '@/components/password-input'
-import { changePassword } from '@/features/auth/data/auth-api'
+import { changePassword } from '@/features/auth/data/api'
 
 /**
  * Mirrors the API's rules (`Password::min(8)`, `confirmed`, `different`) so the

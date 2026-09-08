@@ -266,7 +266,7 @@ Every write the API performs is recorded, and the UI surfaces it in two places
 that share one renderer:
 
 ```
-              features/audit-logs/components/audit-diff.tsx
+              features/audit-logs/components/diff.tsx
                             (field · before · after)
                           ▲                     ▲
                           │                     │

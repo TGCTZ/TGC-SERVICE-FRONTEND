@@ -44,13 +44,13 @@ export function AnalyticsChart() {
       <AreaChart data={data}>
         <XAxis
           dataKey='name'
-          stroke='#888888'
+          stroke='var(--muted-foreground)'
           fontSize={12}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
-          stroke='#888888'
+          stroke='var(--muted-foreground)'
           fontSize={12}
           tickLine={false}
           axisLine={false}
@@ -59,7 +59,7 @@ export function AnalyticsChart() {
           type='monotone'
           dataKey='clicks'
           stroke='currentColor'
-          className='text-primary'
+          className='text-chart-1'
           fill='currentColor'
           fillOpacity={0.15}
         />
@@ -67,7 +67,7 @@ export function AnalyticsChart() {
           type='monotone'
           dataKey='uniques'
           stroke='currentColor'
-          className='text-muted-foreground'
+          className='text-chart-2'
           fill='currentColor'
           fillOpacity={0.1}
         />

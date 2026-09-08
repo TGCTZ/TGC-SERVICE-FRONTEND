@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, type RenderResult } from 'vitest-browser-react'
 import { userEvent } from 'vitest/browser'
 import { useAuthStore } from '@/stores/auth-store'
+import { perm } from '@/lib/permissions'
 import { SearchProvider } from '@/context/search-provider'
 
 const COMMAND_MENU_PLACEHOLDER = 'Type a command or search...'
@@ -30,7 +31,9 @@ type ShortcutModifier = 'Control' | 'Meta'
  * signed-in user may reach. Seed a user holding the permissions the assertions
  * below rely on.
  */
-function signIn(permissions: string[] = ['products.viewAny', 'users.viewAny']) {
+function signIn(
+  permissions: string[] = [perm('products', 'view'), perm('users', 'view')]
+) {
   useAuthStore.getState().auth.setUser({
     id: 1,
     first_name: 'Test',
@@ -38,7 +41,7 @@ function signIn(permissions: string[] = ['products.viewAny', 'users.viewAny']) {
     full_name: 'Test User',
     username: 'testuser',
     email: 'test@example.com',
-    avatar_url: null,
+    avatar: null,
     is_active: true,
     roles: ['admin'],
     permissions,

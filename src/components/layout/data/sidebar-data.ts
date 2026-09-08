@@ -13,6 +13,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react'
+import { PERMISSIONS, perm } from '@/lib/permissions'
 import { type SidebarData } from '../types'
 
 /**
@@ -68,12 +69,12 @@ export const sidebarData: SidebarData = {
           title: 'Products',
           url: '/products',
           icon: Package,
-          permission: 'products.viewAny',
+          permission: perm('products', 'view'),
         },
         {
           // Reference data the domain records select from. Each entry maps to
           // the same generic lookup screen, parameterised by the slug — see
-          // `features/lookups/data/lookup-config.ts`.
+          // `features/lookups/data/config.ts`.
           title: 'Reference data',
           icon: Boxes,
           items: [
@@ -81,31 +82,31 @@ export const sidebarData: SidebarData = {
               title: 'Categories',
               url: '/lookups/product-categories',
               icon: Boxes,
-              permission: 'product-categories.viewAny',
+              permission: perm('product-categories', 'view'),
             },
             {
               title: 'Brands',
               url: '/lookups/brands',
               icon: Factory,
-              permission: 'brands.viewAny',
+              permission: perm('brands', 'view'),
             },
             {
               title: 'Product statuses',
               url: '/lookups/product-statuses',
               icon: ListChecks,
-              permission: 'product-statuses.viewAny',
+              permission: perm('product-statuses', 'view'),
             },
             {
               title: 'Units of measure',
               url: '/lookups/unit-of-measures',
               icon: Ruler,
-              permission: 'unit-of-measures.viewAny',
+              permission: perm('unit-of-measures', 'view'),
             },
             {
               title: 'Tags',
               url: '/lookups/tags',
               icon: Tags,
-              permission: 'tags.viewAny',
+              permission: perm('tags', 'view'),
             },
           ],
         },
@@ -155,13 +156,13 @@ export const sidebarData: SidebarData = {
               title: 'All Users',
               url: '/users',
               icon: Users,
-              permission: 'users.viewAny',
+              permission: perm('users', 'view'),
             },
             {
               title: 'Roles',
               url: '/roles',
               icon: ShieldCheck,
-              permission: 'roles.viewAny',
+              permission: perm('roles', 'view'),
             },
           ],
         },
@@ -173,13 +174,13 @@ export const sidebarData: SidebarData = {
               title: 'Audit Logs',
               url: '/audit-logs',
               icon: ScrollText,
-              permission: 'activity-logs.viewAny',
+              permission: PERMISSIONS.viewActivityLogs,
             },
             {
               title: 'System Logs',
               url: '/system-logs',
               icon: TerminalSquare,
-              permission: 'system-logs.viewAny',
+              permission: PERMISSIONS.viewSystemLogs,
             },
           ],
         },

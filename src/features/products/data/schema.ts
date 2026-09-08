@@ -15,8 +15,8 @@ export type Lookup = z.infer<typeof lookupSchema>
 
 export const productImageSchema = z.object({
   id: z.number(),
-  product_id: z.number(),
-  image_url: z.string(),
+  product: z.number(),
+  image: z.string(),
   alt_text: z.string().nullable().default(null),
   sort_order: z.number().default(0),
   is_primary: z.boolean().default(false),
@@ -27,8 +27,8 @@ export type ProductImage = z.infer<typeof productImageSchema>
 /**
  * A product as returned by the API.
  *
- * Money and decimal columns arrive as strings (Laravel casts `decimal:2` to a
- * string to avoid float precision loss), so they are coerced to numbers here
+ * Money and decimal columns arrive as strings - the API renders decimals as
+ * strings to avoid float precision loss - so they are coerced to numbers here
  * once, at the boundary, rather than in every component that formats them.
  */
 export const productSchema = z.object({
@@ -41,14 +41,19 @@ export const productSchema = z.object({
   short_description: z.string().nullable().default(null),
   description: z.string().nullable().default(null),
 
-  product_category_id: z.number().nullable().default(null),
-  product_category: lookupSchema.nullable().optional(),
-  brand_id: z.number().nullable().default(null),
-  brand: lookupSchema.nullable().optional(),
-  product_status_id: z.number().nullable().default(null),
-  product_status: lookupSchema.nullable().optional(),
-  unit_of_measure_id: z.number().nullable().default(null),
-  unit_of_measure: lookupSchema.nullable().optional(),
+  /*
+   * Relations arrive as two fields: the bare name holds the foreign key, and
+   * `<field>_detail` holds the expanded object. The id is what writes send
+   * back, so it keeps the plain name; the detail is read-only.
+   */
+  product_category: z.number().nullable().default(null),
+  product_category_detail: lookupSchema.nullable().default(null),
+  brand: z.number().nullable().default(null),
+  brand_detail: lookupSchema.nullable().default(null),
+  product_status: z.number().nullable().default(null),
+  product_status_detail: lookupSchema.nullable().default(null),
+  unit_of_measure: z.number().nullable().default(null),
+  unit_of_measure_detail: lookupSchema.nullable().default(null),
 
   price: z.coerce.number(),
   cost_price: z.coerce.number().nullable().default(null),
@@ -81,10 +86,11 @@ export const productSchema = z.object({
   website_url: z.string().nullable().default(null),
   contact_email: z.string().nullable().default(null),
 
-  image_url: z.string().nullable().default(null),
+  image: z.string().nullable().default(null),
 
-  tags: z.array(lookupSchema).optional(),
-  images: z.array(productImageSchema).optional(),
+  tags: z.array(z.number()).default([]),
+  tags_detail: z.array(lookupSchema).default([]),
+  images: z.array(productImageSchema).default([]),
 
   created_at: z.string().nullable().default(null),
   updated_at: z.string().nullable().default(null),

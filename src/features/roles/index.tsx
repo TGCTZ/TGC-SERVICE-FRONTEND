@@ -3,6 +3,7 @@ import { AxiosError } from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Eye, KeyRound, Lock, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { perm } from '@/lib/permissions'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,13 +33,8 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
-import { RolePermissionsDialog } from './components/role-permissions-dialog'
-import {
-  createRole,
-  deleteRole,
-  rolesQuery,
-  updateRole,
-} from './data/roles-api'
+import { RolePermissionsDialog } from './components/permissions-dialog'
+import { createRole, deleteRole, rolesQuery, updateRole } from './data/api'
 import { type Role } from './data/schema'
 
 export function Roles() {
@@ -121,19 +117,19 @@ export function Roles() {
       {
         label: 'View',
         icon: Eye,
-        permission: 'roles.view',
+        permission: perm('roles', 'view'),
         onSelect: () => setViewFor(role),
       },
       {
         label: 'Permissions',
         icon: KeyRound,
-        permission: 'roles.update',
+        permission: perm('roles', 'change'),
         onSelect: () => setPermissionsFor(role),
       },
       {
         label: 'Rename',
         icon: Pencil,
-        permission: 'roles.update',
+        permission: perm('roles', 'change'),
         onSelect: () => {
           setRenameFor(role)
           setRenameValue(role.name)
@@ -143,7 +139,7 @@ export function Roles() {
       {
         label: 'Delete',
         icon: Trash2,
-        permission: 'roles.delete',
+        permission: perm('roles', 'delete'),
         onSelect: () => setDeleteFor(role),
         variant: 'destructive',
         hidden: role.is_protected,
@@ -171,7 +167,7 @@ export function Roles() {
             </p>
           </div>
 
-          <Can permission='roles.create'>
+          <Can permission={perm('roles', 'add')}>
             <Button onClick={() => setCreateOpen(true)}>
               Add role
               <Plus className='ms-1 size-4' />

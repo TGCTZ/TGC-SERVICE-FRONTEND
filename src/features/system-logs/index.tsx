@@ -30,11 +30,8 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
+import { systemLogLevelsQuery, systemLogsQueryOptions } from './data/api'
 import { type SystemLog } from './data/schema'
-import {
-  systemLogLevelsQuery,
-  systemLogsQueryOptions,
-} from './data/system-logs-api'
 
 const route = getRouteApi('/_authenticated/system-logs/')
 
@@ -285,8 +282,7 @@ export function SystemLogs() {
                   </Badge>
                   <span className='text-sm font-normal text-muted-foreground'>
                     {formatDate(selected.logged_at)}{' '}
-                    {formatTime(selected.logged_at)} · {selected.environment} ·{' '}
-                    {selected.file}
+                    {formatTime(selected.logged_at)} · {selected.file}
                   </span>
                 </DialogTitle>
                 <DialogDescription className='break-words'>
@@ -295,8 +291,10 @@ export function SystemLogs() {
               </DialogHeader>
 
               <DialogBody className='me-0 pe-0'>
+                {/* The log format records no stack trace, so the message is the
+                    whole entry; kept in a <pre> for long wrapped lines. */}
                 <pre className='rounded-md bg-muted p-3 text-xs whitespace-pre-wrap'>
-                  {selected.context.trim() || 'No stack trace recorded.'}
+                  {selected.message.trim() || 'No detail recorded.'}
                 </pre>
               </DialogBody>
             </>

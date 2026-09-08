@@ -19,7 +19,31 @@ export const api = axios.create({
 /** Request config extended with our one-shot retry marker. */
 type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
+/**
+ * Append the trailing slash Django expects.
+ *
+ * Django resolves `/auth/login/` but not `/auth/login`. `APPEND_SLASH` only
+ * redirects safe methods; a POST to the unslashed path fails outright rather
+ * than redirecting, because the body cannot be carried across a 301.
+ *
+ * Applied centrally rather than at each call site: a missed slash surfaces only
+ * on whichever endpoint nobody exercised, whereas an error here is immediate
+ * and global. Absolute URLs and paths that already end in a slash are left
+ * alone; query strings are appended by Axios afterwards, so they are not a
+ * concern here.
+ */
+function withTrailingSlash(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path
+  const [pathname, ...rest] = path.split('?')
+  if (pathname === '' || pathname.endsWith('/')) return path
+  return [`${pathname}/`, ...rest].join('?')
+}
+
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (config.url) {
+    config.url = withTrailingSlash(config.url)
+  }
+
   const { accessToken } = useAuthStore.getState().auth
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`
@@ -36,25 +60,39 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 let refreshPromise: Promise<string> | null = null
 
 /**
- * Exchange the current token for a fresh one.
+ * Exchange the refresh token for a fresh pair.
  *
- * Sanctum has no refresh-token concept: the endpoint mints a new token and
- * revokes the one that authenticated the request, so the stored token must be
- * replaced with the response value.
+ * The refresh token travels in the body, not the `Authorization` header: it is
+ * the durable credential and is deliberately never attached to ordinary
+ * requests. A bare `axios` call is used rather than the `api` instance so the
+ * request skips this module's interceptors and cannot recurse.
+ *
+ * The API rotates refresh tokens and blacklists the old one, so **both** values
+ * from the response must be stored. Keeping the previous refresh token would
+ * leave the session working until the next refresh, then fail with a
+ * blacklisted-token error roughly an access-token lifetime later.
+ *
+ * @throws When no refresh token is held, or the API rejects the one held.
  */
 async function refreshAccessToken(): Promise<string> {
-  const { accessToken } = useAuthStore.getState().auth
+  const { refreshToken } = useAuthStore.getState().auth
+  if (!refreshToken) {
+    throw new Error('No refresh token available')
+  }
 
-  const res = await axios.post(`${env.VITE_API_URL ?? ''}/auth/refresh`, null, {
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  })
+  const res = await axios.post(
+    `${env.VITE_API_URL ?? ''}/auth/refresh/`,
+    { refresh: refreshToken },
+    { headers: { Accept: 'application/json' } }
+  )
 
-  const token: string = res.data.token
-  useAuthStore.getState().auth.setAccessToken(token)
-  return token
+  const access: string = res.data.access
+  // Rotation is enabled server-side, but tolerate a deployment where it is not:
+  // an absent `refresh` means the token we sent is still the current one.
+  const refresh: string = res.data.refresh ?? refreshToken
+
+  useAuthStore.getState().auth.setTokens(access, refresh)
+  return access
 }
 
 function getRefreshPromise(): Promise<string> {
@@ -68,16 +106,16 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const original = error.config as RetriableConfig | undefined
-    const { accessToken, reset } = useAuthStore.getState().auth
+    const { refreshToken, reset } = useAuthStore.getState().auth
 
-    // Only attempt a refresh for an authenticated request failing with 401,
-    // and only once per request (`_retry`) to avoid infinite loops. The
-    // refresh endpoint itself is excluded, otherwise a dead session loops.
+    // Only attempt a refresh when a refresh token is actually held, and only
+    // once per request (`_retry`) to avoid infinite loops. The refresh endpoint
+    // itself is excluded, otherwise a dead session loops.
     const isRefreshCall = original?.url?.includes('/auth/refresh') ?? false
 
     const shouldRefresh =
       error.response?.status === 401 &&
-      Boolean(accessToken) &&
+      Boolean(refreshToken) &&
       original &&
       !original._retry &&
       !isRefreshCall

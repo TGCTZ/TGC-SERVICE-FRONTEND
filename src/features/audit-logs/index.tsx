@@ -7,12 +7,9 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
-import { AuditLogDetailDialog } from './components/audit-log-detail-dialog'
-import {
-  AuditLogsTable,
-  type AuditLogsQueryState,
-} from './components/audit-logs-table'
-import { activityLogsQueryOptions } from './data/audit-logs-api'
+import { AuditLogDetailDialog } from './components/detail-dialog'
+import { AuditLogsTable, type AuditLogsQueryState } from './components/table'
+import { activityLogsQueryOptions } from './data/api'
 import { type ActivityLog } from './data/schema'
 
 const route = getRouteApi('/_authenticated/audit-logs/')

@@ -43,7 +43,7 @@ flowchart TD
 
 If your resource is reference data — `name`, `description`, `is_active`, soft
 deletes, restore — **stop**. Add one entry to `lookupConfigs` in
-[`src/features/lookups/data/lookup-config.ts`](../src/features/lookups/data/lookup-config.ts)
+[`src/features/lookups/data/config.ts`](../src/features/lookups/data/config.ts)
 and you get a table, CRUD, soft-delete/restore, permission gating and audit
 history with no new components.
 
@@ -117,7 +117,7 @@ export const widgetsQueryOptions = (params: ListParams) =>
 
 **Writes with a file** must be `multipart/form-data`, and PHP does not parse
 multipart on `PUT` — so updates POST with `_method=PUT`. See `toFormData()` in
-[`products-api.ts`](../src/features/products/data/products-api.ts).
+[`products-api.ts`](../src/features/products/data/api.ts).
 
 ### 3. Build feature components — `components/`
 
@@ -283,11 +283,11 @@ if (error instanceof AxiosError && error.response?.status === 422) {
 ```
 
 Full example:
-[`product-mutate-dialog.tsx`](../src/features/products/components/product-mutate-dialog.tsx).
+[`product-mutate-dialog.tsx`](../src/features/products/components/mutate-dialog.tsx).
 
 ### File uploads
 
-See [`product-gallery.tsx`](../src/features/products/components/product-gallery.tsx)
+See [`product-gallery.tsx`](../src/features/products/components/gallery.tsx)
 for multi-file upload, set-primary and delete against the API.
 
 ---

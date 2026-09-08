@@ -45,7 +45,7 @@ user from `/auth/me` — permissions have to be loaded before the first render o
 gated UI flickers.
 
 To swap providers (Clerk, Auth0, Supabase), replace three things: that call,
-the login in `src/features/auth/data/auth-api.ts`, and the refresh seam in
+the login in `src/features/auth/data/api.ts`, and the refresh seam in
 `src/lib/api.ts`.
 
 ### 5. Navigation — `src/components/layout/data/sidebar-data.ts`
@@ -57,7 +57,7 @@ project-specific — replace its contents and keep the shape.
 Every entry carries the `permission` the API enforces. The file's own docblock
 explains the rules in full.
 
-### 6. Reference data — `src/features/lookups/data/lookup-config.ts`
+### 6. Reference data — `src/features/lookups/data/config.ts`
 
 One array drives all five lookup screens. Swap the example catalogue entries
 for your own tables; you do not write components.

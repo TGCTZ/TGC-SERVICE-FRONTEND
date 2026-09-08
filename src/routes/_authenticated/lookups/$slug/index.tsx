@@ -1,8 +1,9 @@
 import z from 'zod'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { hasAnyPermission } from '@/lib/authz'
+import { perm } from '@/lib/permissions'
 import { Lookups } from '@/features/lookups'
-import { lookupConfigBySlug } from '@/features/lookups/data/lookup-config'
+import { lookupConfigBySlug } from '@/features/lookups/data/config'
 
 const lookupsSearchSchema = z.object({
   page: z.number().optional().catch(1),
@@ -23,7 +24,7 @@ export const Route = createFileRoute('/_authenticated/lookups/$slug/')({
 
     if (!config) throw redirect({ to: '/404' })
 
-    if (!hasAnyPermission([`${config.resource}.viewAny`])) {
+    if (!hasAnyPermission([perm(config.resource, 'view')])) {
       throw redirect({ to: '/403' })
     }
   },

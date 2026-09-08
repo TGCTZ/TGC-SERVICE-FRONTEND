@@ -5,6 +5,7 @@ import { getRouteApi } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
 import { Eye, History, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { subjectTypes } from '@/lib/subject-types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,17 +29,13 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
-import { LookupMutateDialog } from './components/lookup-mutate-dialog'
+import { LookupMutateDialog } from './components/mutate-dialog'
+import { deleteLookupRow, lookupRowsQuery, restoreLookupRow } from './data/api'
 import {
   lookupConfigBySlug,
   type LookupConfig,
   type LookupRow,
-} from './data/lookup-config'
-import {
-  deleteLookupRow,
-  lookupRowsQuery,
-  restoreLookupRow,
-} from './data/lookups-api'
+} from './data/config'
 
 const route = getRouteApi('/_authenticated/lookups/$slug/')
 
@@ -87,7 +84,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
   }
 
   const { data, isPending, isError, isFetching } = useQuery(
-    lookupRowsQuery(config.resource, config.collectionKey, {
+    lookupRowsQuery(config.resource, {
       page: state.page,
       perPage: state.perPage,
       search: state.search,
@@ -157,26 +154,26 @@ function LookupsContent({ config }: { config: LookupConfig }) {
       {
         label: 'View',
         icon: Eye,
-        permission: `${config.resource}.view`,
+        permission: perm(config.resource, 'view'),
         onSelect: () => select('view', row),
       },
       {
         label: 'Edit',
         icon: Pencil,
-        permission: `${config.resource}.update`,
+        permission: perm(config.resource, 'change'),
         onSelect: () => select('update', row),
         hidden: isDeleted,
       },
       {
         label: 'History',
         icon: History,
-        permission: 'activity-logs.viewAny',
+        permission: PERMISSIONS.viewActivityLogs,
         onSelect: () => select('history', row),
       },
       {
         label: 'Restore',
         icon: RotateCcw,
-        permission: `${config.resource}.restore`,
+        permission: restorePerm(config.resource),
         onSelect: () => select('restore', row),
         hidden: !isDeleted,
         separatorBefore: true,
@@ -184,7 +181,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
       {
         label: 'Delete',
         icon: Trash2,
-        permission: `${config.resource}.delete`,
+        permission: perm(config.resource, 'delete'),
         onSelect: () => select('delete', row),
         variant: 'destructive',
         hidden: isDeleted,
@@ -316,7 +313,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
             <p className='text-muted-foreground'>{config.description}</p>
           </div>
 
-          <Can permission={`${config.resource}.create`}>
+          <Can permission={perm(config.resource, 'add')}>
             <Button
               onClick={() => {
                 setCurrentRow(null)

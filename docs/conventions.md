@@ -14,7 +14,7 @@ is the reference you keep open while writing.
 If your resource matches the lookup contract — `name`, `description`,
 `is_active`, soft deletes, restore — **do not create a feature folder.** Add one
 entry to `lookupConfigs` in
-[`src/features/lookups/data/lookup-config.ts`](../src/features/lookups/data/lookup-config.ts)
+[`src/features/lookups/data/config.ts`](../src/features/lookups/data/config.ts)
 and you get a table, CRUD, soft-delete/restore, permission gating and audit
 history without writing a component.
 
@@ -324,6 +324,74 @@ same rule the [docs README](./README.md) sets out.
 
 ---
 
+## 12. File and folder naming
+
+### The rule
+
+> Read the full path aloud as a sentence. Every word must earn its place, and
+> no word may repeat.
+
+The **folder is the namespace**. A filename only has to distinguish a module
+from its siblings, not from every module in the project — so anything the path
+has already said is dropped from the name.
+
+```text
+<feature>/data/api.ts                 "users data api"          ✅
+<feature>/data/<feature>-api.ts       "users data users api"    ❌
+<feature>/components/table.tsx        "users components table"  ✅
+<feature>/components/<feature>-table.tsx                        ❌
+```
+
+Repeated basenames across different folders are expected and fine. There are
+several `api.ts`, several `table.tsx` and many `index.tsx`; they are told apart
+by the folder that contains them, which is the folder's job.
+
+### Case
+
+`kebab-case` for every file and folder, including React components. The file is
+`src/features/users/components/mutate-dialog.tsx`; the component it exports is still
+`MutateDialog`.
+
+This is not only style. macOS and Windows have case-insensitive filesystems
+while Linux and CI do not, so a rename that only changes case can pass locally
+and fail in CI with an unresolved import. Never encoding meaning in case
+removes the whole class of bug.
+
+### Where a module goes
+
+| Folder | Holds | Example |
+|---|---|---|
+| `data/` | API client, schemas, config | `src/features/users/data/api.ts` |
+| `components/` | React components only | `src/features/users/components/table.tsx` |
+| `hooks/` | Hooks only | `src/features/users/hooks/use-actions.ts` |
+| *(feature root)* | The screen | `src/features/users/index.tsx` |
+
+A `use-` prefix means the file belongs in `hooks/`, not `components/`. The
+prefix and the folder must agree.
+
+### `index.tsx` is the feature's screen
+
+Each feature exposes exactly one screen, at its root, as `index.tsx`. Route
+files under `src/routes/` import it and add the guard.
+
+`src/routes/**` filenames are **owned by TanStack Router** — they generate the
+URL and `routeTree.gen.ts`. Never rename them to satisfy this convention.
+
+### Singular or plural
+
+Inside a feature the folder already names the subject, so the question does not
+arise. It applies to shared code and to exported identifiers:
+
+- **Plural** when the subject is the collection — `usersQueryOptions`,
+  `groupedPermissionsSchema`
+- **Singular** when the subject is one record — `userSchema`, `fetchProduct`
+
+### Shared code keeps its subject
+
+`src/components/`, `src/lib/` and `src/hooks/` have no namespacing folder, so
+names there must stand alone: `src/lib/permissions.ts`, `src/components/confirm-dialog.tsx`.
+A bare `src/lib/api.ts` is acceptable only because it is *the* HTTP client.
+
 ## Checklist for a new screen
 
 - [ ] Could this be a lookup config entry instead of a feature?
@@ -337,3 +405,4 @@ same rule the [docs README](./README.md) sets out.
 - [ ] Dates and money go through `lib/format.ts`
 - [ ] `subject-types.ts` entry, if you want history
 - [ ] Checked as `viewer@test.com` — the menu should collapse to View
+- [ ] Filenames carry nothing the folder already says (§12)

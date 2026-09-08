@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
+import { perm } from '@/lib/permissions'
 import { subjectTypes } from '@/lib/subject-types'
 import { Button } from '@/components/ui/button'
 import { Can } from '@/components/can'
@@ -12,13 +13,13 @@ import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
-import { useUserActions } from './components/use-user-actions'
-import { UserDeleteDialog } from './components/user-delete-dialog'
-import { UserMutateDialog } from './components/user-mutate-dialog'
-import { UserRestoreDialog } from './components/user-restore-dialog'
-import { UsersProvider, useUsers } from './components/users-provider'
-import { UsersTable, type UsersQueryState } from './components/users-table'
-import { usersQueryOptions } from './data/users-api'
+import { UserDeleteDialog } from './components/delete-dialog'
+import { UserMutateDialog } from './components/mutate-dialog'
+import { UsersProvider, useUsers } from './components/provider'
+import { UserRestoreDialog } from './components/restore-dialog'
+import { UsersTable, type UsersQueryState } from './components/table'
+import { usersQueryOptions } from './data/api'
+import { useUserActions } from './hooks/use-actions'
 
 const route = getRouteApi('/_authenticated/users/')
 
@@ -57,7 +58,7 @@ function UsersContent() {
       sortBy: state.sortBy,
       sortDir: state.sortDir,
       filters: {
-        user_status_id: state.statusId,
+        user_status: state.statusId,
         is_active: state.isActive,
       },
       trashed: state.showDeleted ? 'with' : undefined,
@@ -100,7 +101,7 @@ function UsersContent() {
             </p>
           </div>
 
-          <Can permission='users.create'>
+          <Can permission={perm('users', 'add')}>
             <Button
               onClick={() => {
                 setCurrentRow(null)

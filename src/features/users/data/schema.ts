@@ -28,7 +28,7 @@ export const userSchema = z.object({
   email: z.string(),
   phone_number: z.string().nullable().default(null),
 
-  avatar_url: z.string().nullable().default(null),
+  avatar: z.string().nullable().default(null),
 
   date_of_birth: z.string().nullable().default(null),
   bio: z.string().nullable().default(null),
@@ -44,10 +44,15 @@ export const userSchema = z.object({
   last_login_at: z.string().nullable().default(null),
   is_active: z.boolean().default(true),
 
-  user_status_id: z.number().nullable().default(null),
-  user_status: lookupSchema.nullable().optional(),
-  gender_id: z.number().nullable().default(null),
-  gender: lookupSchema.nullable().optional(),
+  /*
+   * Relations arrive as two fields: the bare name holds the foreign key, and
+   * `<field>_detail` holds the expanded object. The id is what writes send
+   * back, so it keeps the plain name; the detail is read-only.
+   */
+  user_status: z.number().nullable().default(null),
+  user_status_detail: lookupSchema.nullable().default(null),
+  gender: z.number().nullable().default(null),
+  gender_detail: lookupSchema.nullable().default(null),
 
   roles: z.array(z.string()).default([]),
   permissions: z.array(z.string()).default([]),

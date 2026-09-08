@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
+import { perm } from '@/lib/permissions'
 import { subjectTypes } from '@/lib/subject-types'
 import { Button } from '@/components/ui/button'
 import { Can } from '@/components/can'
@@ -11,16 +12,13 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
-import { ProductDeleteDialog } from './components/product-delete-dialog'
-import { ProductMutateDialog } from './components/product-mutate-dialog'
-import { ProductRestoreDialog } from './components/product-restore-dialog'
-import { ProductsProvider, useProducts } from './components/products-provider'
-import {
-  ProductsTable,
-  type ProductsQueryState,
-} from './components/products-table'
-import { useProductActions } from './components/use-product-actions'
-import { productsQueryOptions } from './data/products-api'
+import { ProductDeleteDialog } from './components/delete-dialog'
+import { ProductMutateDialog } from './components/mutate-dialog'
+import { ProductsProvider, useProducts } from './components/provider'
+import { ProductRestoreDialog } from './components/restore-dialog'
+import { ProductsTable, type ProductsQueryState } from './components/table'
+import { productsQueryOptions } from './data/api'
+import { useProductActions } from './hooks/use-actions'
 
 const route = getRouteApi('/_authenticated/products/')
 
@@ -62,8 +60,8 @@ function ProductsContent() {
       sortBy: state.sortBy,
       sortDir: state.sortDir,
       filters: {
-        product_category_id: state.categoryId,
-        product_status_id: state.statusId,
+        product_category: state.categoryId,
+        product_status: state.statusId,
       },
       trashed: state.showDeleted ? 'with' : undefined,
     })
@@ -106,7 +104,7 @@ function ProductsContent() {
             </p>
           </div>
 
-          <Can permission='products.create'>
+          <Can permission={perm('products', 'add')}>
             <Button
               onClick={() => {
                 setCurrentRow(null)

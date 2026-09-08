@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { AuthLayout } from '../auth-layout'
-import { SignUpForm } from './components/sign-up-form'
+import { AuthLayout } from '../layout'
+import { SignUpForm } from './components/form'
 
 export function SignUp() {
   return (

@@ -22,7 +22,7 @@ type CanProps = {
  * one of these independently.
  *
  * @example
- * <Can permission='products.create'>
+ * <Can permission={perm('products', 'add')}>
  *   <Button>Add product</Button>
  * </Can>
  */

@@ -15,7 +15,13 @@ export const roleSchema = z.object({
 
 export type Role = z.infer<typeof roleSchema>
 
-/** Permissions grouped by resource, e.g. `{ products: ['products.viewAny'] }`. */
+/**
+ * Permissions bucketed by app label, e.g. `{ catalog: ['view_product'] }`.
+ *
+ * The values are bare codenames, not the fully qualified names a user's own
+ * permission list carries - the role editor and the authorization gates work in
+ * different vocabularies.
+ */
 export const groupedPermissionsSchema = z.object({
   permissions: z.record(z.string(), z.array(z.string())),
 })

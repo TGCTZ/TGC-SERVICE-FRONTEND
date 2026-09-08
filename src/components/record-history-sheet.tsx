@@ -10,9 +10,9 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AuditDiff } from '@/features/audit-logs/components/audit-diff'
-import { AuditEventBadge } from '@/features/audit-logs/components/audit-event-badge'
-import { recordHistoryQueryOptions } from '@/features/audit-logs/data/audit-logs-api'
+import { AuditDiff } from '@/features/audit-logs/components/diff'
+import { AuditEventBadge } from '@/features/audit-logs/components/event-badge'
+import { recordHistoryQueryOptions } from '@/features/audit-logs/data/api'
 
 type RecordHistorySheetProps = {
   /** Fully-qualified PHP class the API stores, e.g. `App\Models\Product\Product`. */

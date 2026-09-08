@@ -1,6 +1,6 @@
 import { Separator } from '@/components/ui/separator'
 import { ContentSection } from '../components/content-section'
-import { AccountForm } from './account-form'
+import { AccountForm } from './form'
 import { PasswordForm } from './password-form'
 
 export function SettingsAccount() {
