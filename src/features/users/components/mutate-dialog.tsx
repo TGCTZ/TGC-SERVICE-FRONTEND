@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
+import { fieldErrors } from '@/lib/handle-server-error'
 import { perm } from '@/lib/permissions'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Badge } from '@/components/ui/badge'
@@ -175,13 +176,10 @@ export function UserMutateDialog({
       onOpenChange(false)
     },
     onError: (error) => {
-      if (error instanceof AxiosError && error.response?.status === 422) {
-        const errors = error.response.data?.errors ?? {}
-
-        for (const [field, messages] of Object.entries(errors)) {
-          form.setError(field as keyof FormValues, {
-            message: Array.isArray(messages) ? messages[0] : String(messages),
-          })
+      const fields = fieldErrors(error)
+      if (fields) {
+        for (const [field, messages] of Object.entries(fields)) {
+          form.setError(field as keyof FormValues, { message: messages[0] })
         }
 
         toast.error('Please fix the highlighted fields.')

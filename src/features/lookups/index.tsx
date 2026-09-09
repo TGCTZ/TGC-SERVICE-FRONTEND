@@ -126,7 +126,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
     },
     onError: (error) => {
       // A lookup still referenced by a product cannot be removed; the API
-      // answers 409/422 rather than orphaning the rows that point at it.
+      // answers 400 rather than orphaning the rows that point at it.
       if (error instanceof AxiosError && error.response?.status === 403) {
         toast.error('You do not have permission to delete this.')
         return

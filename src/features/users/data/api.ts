@@ -7,17 +7,13 @@ import {
   type ListParams,
   type Paginated,
 } from '@/lib/api-query'
-import { lookupSchema, userSchema, type Lookup, type User } from './schema'
+import { lookupOptionsQuery } from '@/features/lookups/data/api'
+import { userSchema, type User } from './schema'
 
 const listSchema = paginatedSchema(userSchema)
 
 export async function fetchUsers(params: ListParams): Promise<Paginated<User>> {
-  const res = await api.get('/users', {
-    params: buildListParams({
-      ...params,
-      include: ['userStatus', 'gender', 'roles'],
-    }),
-  })
+  const res = await api.get('/users', { params: buildListParams(params) })
 
   return toPaginated(listSchema.parse(res.data), params)
 }
@@ -34,7 +30,13 @@ export type UserPayload = Record<string, unknown> & {
   roles?: string[]
 }
 
-/** Users can carry an avatar, so writes go out as multipart. */
+/**
+ * Encode a payload as multipart, for the one write that carries a file.
+ *
+ * Arrays are appended as a repeated bare key (`roles`, `roles`), which is what
+ * the API reads them back with. A bracketed `roles[]` would arrive as a single
+ * field literally named "roles[]" and be ignored.
+ */
 function toFormData(payload: UserPayload): FormData {
   const form = new FormData()
 
@@ -47,12 +49,12 @@ function toFormData(payload: UserPayload): FormData {
     }
 
     if (Array.isArray(value)) {
-      value.forEach((entry) => form.append(`${key}[]`, String(entry)))
+      value.forEach((entry) => form.append(key, String(entry)))
       continue
     }
 
     if (typeof value === 'boolean') {
-      form.append(key, value ? '1' : '0')
+      form.append(key, value ? 'true' : 'false')
       continue
     }
 
@@ -62,59 +64,40 @@ function toFormData(payload: UserPayload): FormData {
   return form
 }
 
-export async function createUser(payload: UserPayload): Promise<User> {
-  const res = await api.post('/users', toFormData(payload))
-  return userSchema.parse(res.data.user)
+/**
+ * Multipart only when there is a file to send.
+ *
+ * JSON round-trips types the API cares about — a null clears a field, a number
+ * stays a number — whereas multipart flattens everything to a string. So the
+ * heavier encoding is used only for the write that genuinely needs it.
+ */
+function encode(payload: UserPayload): UserPayload | FormData {
+  return payload.avatar instanceof File ? toFormData(payload) : payload
 }
 
-/** PUT + multipart is not parsed by PHP, so updates use method spoofing. */
+export async function createUser(payload: UserPayload): Promise<User> {
+  const res = await api.post('/users', encode(payload))
+  return userSchema.parse(res.data)
+}
+
 export async function updateUser(
   id: number,
   payload: UserPayload
 ): Promise<User> {
-  const form = toFormData(payload)
-  form.append('_method', 'PUT')
-
-  const res = await api.post(`/users/${id}`, form)
-  return userSchema.parse(res.data.user)
+  // `roles` is writable on the user serializer, so role changes ride along with
+  // the ordinary update rather than needing a second request.
+  const res = await api.put(`/users/${id}`, encode(payload))
+  return userSchema.parse(res.data)
 }
 
 /** Deletes are soft, so a deleted account can always be brought back. */
 export async function restoreUser(id: number): Promise<void> {
-  await api.patch(`/users/${id}/restore`)
+  await api.post(`/users/${id}/restore`)
 }
 
 export async function deleteUser(id: number): Promise<void> {
   await api.delete(`/users/${id}`)
 }
 
-/** Replace a user's role assignments (role names, not ids). */
-export async function syncUserRoles(
-  id: number,
-  roles: string[]
-): Promise<User> {
-  const res = await api.put(`/users/${id}/roles`, { roles })
-  return userSchema.parse(res.data.user)
-}
-
-async function fetchLookup(resource: string): Promise<Lookup[]> {
-  const res = await api.get(`/${resource}`, {
-    params: { page_size: 100, ordering: 'name' },
-  })
-
-  return paginatedSchema(lookupSchema).parse(res.data).results as Lookup[]
-}
-
-export const userStatusesQuery = () =>
-  queryOptions({
-    queryKey: ['lookup', 'user-statuses'],
-    queryFn: () => fetchLookup('user-statuses'),
-    staleTime: 10 * 60 * 1000,
-  })
-
-export const gendersQuery = () =>
-  queryOptions({
-    queryKey: ['lookup', 'genders'],
-    queryFn: () => fetchLookup('genders'),
-    staleTime: 10 * 60 * 1000,
-  })
+export const userStatusesQuery = () => lookupOptionsQuery('user-statuses')
+export const gendersQuery = () => lookupOptionsQuery('genders')

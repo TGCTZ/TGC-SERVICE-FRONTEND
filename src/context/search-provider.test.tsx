@@ -32,7 +32,7 @@ type ShortcutModifier = 'Control' | 'Meta'
  * below rely on.
  */
 function signIn(
-  permissions: string[] = [perm('products', 'view'), perm('users', 'view')]
+  permissions: string[] = [perm('stone-types', 'view'), perm('users', 'view')]
 ) {
   useAuthStore.getState().auth.setUser({
     id: 1,

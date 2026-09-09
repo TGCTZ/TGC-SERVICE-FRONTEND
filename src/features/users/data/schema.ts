@@ -1,15 +1,18 @@
 import { z } from 'zod'
 
-/** A lookup row (user status, gender). */
-export const lookupSchema = z
+/**
+ * The shape a related lookup arrives in, for the expanded `*_detail` fields.
+ *
+ * Internal: a dropdown's options come from `lookupOptionsQuery` in the shared
+ * lookups feature, so nothing outside this file needs it.
+ */
+const lookupSchema = z
   .object({
     id: z.number(),
     name: z.string(),
     is_active: z.boolean().default(true),
   })
   .loose()
-
-export type Lookup = z.infer<typeof lookupSchema>
 
 /**
  * A user as returned by the API.

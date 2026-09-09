@@ -1,11 +1,7 @@
 import {
   Boxes,
   ChartColumn,
-  Factory,
   LayoutDashboard,
-  ListChecks,
-  Package,
-  Ruler,
   ScrollText,
   ShieldCheck,
   Tags,
@@ -14,37 +10,27 @@ import {
   Wallet,
 } from 'lucide-react'
 import { PERMISSIONS, perm } from '@/lib/permissions'
-import { type SidebarData } from '../types'
+import { allLookupConfigs } from '@/features/lookups/data/config'
+import { type NavLink, type SidebarData } from '../types'
 
 /**
  * Sidebar navigation.
  *
- * Structured in three tiers, because that split holds for any admin app
- * regardless of what it manages:
- *
- *   Overview        A landing view. Rarely more than one entry.
- *   Workspace       The domain — what THIS project is actually for.
- *                   The only tier a new project rewrites.
- *   Administration  Who may use the app, and what it has been doing.
- *                   Users, roles and logs exist in every project, so this
- *                   tier ships ready to use.
- *
- * Finance and Reports sit between Workspace and Administration as scaffolded
- * placeholders — common enough to be worth showing, but pointing at the shared
- * ComingSoon screen rather than pretending to work. Build them or delete them.
- *
- * The example Workspace below is a product catalogue, because that is what the
- * bundled TestAPI serves. Replace its contents wholesale; keep the shape.
+ * The groups follow the stone's journey through the lab — reception, billing,
+ * the bench, certification — then the reference data those stages draw on, then
+ * administration. Each maps onto one of the API's `core.module_*` gates.
  *
  * Two rules worth keeping when you edit this:
  *
  * - Every entry carries the `permission` the API enforces for that resource.
  *   `filterNavGroups` hides entries the user cannot reach, drops a collapsible
- *   once all its children are hidden, and drops a group once it is empty — so
- *   a heading only appears for someone who has something under it.
- * - Group headings roughly track the `module.*` gates the API seeds
- *   (`module.catalog`, `module.user`, `module.audit`). Keeping them aligned
- *   means navigation and authorization cannot drift apart.
+ *   once all its children are hidden, and drops a group once it is empty — so a
+ *   heading only appears for someone who has something under it. That is why a
+ *   receptionist sees no Certificates group without any extra wiring.
+ * - Gate on the item, not the group: `NavGroup` carries no `permission` and
+ *   `filterNavGroups` would not read one. The API grants every role its module
+ *   gate alongside the matching model permissions, so the per-item `view` check
+ *   is a faithful proxy for the gate.
  */
 export const sidebarData: SidebarData = {
   navGroups: [
@@ -60,55 +46,21 @@ export const sidebarData: SidebarData = {
     },
 
     /* ---------------------------------------------------------------- */
-    /* Workspace — replace this entire group for a new project.          */
+    /* Reference data — generated from the lookup configs, so adding a    */
+    /* table is one entry there rather than an entry in two places.       */
     /* ---------------------------------------------------------------- */
     {
-      title: 'Workspace',
+      title: 'Reference data',
       items: [
         {
-          title: 'Products',
-          url: '/products',
-          icon: Package,
-          permission: perm('products', 'view'),
-        },
-        {
-          // Reference data the domain records select from. Each entry maps to
-          // the same generic lookup screen, parameterised by the slug — see
-          // `features/lookups/data/config.ts`.
           title: 'Reference data',
           icon: Boxes,
-          items: [
-            {
-              title: 'Categories',
-              url: '/lookups/product-categories',
-              icon: Boxes,
-              permission: perm('product-categories', 'view'),
-            },
-            {
-              title: 'Brands',
-              url: '/lookups/brands',
-              icon: Factory,
-              permission: perm('brands', 'view'),
-            },
-            {
-              title: 'Product statuses',
-              url: '/lookups/product-statuses',
-              icon: ListChecks,
-              permission: perm('product-statuses', 'view'),
-            },
-            {
-              title: 'Units of measure',
-              url: '/lookups/unit-of-measures',
-              icon: Ruler,
-              permission: perm('unit-of-measures', 'view'),
-            },
-            {
-              title: 'Tags',
-              url: '/lookups/tags',
-              icon: Tags,
-              permission: perm('tags', 'view'),
-            },
-          ],
+          items: allLookupConfigs().map((config) => ({
+            title: config.title,
+            url: `/lookups/${config.slug}` as NavLink['url'],
+            icon: Tags,
+            permission: perm(config.resource, 'view'),
+          })),
         },
       ],
     },

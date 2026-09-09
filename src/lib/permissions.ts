@@ -2,10 +2,10 @@
  * Permission names, in the vocabulary the API enforces.
  *
  * The API derives a permission for every model automatically, as
- * `<app_label>.<action>_<model>` — for example `catalog.view_product`. Those
+ * `<app_label>.<action>_<model>` — for example `gems.view_stonetype`. Those
  * names are not guessable from a URL segment: the app label groups several
- * resources (`brands` and `tags` both live in `catalog`), and the model name
- * drops the separators a URL keeps (`unit-of-measures` → `unitofmeasure`).
+ * resources (`colors` and `varieties` both live in `gems`), and the model name
+ * drops the separators a URL keeps (`shape-cuts` → `shapecut`).
  *
  * Everything the UI gates on is therefore resolved here, so a renamed resource
  * or a moved model is one edit rather than a hunt through the feature folders.
@@ -38,13 +38,42 @@ type ModelRef = {
  * screen can resolve its own permissions from its config entry.
  */
 const RESOURCE_MODELS = {
-  products: { app: 'catalog', model: 'product' },
-  'product-images': { app: 'catalog', model: 'productimage' },
-  'product-categories': { app: 'catalog', model: 'productcategory' },
-  brands: { app: 'catalog', model: 'brand' },
-  'product-statuses': { app: 'catalog', model: 'productstatus' },
-  'unit-of-measures': { app: 'catalog', model: 'unitofmeasure' },
-  tags: { app: 'catalog', model: 'tag' },
+  // Reference data.
+  'stone-types': { app: 'gems', model: 'stonetype' },
+  species: { app: 'gems', model: 'species' },
+  varieties: { app: 'gems', model: 'variety' },
+  colors: { app: 'gems', model: 'color' },
+  origins: { app: 'gems', model: 'origin' },
+  'shape-cuts': { app: 'gems', model: 'shapecut' },
+  instruments: { app: 'gems', model: 'instrument' },
+
+  // Reception.
+  customers: { app: 'orders', model: 'customer' },
+  orders: { app: 'orders', model: 'order' },
+  stones: { app: 'orders', model: 'stone' },
+  'status-history': { app: 'orders', model: 'statushistory' },
+
+  // Billing.
+  bills: { app: 'billing', model: 'bill' },
+  'bill-items': { app: 'billing', model: 'billitem' },
+  payments: { app: 'billing', model: 'payment' },
+  'service-providers': { app: 'billing', model: 'serviceprovider' },
+
+  // The bench.
+  'identification-reports': {
+    app: 'identification',
+    model: 'identificationreport',
+  },
+  'instruments-used': { app: 'identification', model: 'instrumentused' },
+
+  // Certification.
+  certificates: { app: 'certificates', model: 'certificate' },
+  'certificate-access-logs': {
+    app: 'certificates',
+    model: 'certificateaccesslog',
+  },
+
+  // Administration.
   users: { app: 'users', model: 'user' },
   'user-statuses': { app: 'users', model: 'userstatus' },
   genders: { app: 'users', model: 'gender' },
@@ -59,12 +88,12 @@ export type PermissionResource = keyof typeof RESOURCE_MODELS
 /**
  * Build the permission name for an action on a resource.
  *
- * @param resource - URL segment, e.g. `unit-of-measures`.
+ * @param resource - URL segment, e.g. `shape-cuts`.
  * @param action - The action being gated.
- * @returns A permission name such as `catalog.change_unitofmeasure`.
+ * @returns A permission name such as `gems.change_shapecut`.
  *
  * @example
- * perm('product-categories', 'add')  // 'catalog.add_productcategory'
+ * perm('identification-reports', 'add')  // 'identification.add_identificationreport'
  */
 export function perm(
   resource: PermissionResource,
@@ -89,9 +118,10 @@ export function restorePerm(resource: PermissionResource): string {
 /**
  * Permissions that are not derived from a model.
  *
- * Audit trails come from two different apps, and the module gates are custom
- * permissions the API declares by hand to control whether a whole section of
- * the UI is reachable at all.
+ * Two kinds. The workflow verbs are declared by hand on their model because
+ * moving a stone or finalizing a report is not a create or an update — the API
+ * gates those routes on these names, not on `add_<model>`. The module gates
+ * decide whether a whole section of the UI is reachable at all.
  */
 export const PERMISSIONS = {
   /** Row-level change history, written by the audit log. */
@@ -99,8 +129,20 @@ export const PERMISSIONS = {
   /** Application-level events such as sign-ins and failures. */
   viewSystemLogs: 'audit.view_systemlog',
 
+  // Workflow verbs.
+  transitionStone: 'orders.transition_stone',
+  generateBill: 'billing.generate_bill',
+  finalizeReport: 'identification.finalize_report',
+  issueCertificate: 'certificates.issue_certificate',
+  revokeCertificate: 'certificates.revoke_certificate',
+
+  // Module gates.
+  moduleOrders: 'core.module_orders',
+  moduleIdentification: 'core.module_identification',
+  moduleBilling: 'core.module_billing',
+  moduleCertificates: 'core.module_certificates',
+  moduleReference: 'core.module_reference',
   moduleUser: 'core.module_user',
-  moduleCatalog: 'core.module_catalog',
   moduleSettings: 'core.module_settings',
   moduleAudit: 'core.module_audit',
 } as const

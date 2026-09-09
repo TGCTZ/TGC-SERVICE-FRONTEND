@@ -53,15 +53,16 @@ export function UserAuthForm({
       toast.success(`Welcome back, ${user.full_name || user.email}!`)
       navigate({ to: redirectTo || '/', replace: true })
     } catch (error) {
-      // 422 is the API's "these credentials do not match" response; surface it
-      // on the field so the user sees it in context.
-      if (error instanceof AxiosError && error.response?.status === 422) {
-        const message =
-          error.response.data?.errors?.email?.[0] ??
-          error.response.data?.message ??
-          'These credentials do not match our records.'
-
-        form.setError('email', { message })
+      // A rejected sign-in is a 401 carrying `detail`; surface it on the
+      // field so the user sees it in context rather than as a floating toast.
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        const detail = error.response.data?.detail
+        form.setError('email', {
+          message:
+            typeof detail === 'string' && detail
+              ? detail
+              : 'These credentials do not match our records.',
+        })
       } else if (
         error instanceof AxiosError &&
         error.response?.status === 429

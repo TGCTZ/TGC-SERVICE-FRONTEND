@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { handleServerError } from './handle-server-error'
+import { fieldErrors, handleServerError } from './handle-server-error'
 
 const toastError = vi.hoisted(() => vi.fn())
 
@@ -9,6 +9,13 @@ vi.mock('sonner', () => ({
     error: toastError,
   },
 }))
+
+/** Build an Axios error carrying an API response body. */
+function apiError(status: number, data: unknown) {
+  const error = new AxiosError('Request failed')
+  error.response = { status, data } as AxiosError['response']
+  return error
+}
 
 beforeEach(() => {
   vi.mocked(toastError).mockClear()
@@ -27,38 +34,43 @@ describe('handleServerError', () => {
     expect(toastError).toHaveBeenCalledWith('No content.')
   })
 
-  it('prefers the API title when the error is an Axios error with response data', () => {
-    const error = new AxiosError('Bad request')
-    error.response = {
-      status: 422,
-      data: { title: 'Validation failed' },
-    } as AxiosError['response']
+  it('surfaces the API detail message verbatim', () => {
+    // A business rule explaining itself is the most useful sentence available.
+    handleServerError(
+      apiError(400, { detail: 'Order ORD-2026-0001 already has a bill.' })
+    )
 
-    handleServerError(error)
-
-    expect(toastError).toHaveBeenCalledWith('Validation failed')
+    expect(toastError).toHaveBeenCalledWith(
+      'Order ORD-2026-0001 already has a bill.'
+    )
   })
 
-  it('falls back to the generic message when Axios response has no data.title', () => {
-    const error = new AxiosError('Request failed')
-    error.response = {
-      status: 500,
-      data: {},
-    } as AxiosError['response']
+  it('surfaces a detail message on a permission refusal', () => {
+    handleServerError(
+      apiError(403, {
+        detail: 'You do not have permission to perform this action.',
+      })
+    )
 
-    handleServerError(error)
+    expect(toastError).toHaveBeenCalledWith(
+      'You do not have permission to perform this action.'
+    )
+  })
+
+  it('falls back to the first field message when there is no detail', () => {
+    handleServerError(apiError(400, { email: ['Already taken.'] }))
+
+    expect(toastError).toHaveBeenCalledWith('Already taken.')
+  })
+
+  it('falls back to the generic message when the body carries nothing usable', () => {
+    handleServerError(apiError(500, {}))
 
     expect(toastError).toHaveBeenCalledWith('Something went wrong!')
   })
 
-  it('falls back to the generic message when Axios data.title is an empty string', () => {
-    const error = new AxiosError('Bad request')
-    error.response = {
-      status: 400,
-      data: { title: '' },
-    } as AxiosError['response']
-
-    handleServerError(error)
+  it('falls back to the generic message when detail is an empty string', () => {
+    handleServerError(apiError(400, { detail: '' }))
 
     expect(toastError).toHaveBeenCalledWith('Something went wrong!')
   })
@@ -86,5 +98,32 @@ describe('handleServerError', () => {
     expect(log).not.toHaveBeenCalled()
 
     log.mockRestore()
+  })
+})
+
+describe('fieldErrors', () => {
+  it('extracts field-keyed validation messages', () => {
+    const fields = fieldErrors(
+      apiError(400, { email: ['Already taken.'], username: ['Too short.'] })
+    )
+
+    expect(fields).toEqual({
+      email: ['Already taken.'],
+      username: ['Too short.'],
+    })
+  })
+
+  it('returns null for a business-rule refusal', () => {
+    // `detail` and field errors share status 400; only the shape tells them
+    // apart, and a refusal has no field to attach itself to.
+    expect(fieldErrors(apiError(400, { detail: 'No price set.' }))).toBeNull()
+  })
+
+  it('returns null for a status other than 400', () => {
+    expect(fieldErrors(apiError(500, { email: ['nope'] }))).toBeNull()
+  })
+
+  it('returns null for anything that is not an Axios error', () => {
+    expect(fieldErrors(new Error('boom'))).toBeNull()
   })
 })

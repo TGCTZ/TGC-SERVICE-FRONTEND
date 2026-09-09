@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { AxiosError } from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
+import { handleServerError } from '@/lib/handle-server-error'
 import { perm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import {
@@ -89,17 +89,7 @@ export function LookupMutateDialog({
       onOpenChange(false)
     },
     onError: (error) => {
-      if (error instanceof AxiosError && error.response?.status === 422) {
-        const errors = error.response.data?.errors as
-          | Record<string, string[]>
-          | undefined
-        toast.error(
-          Object.values(errors ?? {})[0]?.[0] ?? 'Please check the form.'
-        )
-        return
-      }
-
-      toast.error('Could not save. Please try again.')
+      handleServerError(error)
     },
   })
 

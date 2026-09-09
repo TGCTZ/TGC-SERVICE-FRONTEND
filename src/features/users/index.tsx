@@ -133,7 +133,7 @@ function UsersContent() {
 
       {currentRow && (
         <RecordHistorySheet
-          subjectType={subjectTypes.user}
+          subjectType={subjectTypes.users}
           subjectId={currentRow.id}
           title={currentRow.full_name || currentRow.email}
           open={open === 'history'}

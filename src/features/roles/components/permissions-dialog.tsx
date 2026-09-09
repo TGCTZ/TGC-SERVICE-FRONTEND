@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { AxiosError } from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
+import { handleServerError } from '@/lib/handle-server-error'
 import { perm } from '@/lib/permissions'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -22,11 +22,7 @@ import { Can } from '@/components/can'
 import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
 import { ViewFooterActions } from '@/components/view-footer-actions'
-import {
-  groupedPermissionsQuery,
-  roleQuery,
-  syncRolePermissions,
-} from '../data/api'
+import { groupedPermissionsQuery, roleQuery, updateRole } from '../data/api'
 import { type Role } from '../data/schema'
 
 type RolePermissionsDialogProps = {
@@ -120,7 +116,10 @@ export function RolePermissionsDialog({
   }, [groups, filter])
 
   const mutation = useMutation({
-    mutationFn: () => syncRolePermissions(role.id, Array.from(selected)),
+    // `permissions` is a writable field on the role, so the matrix saves
+    // through the ordinary update - there is no separate sync endpoint.
+    mutationFn: () =>
+      updateRole(role.id, { permissions: Array.from(selected) }),
     onSuccess: () => {
       toast.success(`Updated permissions for "${role.name}"`)
       queryClient.invalidateQueries({ queryKey: ['roles'] })
@@ -135,14 +134,9 @@ export function RolePermissionsDialog({
       onOpenChange(false)
     },
     onError: (error) => {
-      if (error instanceof AxiosError && error.response?.status === 422) {
-        toast.error(
-          error.response.data?.error ?? 'This role cannot be modified.'
-        )
-        return
-      }
-
-      toast.error('Could not update permissions. Please try again.')
+      // A protected role refuses re-scoping with a `detail` message that
+      // explains itself; anything else falls back to the shared handler.
+      handleServerError(error)
     },
   })
 

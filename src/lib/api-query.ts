@@ -88,8 +88,6 @@ export type ListParams = {
    * `{ from, to }` object becomes an inclusive range on a date column.
    */
   filters?: Record<string, unknown>
-  /** Whitelisted relations to eager load. */
-  include?: string[]
   /**
    * Include soft-deleted rows ('with') or show only them ('only').
    * Deletes are soft everywhere, so this is how deleted records are reached.
@@ -118,8 +116,6 @@ export function buildListParams(params: ListParams): Record<string, unknown> {
     const prefix = params.sortDir === 'desc' ? '-' : ''
     query.ordering = `${prefix}${params.sortBy}`
   }
-
-  if (params.include?.length) query.include = params.include.join(',')
 
   if (params.trashed === 'with') query.with_trashed = 1
   if (params.trashed === 'only') query.only_trashed = 1

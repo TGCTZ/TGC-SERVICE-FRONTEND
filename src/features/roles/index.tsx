@@ -3,6 +3,7 @@ import { AxiosError } from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Eye, KeyRound, Lock, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { fieldErrors, handleServerError } from '@/lib/handle-server-error'
 import { perm } from '@/lib/permissions'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -58,14 +59,12 @@ export function Roles() {
       setNewName('')
     },
     onError: (error) => {
-      if (error instanceof AxiosError && error.response?.status === 422) {
-        toast.error(
-          error.response.data?.errors?.name?.[0] ??
-            'That name is already taken.'
-        )
+      const fields = fieldErrors(error)
+      if (fields) {
+        toast.error(fields.name?.[0] ?? 'That name is already taken.')
         return
       }
-      toast.error('Could not create the role.')
+      handleServerError(error)
     },
   })
 
@@ -77,12 +76,9 @@ export function Roles() {
       setRenameFor(null)
     },
     onError: (error) => {
-      if (error instanceof AxiosError && error.response?.status === 422) {
-        toast.error(
-          error.response.data?.error ??
-            error.response.data?.errors?.name?.[0] ??
-            'That name is already taken.'
-        )
+      const fields = fieldErrors(error)
+      if (fields) {
+        toast.error(fields.name?.[0] ?? 'That name is already taken.')
         return
       }
       toast.error('Could not rename the role.')
@@ -110,7 +106,7 @@ export function Roles() {
   /**
    * Every action the API exposes for a role. Roles live in spatie's tables,
    * which have no soft deletes, so there is no Restore. Rename and Delete are
-   * withheld from protected roles because the API rejects both with a 422.
+   * withheld from protected roles because the API rejects both with a 400.
    */
   function rowActions(role: Role): RowAction[] {
     return [
@@ -244,10 +240,10 @@ export function Roles() {
                         </div>
                       </TableCell>
                       <TableCell className='tabular-nums'>
-                        {role.permissions_count ?? '—'}
+                        {role.permissions.length}
                       </TableCell>
                       <TableCell className='tabular-nums'>
-                        {role.users_count ?? '—'}
+                        {role.user_count}
                       </TableCell>
                       <TableCell>
                         <div className='flex justify-end'>
