@@ -5,6 +5,7 @@ import { getRouteApi } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
 import { Eye, History, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { formatMoney } from '@/lib/format'
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { subjectTypes } from '@/lib/subject-types'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +34,7 @@ import { LookupMutateDialog } from './components/mutate-dialog'
 import { deleteLookupRow, lookupRowsQuery, restoreLookupRow } from './data/api'
 import {
   lookupConfigBySlug,
+  lookupFieldLabel,
   type LookupConfig,
   type LookupRow,
 } from './data/config'
@@ -50,9 +52,9 @@ type DialogState =
 /**
  * One screen for every lookup table.
  *
- * All five lookups share an identical API contract, so they share a screen
+ * Every lookup shares an identical API contract, so they share a screen
  * parameterised by `lookupConfigs` rather than each getting a near-identical
- * copy. Adding a sixth lookup means adding a config entry.
+ * copy. Adding another lookup means adding a config entry.
  */
 export function Lookups() {
   const { slug } = route.useParams()
@@ -125,8 +127,8 @@ function LookupsContent({ config }: { config: LookupConfig }) {
       setOpen(null)
     },
     onError: (error) => {
-      // A lookup still referenced by a product cannot be removed; the API
-      // answers 400 rather than orphaning the rows that point at it.
+      // A lookup still referenced by a stone or report cannot be removed; the
+      // API answers 400 rather than orphaning the rows that point at it.
       if (error instanceof AxiosError && error.response?.status === 403) {
         toast.error('You do not have permission to delete this.')
         return
@@ -205,34 +207,40 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         </div>
       ),
     },
-    ...config.extraFields
-      // A parent select shows as a raw id in a table, which helps nobody.
-      .filter((field) => field.type !== 'select')
-      .map<ColumnDef<LookupRow>>((field) => ({
-        accessorKey: field.key,
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={field.label} />
-        ),
-        enableSorting: false,
-        cell: ({ row }) => {
-          const value = (row.original as Record<string, unknown>)[field.key]
-          if (!value) return <span className='text-muted-foreground'>—</span>
+    ...config.extraFields.map<ColumnDef<LookupRow>>((field) => ({
+      accessorKey: field.key,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={field.label} />
+      ),
+      enableSorting: false,
+      cell: ({ row }) => {
+        const record = row.original as Record<string, unknown>
+        const value = record[field.key]
 
-          if (field.type === 'color') {
-            return (
-              <span className='flex items-center gap-2'>
-                <span
-                  className='size-4 rounded-full border'
-                  style={{ backgroundColor: String(value) }}
-                />
-                {String(value)}
-              </span>
-            )
-          }
+        if (value === null || value === undefined || value === '') {
+          return <span className='text-muted-foreground'>—</span>
+        }
 
-          return String(value)
-        },
-      })),
+        if (field.type === 'color') {
+          return (
+            <span className='flex items-center gap-2'>
+              <span
+                className='size-4 rounded-full border'
+                style={{ backgroundColor: String(value) }}
+              />
+              {String(value)}
+            </span>
+          )
+        }
+
+        if (field.type === 'money') {
+          // Decimals cross the wire as strings, to survive the round trip.
+          return formatMoney(Number(value))
+        }
+
+        return lookupFieldLabel(field, record) ?? String(value)
+      },
+    })),
     {
       accessorKey: 'is_active',
       header: ({ column }) => (

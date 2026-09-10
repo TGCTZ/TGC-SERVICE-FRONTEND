@@ -32,7 +32,11 @@ type ShortcutModifier = 'Control' | 'Meta'
  * below rely on.
  */
 function signIn(
-  permissions: string[] = [perm('stone-types', 'view'), perm('users', 'view')]
+  permissions: string[] = [
+    perm('orders', 'view'),
+    perm('stone-types', 'view'),
+    perm('users', 'view'),
+  ]
 ) {
   useAuthStore.getState().auth.setUser({
     id: 1,
@@ -134,9 +138,9 @@ describe('SearchProvider and CommandMenu', () => {
 
     await openCommandPalette(screen)
 
-    await userEvent.click(screen.getByText('Products'))
+    await userEvent.click(screen.getByText('Orders'))
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/products' })
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/orders' })
     await expect
       .element(screen.getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
       .not.toBeInTheDocument()
@@ -148,9 +152,11 @@ describe('SearchProvider and CommandMenu', () => {
 
     await openCommandPalette(screen)
 
-    await userEvent.click(getByRole('option', { name: 'Settings Account' }))
+    // Nested entries render as "<group> <item>", e.g. the Users collapsible
+    // in Administration.
+    await userEvent.click(getByRole('option', { name: 'Users All Users' }))
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/settings/account' })
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/users' })
     await expect
       .element(getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
       .not.toBeInTheDocument()

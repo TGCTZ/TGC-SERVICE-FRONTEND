@@ -49,9 +49,9 @@ export function hasAnyPermission(required: string | string[]): boolean {
  * it with the auth guard on `_authenticated`, which handles signed-out users.
  *
  * @example
- * export const Route = createFileRoute('/_authenticated/products/')({
- *   beforeLoad: requirePermission([perm('products', 'view')]),
- *   component: Products,
+ * export const Route = createFileRoute('/_authenticated/orders/')({
+ *   beforeLoad: requirePermission([perm('orders', 'view')]),
+ *   component: Orders,
  * })
  */
 export function requirePermission(required: string | string[]) {

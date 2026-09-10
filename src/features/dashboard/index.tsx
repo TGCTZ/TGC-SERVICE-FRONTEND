@@ -1,203 +1,223 @@
-import { formatMoney } from '@/lib/format'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useQueries } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
+import { ArrowRight } from 'lucide-react'
+import { PERMISSIONS, perm } from '@/lib/permissions'
+import { Badge } from '@/components/ui/badge'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { TopNav } from '@/components/layout/top-nav'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { Analytics } from './components/analytics'
-import { Overview } from './components/overview'
+import { STONE_STATUS_LABELS } from '@/features/stones/data/enums'
+import { allWorklistConfigs } from '@/features/worklists/data/config'
+import { countQuery } from './data/api'
 
+/**
+ * Stone statuses worth a tile.
+ *
+ * The pipeline's four live states. The other five are either unimplemented
+ * handover stages or exceptions rare enough that a queue is the better place
+ * to notice them.
+ */
+const TRACKED_STATUSES = ['received', 'billed', 'paid', 'certified'] as const
+
+/**
+ * The lab's status board.
+ *
+ * Every number is a `count` off a list endpoint the app already calls, so
+ * there is no reporting endpoint to keep in step — and each queue tile links
+ * to the queue itself, because a number nobody can act on is decoration.
+ */
 export function Dashboard() {
+  const queues = allWorklistConfigs()
+
+  const queueCounts = useQueries({
+    queries: queues.map((config) => countQuery(config.endpoint)),
+  })
+
+  const statusCounts = useQueries({
+    queries: TRACKED_STATUSES.map((status) =>
+      countQuery('/stones', { 'filter[status]': status })
+    ),
+  })
+
+  const [orders, customers, certificates, unprocessed] = useQueries({
+    queries: [
+      countQuery('/orders'),
+      countQuery('/customers'),
+      countQuery('/certificates', { 'filter[status]': 'issued' }),
+      countQuery('/payments', { 'filter[is_processed]': 0 }),
+    ],
+  })
+
   return (
     <>
-      {/* ===== Top Heading ===== */}
-      <Header>
-        <TopNav links={topNav} className='me-auto' />
-        <Search />
+      <Header fixed>
+        <Search className='me-auto' />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
       </Header>
 
-      {/* ===== Main ===== */}
-      <Main>
-        <div className='mb-2 flex items-center justify-between space-y-2'>
+      <Main className='flex flex-1 flex-col gap-6'>
+        <div>
           <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
-          <div className='flex items-center space-x-2'>
-            <Button>Download</Button>
-          </div>
+          <p className='text-muted-foreground'>
+            What the lab is holding, and what is waiting on someone.
+          </p>
         </div>
-        <Tabs
-          orientation='vertical'
-          defaultValue='overview'
-          className='space-y-4'
-        >
-          <div className='w-full overflow-x-auto pb-2'>
-            <TabsList>
-              <TabsTrigger value='overview'>Overview</TabsTrigger>
-              <TabsTrigger value='analytics'>Analytics</TabsTrigger>
-              <TabsTrigger value='reports' disabled>
-                Reports
-              </TabsTrigger>
-              <TabsTrigger value='notifications' disabled>
-                Notifications
-              </TabsTrigger>
-            </TabsList>
+
+        <section className='space-y-3'>
+          <h2 className='text-sm font-medium text-muted-foreground'>
+            Waiting on someone
+          </h2>
+          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+            {queues.map((config, index) => (
+              <Can key={config.slug} permission={config.permission}>
+                <Link
+                  to='/worklists/$slug'
+                  params={{ slug: config.slug }}
+                  className='block'
+                >
+                  <Card className='h-full transition-colors hover:border-primary'>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='text-sm font-medium'>
+                        {config.title}
+                      </CardTitle>
+                      <CardDescription className='flex items-center gap-1 text-xs'>
+                        {config.actionLabel}
+                        <ArrowRight className='size-3' />
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Counter query={queueCounts[index]} />
+                    </CardContent>
+                  </Card>
+                </Link>
+              </Can>
+            ))}
           </div>
-          <TabsContent value='overview' className='space-y-4'>
+        </section>
+
+        <Can permission={perm('stones', 'view')}>
+          <section className='space-y-3'>
+            <h2 className='text-sm font-medium text-muted-foreground'>
+              Stones in the lab
+            </h2>
             <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Total Revenue
-                  </CardTitle>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
-                  >
-                    <path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>
-                    {formatMoney(45231.89)}
-                  </div>
-                  <p className='text-xs text-muted-foreground'>
-                    +20.1% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Subscriptions
-                  </CardTitle>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
-                  >
-                    <path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' />
-                    <circle cx='9' cy='7' r='4' />
-                    <path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>+2350</div>
-                  <p className='text-xs text-muted-foreground'>
-                    +180.1% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>Sales</CardTitle>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
-                  >
-                    <rect width='20' height='14' x='2' y='5' rx='2' />
-                    <path d='M2 10h20' />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>+12,234</div>
-                  <p className='text-xs text-muted-foreground'>
-                    +19% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Active Now
-                  </CardTitle>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
-                  >
-                    <path d='M22 12h-4l-3 9L9 3l-3 9H2' />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>+573</div>
-                  <p className='text-xs text-muted-foreground'>
-                    +201 since last hour
-                  </p>
-                </CardContent>
-              </Card>
+              {TRACKED_STATUSES.map((status, index) => (
+                <Card key={status}>
+                  <CardHeader className='pb-2'>
+                    <CardTitle className='text-sm font-medium'>
+                      {STONE_STATUS_LABELS[status]}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Counter query={statusCounts[index]} />
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
-              <Card className='col-span-1 lg:col-span-7'>
-                <CardHeader>
-                  <CardTitle>Overview</CardTitle>
+          </section>
+        </Can>
+
+        <section className='space-y-3'>
+          <h2 className='text-sm font-medium text-muted-foreground'>Totals</h2>
+          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+            <Can permission={perm('orders', 'view')}>
+              <Card>
+                <CardHeader className='pb-2'>
+                  <CardTitle className='text-sm font-medium'>Orders</CardTitle>
                 </CardHeader>
-                <CardContent className='ps-2'>
-                  <Overview />
+                <CardContent>
+                  <Counter query={orders} />
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
-          <TabsContent value='analytics' className='space-y-4'>
-            <Analytics />
-          </TabsContent>
-        </Tabs>
+            </Can>
+
+            <Can permission={perm('customers', 'view')}>
+              <Card>
+                <CardHeader className='pb-2'>
+                  <CardTitle className='text-sm font-medium'>
+                    Customers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Counter query={customers} />
+                </CardContent>
+              </Card>
+            </Can>
+
+            <Can permission={perm('certificates', 'view')}>
+              <Card>
+                <CardHeader className='pb-2'>
+                  <CardTitle className='text-sm font-medium'>
+                    Certificates standing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Counter query={certificates} />
+                </CardContent>
+              </Card>
+            </Can>
+
+            {/* Money that arrived but has not reached its bill: the one number
+              here that is a problem rather than a fact. */}
+            <Can permission={perm('payments', 'view')}>
+              <Link
+                to='/payments'
+                search={{ processed: '0' }}
+                className='block'
+              >
+                <Card className='h-full transition-colors hover:border-primary'>
+                  <CardHeader className='pb-2'>
+                    <CardTitle className='text-sm font-medium'>
+                      Unprocessed payments
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='flex items-center gap-2'>
+                    <Counter query={unprocessed} />
+                    {(unprocessed.data ?? 0) > 0 && (
+                      <Badge variant='destructive'>Needs attention</Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            </Can>
+          </div>
+        </section>
+
+        <Can permission={PERMISSIONS.viewActivityLogs}>
+          <p className='text-xs text-muted-foreground'>
+            Every change behind these numbers is recorded — see Audit logs.
+          </p>
+        </Can>
       </Main>
     </>
   )
 }
 
-const topNav = [
-  {
-    title: 'Overview',
-    href: 'dashboard/overview',
-    isActive: true,
-    disabled: false,
-  },
-  {
-    title: 'Customers',
-    href: 'dashboard/customers',
-    isActive: false,
-    disabled: true,
-  },
-  {
-    title: 'Products',
-    href: 'dashboard/products',
-    isActive: false,
-    disabled: true,
-  },
-  {
-    title: 'Settings',
-    href: 'dashboard/settings',
-    isActive: false,
-    disabled: true,
-  },
-]
+/** One number, or a placeholder while it loads or if it cannot be read. */
+function Counter({
+  query,
+}: {
+  query: { data?: number; isPending: boolean; isError: boolean }
+}) {
+  if (query.isPending) return <Skeleton className='h-8 w-16' />
+
+  if (query.isError) {
+    return <span className='text-2xl font-bold text-muted-foreground'>—</span>
+  }
+
+  return <span className='text-2xl font-bold tabular-nums'>{query.data}</span>
+}

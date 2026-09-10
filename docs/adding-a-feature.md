@@ -1,8 +1,9 @@
 # Adding a Feature
 
 A step-by-step guide to adding a new feature (a screen/module). It follows the
-reference feature, [`src/features/products/`](../src/features/products) — copy
-that folder when in doubt.
+reference feature, [`src/features/customers/`](../src/features/customers) —
+copy that folder when in doubt. It is the smallest feature with the full set:
+table, create/edit, soft delete, restore and audit history.
 
 > Background: read [architecture.md](./architecture.md) first if you're unsure
 > how `routes/` and `features/` relate.
@@ -47,7 +48,8 @@ deletes, restore — **stop**. Add one entry to `lookupConfigs` in
 and you get a table, CRUD, soft-delete/restore, permission gating and audit
 history with no new components.
 
-Five screens already work this way. The instinct to copy `features/products/`
+Nine reference tables already work this way, and the four queues work the same
+way through `features/worklists/`. The instinct to copy `features/customers/`
 for a table of tags costs a folder of code that then has to be maintained
 separately. Only continue below if your resource genuinely needs its own
 screen.
@@ -115,9 +117,12 @@ export const widgetsQueryOptions = (params: ListParams) =>
 > component *and* `ensureQueryData` in a route loader — one source of truth for
 > the query key and fetcher.
 
-**Writes with a file** must be `multipart/form-data`, and PHP does not parse
-multipart on `PUT` — so updates POST with `_method=PUT`. See `toFormData()` in
-[`products-api.ts`](../src/features/products/data/api.ts).
+**Writes with a file** must be `multipart/form-data`; everything else is plain
+JSON, which is what the API prefers — multipart flattens every value to a
+string, so a `null` meant to clear a column arrives as `"null"`. Send the
+heavier encoding only for the write that genuinely carries a file: see
+`encode()` in
+[`users/data/api.ts`](../src/features/users/data/api.ts).
 
 ### 3. Build feature components — `components/`
 
@@ -267,8 +272,11 @@ pnpm dev
 
 ### A static feature (no data fetching)
 
-Skip steps 1–2. Create `index.tsx` and wire the route + sidebar entry. For a
-placeholder, reuse [`ComingSoon`](../src/components/coming-soon.tsx).
+Skip steps 1–2. Create `index.tsx` and wire the route + sidebar entry.
+
+Resist adding a route with nothing behind it: an ungated placeholder in the
+sidebar is a promise the app does not keep, and every user sees it regardless
+of their permissions. Add the entry when the screen exists.
 
 ### A feature with a form
 
@@ -283,12 +291,13 @@ if (error instanceof AxiosError && error.response?.status === 422) {
 ```
 
 Full example:
-[`product-mutate-dialog.tsx`](../src/features/products/components/mutate-dialog.tsx).
+[`customers/components/mutate-dialog.tsx`](../src/features/customers/components/mutate-dialog.tsx).
 
 ### File uploads
 
-See [`product-gallery.tsx`](../src/features/products/components/gallery.tsx)
-for multi-file upload, set-primary and delete against the API.
+See the avatar field in
+[`users/components/mutate-dialog.tsx`](../src/features/users/components/mutate-dialog.tsx),
+which is the one write in the app that sends multipart.
 
 ---
 

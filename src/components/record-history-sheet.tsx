@@ -15,7 +15,7 @@ import { AuditEventBadge } from '@/features/audit-logs/components/event-badge'
 import { recordHistoryQueryOptions } from '@/features/audit-logs/data/api'
 
 type RecordHistorySheetProps = {
-  /** Fully-qualified PHP class the API stores, e.g. `App\Models\Product\Product`. */
+  /** Model name as the audit trail records it, e.g. `stone`. See `@/lib/subject-types`. */
   subjectType: string
   subjectId: number
   /** Shown in the sheet header so the user knows which record they opened. */

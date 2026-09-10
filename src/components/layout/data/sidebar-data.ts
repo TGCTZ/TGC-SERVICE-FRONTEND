@@ -1,7 +1,15 @@
 import {
+  BadgeCheck,
   Boxes,
-  ChartColumn,
+  ClipboardList,
+  Contact,
+  Gem,
+  Landmark,
   LayoutDashboard,
+  ListChecks,
+  Microscope,
+  Receipt,
+  ScanLine,
   ScrollText,
   ShieldCheck,
   Tags,
@@ -11,6 +19,7 @@ import {
 } from 'lucide-react'
 import { PERMISSIONS, perm } from '@/lib/permissions'
 import { allLookupConfigs } from '@/features/lookups/data/config'
+import { allWorklistConfigs } from '@/features/worklists/data/config'
 import { type NavLink, type SidebarData } from '../types'
 
 /**
@@ -46,6 +55,52 @@ export const sidebarData: SidebarData = {
     },
 
     /* ---------------------------------------------------------------- */
+    /* The queues — generated from the worklist configs, so adding one is */
+    /* a single entry there. Each is gated on what its endpoint enforces,  */
+    /* which for billing and certification is the workflow verb rather     */
+    /* than a view permission.                                             */
+    /* ---------------------------------------------------------------- */
+    {
+      title: 'Queues',
+      items: [
+        {
+          title: 'Queues',
+          icon: ListChecks,
+          items: allWorklistConfigs().map((config) => ({
+            title: config.title,
+            url: `/worklists/${config.slug}` as NavLink['url'],
+            icon: ListChecks,
+            permission: config.permission,
+          })),
+        },
+      ],
+    },
+
+    {
+      title: 'Reception',
+      items: [
+        {
+          title: 'Customers',
+          url: '/customers',
+          icon: Contact,
+          permission: perm('customers', 'view'),
+        },
+        {
+          title: 'Orders',
+          url: '/orders',
+          icon: ClipboardList,
+          permission: perm('orders', 'view'),
+        },
+        {
+          title: 'Stones',
+          url: '/stones',
+          icon: Gem,
+          permission: perm('stones', 'view'),
+        },
+      ],
+    },
+
+    /* ---------------------------------------------------------------- */
     /* Reference data — generated from the lookup configs, so adding a    */
     /* table is one entry there rather than an entry in two places.       */
     /* ---------------------------------------------------------------- */
@@ -65,29 +120,56 @@ export const sidebarData: SidebarData = {
       ],
     },
 
-    /* ---------------------------------------------------------------- */
-    /* Scaffolded, not built. Present so the navigation reflects the plan */
-    /* — each points at the shared ComingSoon screen. Replace a group's   */
-    /* route with a real feature, or delete the group if the project has  */
-    /* no use for it.                                                     */
-    /* ---------------------------------------------------------------- */
     {
-      title: 'Finance',
+      title: 'Billing',
       items: [
         {
-          title: 'Overview',
-          url: '/finance',
+          title: 'Bills',
+          url: '/bills',
+          icon: Receipt,
+          permission: perm('bills', 'view'),
+        },
+        {
+          title: 'Payments',
+          url: '/payments',
           icon: Wallet,
+          permission: perm('payments', 'view'),
+        },
+        {
+          title: 'Service providers',
+          url: '/service-providers',
+          icon: Landmark,
+          permission: perm('service-providers', 'view'),
         },
       ],
     },
+
     {
-      title: 'Reports',
+      title: 'Identification',
       items: [
         {
-          title: 'Overview',
-          url: '/reports',
-          icon: ChartColumn,
+          title: 'Reports',
+          url: '/identification-reports',
+          icon: Microscope,
+          permission: perm('identification-reports', 'view'),
+        },
+      ],
+    },
+
+    {
+      title: 'Certificates',
+      items: [
+        {
+          title: 'Certificates',
+          url: '/certificates',
+          icon: BadgeCheck,
+          permission: perm('certificates', 'view'),
+        },
+        {
+          title: 'Verification log',
+          url: '/certificate-access-logs',
+          icon: ScanLine,
+          permission: perm('certificate-access-logs', 'view'),
         },
       ],
     },

@@ -8,7 +8,16 @@ import { playwright } from '@vitest/browser-playwright'
 import { appConfig } from './src/config/app-config'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  /**
+   * Tests get their own dependency cache.
+   *
+   * Vite's default cache is `node_modules/.vite`, which a running dev server
+   * holds open - on Windows that makes a test run fail outright with EPERM
+   * while the app is up. Separating them lets `pnpm test` and `pnpm dev` run
+   * side by side, which is how they are actually used.
+   */
+  cacheDir: mode === 'test' ? 'node_modules/.vite-test' : 'node_modules/.vite',
   plugins: [
     // Inject branding from src/config/app-config.ts into index.html so the
     // static <title>/meta stay a single source of truth with the app.
@@ -53,4 +62,4 @@ export default defineConfig({
       ],
     },
   },
-})
+}))

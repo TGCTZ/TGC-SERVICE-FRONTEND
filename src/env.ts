@@ -17,6 +17,20 @@ const envSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().url().optional()
   ),
+
+  /**
+   * Public origin a certificate's verification link points at.
+   *
+   * Optional: it falls back to wherever the app is being served from, which is
+   * right in every ordinary deployment. Set it when the printed link must reach
+   * a different host than the staff app runs on - and set the backend to the
+   * same value, since the QR code it will encode has to agree with the link
+   * staff copy.
+   */
+  VITE_PUBLIC_BASE_URL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().url().optional()
+  ),
 })
 
 const parsed = envSchema.safeParse(import.meta.env)

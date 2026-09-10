@@ -1,9 +1,13 @@
-import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo } from 'react'
+import { z } from 'zod'
+import { AxiosError } from 'axios'
+import { useForm, type Resolver } from 'react-hook-form'
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
-import { handleServerError } from '@/lib/handle-server-error'
-import { perm } from '@/lib/permissions'
+import { fieldErrors } from '@/lib/handle-server-error'
+import { perm, type PermissionResource } from '@/lib/permissions'
+import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -13,16 +17,94 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { RequiredMark } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Can } from '@/components/can'
 import { type RowAction } from '@/components/data-table'
+import { DialogBody } from '@/components/dialog-body'
 import { ViewFooterActions } from '@/components/view-footer-actions'
-import { createLookupRow, updateLookupRow } from '../data/api'
-import { type LookupConfig, type LookupRow } from '../data/config'
+import {
+  createLookupRow,
+  lookupOptionsQuery,
+  updateLookupRow,
+} from '../data/api'
+import {
+  type LookupConfig,
+  type LookupField,
+  type LookupOption,
+  type LookupRow,
+} from '../data/config'
+
+/** Radix forbids an empty-string SelectItem value, so "no choice" needs a sentinel. */
+const NONE = 'none'
+
+/**
+ * Validation for one lookup, derived from its config.
+ *
+ * Every extra field is held as a string in the form — an FK id and a price
+ * included — and converted on submit. Keeping one representation avoids the
+ * `undefined`/`NaN` churn `z.coerce.number()` produces while a number input is
+ * mid-edit.
+ */
+function buildSchema(config: LookupConfig) {
+  const extras: Record<string, z.ZodTypeAny> = {}
+
+  for (const field of config.extraFields) {
+    const base = z.string()
+    extras[field.key] = field.required
+      ? base.min(1, `${field.label} is required.`)
+      : base.optional()
+  }
+
+  return z.object({
+    name: z.string().min(1, 'Name is required.'),
+    description: z.string().optional(),
+    is_active: z.boolean().default(true),
+    ...extras,
+  })
+}
+
+type FormValues = Record<string, unknown>
+
+/**
+ * Convert one form value back to what the API stores.
+ *
+ * Blank means "no value" for anything the column holds as a number — an FK or a
+ * price — and those columns are nullable, so a cleared field must send an
+ * explicit `null`: `""` would be rejected as a bad number, and omitting the key
+ * would silently keep the old value on a PUT.
+ *
+ * @param field - The config entry describing how the value is stored.
+ * @param raw - Whatever the form currently holds for it.
+ * @returns The value to send, or null for a cleared numeric column.
+ */
+function toPayloadValue(field: LookupField, raw: unknown): unknown {
+  const value = typeof raw === 'string' ? raw.trim() : raw
+  const isNumeric =
+    field.type === 'number' ||
+    field.type === 'money' ||
+    Boolean(field.optionsFrom)
+
+  if (value === '' || value === undefined) return isNumeric ? null : ''
+  return isNumeric ? Number(value) : value
+}
 
 type LookupMutateDialogProps = {
   config: LookupConfig
@@ -55,51 +137,106 @@ export function LookupMutateDialog({
   const queryClient = useQueryClient()
   const isEdit = currentRow !== null
 
-  // Seeded from the row on mount; the parent remounts via `key` when the row
-  // changes, so no effect is needed to keep this in sync.
-  const [values, setValues] = useState<Record<string, unknown>>(() => ({
-    name: currentRow?.name ?? '',
-    description: currentRow?.description ?? '',
-    is_active: currentRow?.is_active ?? true,
-    ...Object.fromEntries(
-      config.extraFields.map((field) => [
-        field.key,
-        (currentRow as Record<string, unknown> | null)?.[field.key] ?? '',
-      ])
-    ),
-  }))
+  // A hook cannot run inside `.map()`, so every reference list the config asks
+  // for is fetched in one `useQueries` and looked up by resource below.
+  const referenced = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          config.extraFields
+            .map((field) => field.optionsFrom)
+            .filter((resource): resource is PermissionResource =>
+              Boolean(resource)
+            )
+        )
+      ),
+    [config]
+  )
+
+  const results = useQueries({
+    queries: referenced.map((resource) => lookupOptionsQuery(resource)),
+  })
+
+  const optionsByResource = new Map<PermissionResource, LookupOption[]>(
+    referenced.map((resource, index) => [resource, results[index]?.data ?? []])
+  )
+
+  const form = useForm<FormValues>({
+    // The schema is assembled from config at runtime, so its inferred shape
+    // cannot line up with the open record this form is typed as.
+    resolver: zodResolver(
+      buildSchema(config)
+    ) as unknown as Resolver<FormValues>,
+    defaultValues: { is_active: true },
+  })
+
+  useEffect(() => {
+    if (!open) return
+
+    const row = currentRow as Record<string, unknown> | null
+    form.reset({
+      name: (row?.name as string) ?? '',
+      description: (row?.description as string) ?? '',
+      is_active: (row?.is_active as boolean) ?? true,
+      ...Object.fromEntries(
+        config.extraFields.map((field) => {
+          const value = row?.[field.key]
+          return [
+            field.key,
+            value === null || value === undefined ? '' : String(value),
+          ]
+        })
+      ),
+    })
+  }, [open, currentRow, config, form])
 
   const mutation = useMutation({
-    mutationFn: () => {
-      // Blank optional fields are dropped rather than sent as "", which the
-      // API would treat as a real value on a nullable column.
-      const payload = Object.fromEntries(
-        Object.entries(values).filter(([, value]) => value !== '')
-      )
+    mutationFn: (values: FormValues) => {
+      const payload: Record<string, unknown> = {
+        name: values.name,
+        description: values.description ?? '',
+        is_active: values.is_active,
+        ...Object.fromEntries(
+          config.extraFields.map((field) => [
+            field.key,
+            toPayloadValue(field, values[field.key]),
+          ])
+        ),
+      }
 
       return isEdit
         ? updateLookupRow(config.resource, currentRow.id, payload)
         : createLookupRow(config.resource, payload)
     },
-    onSuccess: () => {
-      toast.success(isEdit ? 'Changes saved' : `Created "${values.name}"`)
+    onSuccess: (row) => {
+      toast.success(isEdit ? 'Changes saved' : `Created "${row.name}"`)
       queryClient.invalidateQueries({ queryKey: ['lookups', config.resource] })
-      // The product forms read these lists too, so refresh their cache.
+      // Other forms draw their dropdowns from this table, so refresh them too.
       queryClient.invalidateQueries({ queryKey: ['lookup'] })
       onOpenChange(false)
     },
     onError: (error) => {
-      handleServerError(error)
+      const fields = fieldErrors(error)
+      if (fields) {
+        for (const [field, messages] of Object.entries(fields)) {
+          form.setError(field, { message: messages[0] })
+        }
+        toast.error('Please fix the highlighted fields.')
+        return
+      }
+
+      if (error instanceof AxiosError && error.response?.status === 403) {
+        toast.error('You do not have permission to do that.')
+        return
+      }
+
+      toast.error('Something went wrong. Please try again.')
     },
   })
 
-  function set(key: string, value: unknown) {
-    setValues((previous) => ({ ...previous, [key]: value }))
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-md'>
+      <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-md'>
         <DialogHeader className='text-start'>
           <DialogTitle>
             {readOnly
@@ -113,57 +250,81 @@ export function LookupMutateDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* One fieldset disables every control, Radix triggers included. */}
-        <fieldset disabled={readOnly} className='space-y-4'>
-          <div className='space-y-2'>
-            {/* Not a react-hook-form form, so the marker cannot be derived. */}
-            <Label htmlFor='lookup-name'>
-              Name
-              <RequiredMark />
-            </Label>
-            <Input
-              id='lookup-name'
-              required
-              value={String(values.name ?? '')}
-              onChange={(e) => set('name', e.target.value)}
-            />
-          </div>
+        <DialogBody>
+          <Form {...form}>
+            <form
+              id='lookup-form'
+              onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+              className='px-1'
+            >
+              {/* One fieldset disables every control, Radix triggers included. */}
+              <fieldset disabled={readOnly} className='space-y-4'>
+                <FormField
+                  control={form.control}
+                  name='name'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={String(field.value ?? '')} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          {config.extraFields.map((field) => (
-            <div key={field.key} className='space-y-2'>
-              <Label htmlFor={`lookup-${field.key}`}>{field.label}</Label>
-              <Input
-                id={`lookup-${field.key}`}
-                type={field.type === 'color' ? 'color' : 'text'}
-                placeholder={field.placeholder}
-                value={String(values[field.key] ?? '')}
-                onChange={(e) => set(field.key, e.target.value)}
-                className={field.type === 'color' ? 'h-9 w-20 p-1' : undefined}
-              />
-            </div>
-          ))}
+                {config.extraFields.map((extra) => (
+                  <ExtraField
+                    key={extra.key}
+                    control={form.control}
+                    field={extra}
+                    options={
+                      extra.optionsFrom
+                        ? optionsByResource.get(extra.optionsFrom)
+                        : undefined
+                    }
+                  />
+                ))}
 
-          <div className='space-y-2'>
-            <Label htmlFor='lookup-description'>Description</Label>
-            <Textarea
-              id='lookup-description'
-              rows={3}
-              value={String(values.description ?? '')}
-              onChange={(e) => set('description', e.target.value)}
-            />
-          </div>
+                <FormField
+                  control={form.control}
+                  name='description'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={3}
+                          {...field}
+                          value={String(field.value ?? '')}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <div className='flex items-center gap-2'>
-            <Switch
-              id='lookup-active'
-              checked={Boolean(values.is_active)}
-              onCheckedChange={(checked) => set('is_active', checked)}
-            />
-            <Label htmlFor='lookup-active' className='font-normal'>
-              Active
-            </Label>
-          </div>
-        </fieldset>
+                <FormField
+                  control={form.control}
+                  name='is_active'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-center gap-2'>
+                      <FormControl>
+                        <Switch
+                          checked={Boolean(field.value)}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className='!mt-0 font-normal'>
+                        Active
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+              </fieldset>
+            </form>
+          </Form>
+        </DialogBody>
 
         <DialogFooter>
           {readOnly ? (
@@ -182,14 +343,17 @@ export function LookupMutateDialog({
             />
           ) : (
             <>
-              <Button variant='outline' onClick={() => onOpenChange(false)}>
+              <Button
+                variant='outline'
+                onClick={() => onOpenChange(false)}
+                disabled={mutation.isPending}
+              >
                 Cancel
               </Button>
               <Button
-                onClick={() => mutation.mutate()}
-                disabled={
-                  !String(values.name ?? '').trim() || mutation.isPending
-                }
+                type='submit'
+                form='lookup-form'
+                disabled={mutation.isPending}
               >
                 {mutation.isPending ? 'Saving...' : 'Save'}
               </Button>
@@ -198,5 +362,97 @@ export function LookupMutateDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+type ExtraFieldProps = {
+  // Loosely typed on purpose: the form's shape is built from config at runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  control: any
+  field: LookupField
+  options?: LookupOption[]
+}
+
+/**
+ * Render one configured extra field as the control its type calls for.
+ *
+ * A `select` draws its choices from the config's static `options` (an API enum
+ * with no endpoint of its own) or from another reference table via
+ * `optionsFrom`; the two are interchangeable here because both reduce to a
+ * `{value,label}` list.
+ */
+function ExtraField({ control, field, options }: ExtraFieldProps) {
+  const choices =
+    field.options ??
+    options?.map((option) => ({
+      value: String(option.id),
+      label: option.name,
+    })) ??
+    []
+
+  return (
+    <FormField
+      control={control}
+      name={field.key}
+      render={({ field: input }) => (
+        <FormItem>
+          <FormLabel>{field.label}</FormLabel>
+
+          {field.type === 'select' ? (
+            <Select
+              value={input.value ? String(input.value) : NONE}
+              onValueChange={(value) =>
+                input.onChange(value === NONE ? '' : value)
+              }
+            >
+              <FormControl>
+                <SelectTrigger className='w-full'>
+                  <SelectValue
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                  />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {!field.required && <SelectItem value={NONE}>None</SelectItem>}
+                {choices.map((choice) => (
+                  <SelectItem key={choice.value} value={choice.value}>
+                    {choice.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <FormControl>
+              <Input
+                type={
+                  field.type === 'color'
+                    ? 'color'
+                    : field.type === 'number' || field.type === 'money'
+                      ? 'number'
+                      : 'text'
+                }
+                // A decimal column: without a step the browser rejects
+                // anything but whole numbers.
+                step={field.type === 'money' ? '0.01' : undefined}
+                min={
+                  field.type === 'money' || field.type === 'number'
+                    ? '0'
+                    : undefined
+                }
+                placeholder={field.placeholder}
+                className={field.type === 'color' ? 'h-9 w-20 p-1' : undefined}
+                {...input}
+                value={String(input.value ?? '')}
+              />
+            </FormControl>
+          )}
+
+          {field.type === 'money' && (
+            <FormDescription>Leave blank if not yet priced.</FormDescription>
+          )}
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   )
 }

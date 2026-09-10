@@ -73,6 +73,23 @@ function serverMessage(error: AxiosError): string | null {
 }
 
 /**
+ * The API's own explanation for a refusal, or a fallback.
+ *
+ * Business rules refuse with a sentence written for the user — "Bill must be
+ * settled before findings can be recorded" — and that sentence is far more
+ * useful than anything the UI could invent. Use it wherever a 400 is expected
+ * and meaningful; a field-keyed validation failure should go through
+ * {@link fieldErrors} instead.
+ *
+ * @param error - Anything thrown by a mutation.
+ * @param fallback - Shown when the error carries no message of its own.
+ */
+export function serverMessageOr(error: unknown, fallback: string): string {
+  if (!(error instanceof AxiosError)) return fallback
+  return serverMessage(error) ?? fallback
+}
+
+/**
  * Turn an unknown thrown value into a user-facing error toast.
  *
  * The default handler for anything a mutation or query rejects with. It never

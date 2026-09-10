@@ -194,6 +194,42 @@ const lookupConfigs: LookupConfig[] = [
   },
 ]
 
+/**
+ * The human-readable label for a configured field's stored value.
+ *
+ * A select stores a code (`semi_precious`) or an FK id, neither of which means
+ * anything in a table cell. Static choices are resolved through the config's
+ * own `options`; an FK through the `<key>_detail` object the API expands
+ * alongside the id, so no second request is needed.
+ *
+ * @param field - The field being rendered.
+ * @param record - The whole row, since the label may live under another key.
+ * @returns The label, or null when the value speaks for itself.
+ */
+export function lookupFieldLabel(
+  field: LookupField,
+  record: Record<string, unknown>
+): string | null {
+  const value = record[field.key]
+  if (value === null || value === undefined || value === '') return null
+
+  if (field.options) {
+    return (
+      field.options.find((option) => option.value === String(value))?.label ??
+      null
+    )
+  }
+
+  if (field.optionsFrom) {
+    const detail = record[`${field.key}_detail`]
+    if (detail && typeof detail === 'object' && 'name' in detail) {
+      return String((detail as { name: unknown }).name)
+    }
+  }
+
+  return null
+}
+
 export function lookupConfigBySlug(slug: string): LookupConfig | undefined {
   return lookupConfigs.find((config) => config.slug === slug)
 }

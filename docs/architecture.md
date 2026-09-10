@@ -106,7 +106,7 @@ src/
 │                           record-history-sheet.tsx  audit timeline for any record
 │                           user-menu-content.tsx   shared by both user menus
 │                           kbd.tsx                 platform-correct shortcut hints
-│                           bool-badge.tsx · coming-soon.tsx · confirm-dialog.tsx
+│                           bool-badge.tsx · confirm-dialog.tsx · definition-list.tsx
 │                           command-menu.tsx · date-picker.tsx · long-text.tsx
 │                           password-input.tsx · theme-switch.tsx · search.tsx
 │

@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/auth-store'
  * directly, so base URL, auth headers, and error handling stay consistent.
  *
  * `VITE_API_URL` already includes the version segment (e.g.
- * `http://localhost:8000/api/v1`), so callers use clean paths: `/products`.
+ * `http://localhost:8000/api/v1`), so callers use clean paths: `/orders`.
  */
 export const api = axios.create({
   baseURL: env.VITE_API_URL,
