@@ -67,18 +67,6 @@ export type LookupConfig = {
   extraFields: LookupField[]
 }
 
-/**
- * Stone classification. Mirrors `StoneCategory` in `apps/gems/enums.py`.
- *
- * Inlined rather than fetched: the API exposes no choices endpoint, and three
- * strings are cheaper to keep in step than an endpoint to build.
- */
-const STONE_CATEGORIES = [
-  { value: 'precious', label: 'Precious' },
-  { value: 'semi_precious', label: 'Semi-precious' },
-  { value: 'diamond', label: 'Diamond' },
-]
-
 /** Broad colour families. Mirrors `ColorGroup` in `apps/gems/enums.py`. */
 const COLOR_GROUPS = [
   { value: 'white_grey_black', label: 'White / Grey / Black' },
@@ -102,20 +90,27 @@ const COLOR_GROUPS = [
  */
 const lookupConfigs: LookupConfig[] = [
   {
+    resource: 'stone-categories',
+    slug: 'stone-categories',
+    title: 'Stone categories',
+    description:
+      'The pricing tiers. The fee is per tier, so identifying a ruby and a sapphire costs the same. An unpriced tier cannot be billed.',
+    extraFields: [{ key: 'price', label: 'Identification fee', type: 'money' }],
+  },
+  {
     resource: 'stone-types',
     slug: 'stone-types',
     title: 'Stone types',
     description:
-      'What the lab identifies, and the flat fee charged for each. An unpriced type cannot be billed.',
+      'What the lab identifies. The fee comes from the tier a type belongs to, not from the type itself.',
     extraFields: [
       {
         key: 'category',
         label: 'Category',
         type: 'select',
-        options: STONE_CATEGORIES,
+        optionsFrom: 'stone-categories',
         required: true,
       },
-      { key: 'price', label: 'Identification fee', type: 'money' },
     ],
   },
   {
@@ -265,11 +260,23 @@ export type LookupRow = z.infer<typeof lookupRowSchema>
  *
  * `.loose()` because the endpoint returns the whole row; only the id and name
  * are needed to render a choice.
+ *
+ * `category_detail` is the one extra typed by name: a stone type's tier is what
+ * prices it, so a form offering stone types needs to show the fee that choice
+ * commits the customer to. Optional, because no other lookup has one.
  */
 export const lookupOptionSchema = z
   .object({
     id: z.number(),
     name: z.string(),
+    category_detail: z
+      .object({
+        id: z.number(),
+        name: z.string(),
+        price: z.string().nullable().default(null),
+      })
+      .nullable()
+      .optional(),
   })
   .loose()
 

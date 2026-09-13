@@ -3,6 +3,7 @@ import {
   Boxes,
   ClipboardList,
   Contact,
+  FlaskConical,
   Gem,
   LayoutDashboard,
   ListChecks,
@@ -29,8 +30,8 @@ import { type NavLink, type SidebarData } from '../types'
  * reference tables those stages draw on sit under Administration.
  *
  * Identification holds both gemmological stages, because they are one person's
- * work split by payment: preliminary identification types the stone and so
- * fixes its price, then the bill is settled, then the full identification
+ * work split by payment: identification types the stone and so
+ * fixes its price, then the bill is settled, then the findings
  * records the findings.
  *
  * Two rules worth keeping when you edit this:
@@ -75,7 +76,7 @@ export const sidebarData: SidebarData = {
     },
 
     {
-      title: 'Reception',
+      title: 'Operations',
       items: [
         {
           title: 'Customers',
@@ -89,24 +90,24 @@ export const sidebarData: SidebarData = {
           icon: ClipboardList,
           permission: perm('orders', 'view'),
         },
-      ],
-    },
-
-    {
-      title: 'Identification',
-      items: [
         {
-          // The stone record *is* the preliminary identification: a label, a
-          // type, and therefore a price.
-          title: 'Preliminary identification',
+          // Order-shaped: identifying a stone is work done against an order,
+          // and what the bench needs is how many of each order are still to do.
+          title: 'Identification',
+          url: '/identification',
+          icon: Microscope,
+          permission: perm('orders', 'view'),
+        },
+        {
+          title: 'Stones',
           url: '/stones',
           icon: Gem,
           permission: perm('stones', 'view'),
         },
         {
-          title: 'Full identification',
+          title: 'Findings',
           url: '/identification-reports',
-          icon: Microscope,
+          icon: FlaskConical,
           permission: perm('identification-reports', 'view'),
         },
       ],

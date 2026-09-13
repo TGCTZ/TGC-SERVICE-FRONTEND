@@ -47,7 +47,7 @@ export function FinalizeReportDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Finalize report'
-      desc={`Finalize ${currentRow.report_number}? The full identification and its instrument readings are locked afterwards, and the stone becomes eligible for certification. This cannot be undone.`}
+      desc={`Finalize ${currentRow.report_number}? The findings and their instrument readings are locked afterwards, and the stone becomes eligible for certification. This cannot be undone.`}
       confirmText={mutation.isPending ? 'Finalizing...' : 'Finalize'}
       disabled={mutation.isPending}
       handleConfirm={() => mutation.mutate()}

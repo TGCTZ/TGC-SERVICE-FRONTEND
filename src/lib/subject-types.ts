@@ -27,6 +27,7 @@ import { type PermissionResource } from '@/lib/permissions'
  */
 export const subjectTypes = {
   // Reference data.
+  'stone-categories': 'stonecategory',
   'stone-types': 'stonetype',
   species: 'species',
   varieties: 'variety',

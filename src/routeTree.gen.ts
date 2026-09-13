@@ -26,6 +26,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedRolesIndexRouteImport } from './routes/_authenticated/roles/index'
 import { Route as AuthenticatedPaymentsIndexRouteImport } from './routes/_authenticated/payments/index'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders/index'
+import { Route as AuthenticatedIdentificationIndexRouteImport } from './routes/_authenticated/identification/index'
 import { Route as AuthenticatedIdentificationReportsIndexRouteImport } from './routes/_authenticated/identification-reports/index'
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers/index'
 import { Route as AuthenticatedCertificatesIndexRouteImport } from './routes/_authenticated/certificates/index'
@@ -128,6 +129,12 @@ const AuthenticatedOrdersIndexRoute =
     path: '/orders/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedIdentificationIndexRoute =
+  AuthenticatedIdentificationIndexRouteImport.update({
+    id: '/identification/',
+    path: '/identification/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedIdentificationReportsIndexRoute =
   AuthenticatedIdentificationReportsIndexRouteImport.update({
     id: '/identification-reports/',
@@ -213,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/certificates/': typeof AuthenticatedCertificatesIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
   '/identification-reports/': typeof AuthenticatedIdentificationReportsIndexRoute
+  '/identification/': typeof AuthenticatedIdentificationIndexRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
   '/payments/': typeof AuthenticatedPaymentsIndexRoute
   '/roles/': typeof AuthenticatedRolesIndexRoute
@@ -241,6 +249,7 @@ export interface FileRoutesByTo {
   '/certificates': typeof AuthenticatedCertificatesIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
   '/identification-reports': typeof AuthenticatedIdentificationReportsIndexRoute
+  '/identification': typeof AuthenticatedIdentificationIndexRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
   '/payments': typeof AuthenticatedPaymentsIndexRoute
   '/roles': typeof AuthenticatedRolesIndexRoute
@@ -272,6 +281,7 @@ export interface FileRoutesById {
   '/_authenticated/certificates/': typeof AuthenticatedCertificatesIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/identification-reports/': typeof AuthenticatedIdentificationReportsIndexRoute
+  '/_authenticated/identification/': typeof AuthenticatedIdentificationIndexRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
   '/_authenticated/payments/': typeof AuthenticatedPaymentsIndexRoute
   '/_authenticated/roles/': typeof AuthenticatedRolesIndexRoute
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/certificates/'
     | '/customers/'
     | '/identification-reports/'
+    | '/identification/'
     | '/orders/'
     | '/payments/'
     | '/roles/'
@@ -331,6 +342,7 @@ export interface FileRouteTypes {
     | '/certificates'
     | '/customers'
     | '/identification-reports'
+    | '/identification'
     | '/orders'
     | '/payments'
     | '/roles'
@@ -361,6 +373,7 @@ export interface FileRouteTypes {
     | '/_authenticated/certificates/'
     | '/_authenticated/customers/'
     | '/_authenticated/identification-reports/'
+    | '/_authenticated/identification/'
     | '/_authenticated/orders/'
     | '/_authenticated/payments/'
     | '/_authenticated/roles/'
@@ -504,6 +517,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/identification/': {
+      id: '/_authenticated/identification/'
+      path: '/identification'
+      fullPath: '/identification/'
+      preLoaderRoute: typeof AuthenticatedIdentificationIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/identification-reports/': {
       id: '/_authenticated/identification-reports/'
       path: '/identification-reports'
@@ -615,6 +635,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCertificatesIndexRoute: typeof AuthenticatedCertificatesIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
   AuthenticatedIdentificationReportsIndexRoute: typeof AuthenticatedIdentificationReportsIndexRoute
+  AuthenticatedIdentificationIndexRoute: typeof AuthenticatedIdentificationIndexRoute
   AuthenticatedOrdersIndexRoute: typeof AuthenticatedOrdersIndexRoute
   AuthenticatedPaymentsIndexRoute: typeof AuthenticatedPaymentsIndexRoute
   AuthenticatedRolesIndexRoute: typeof AuthenticatedRolesIndexRoute
@@ -634,6 +655,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
   AuthenticatedIdentificationReportsIndexRoute:
     AuthenticatedIdentificationReportsIndexRoute,
+  AuthenticatedIdentificationIndexRoute: AuthenticatedIdentificationIndexRoute,
   AuthenticatedOrdersIndexRoute: AuthenticatedOrdersIndexRoute,
   AuthenticatedPaymentsIndexRoute: AuthenticatedPaymentsIndexRoute,
   AuthenticatedRolesIndexRoute: AuthenticatedRolesIndexRoute,

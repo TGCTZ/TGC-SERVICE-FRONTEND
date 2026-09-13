@@ -9,7 +9,7 @@
 /** Every status a stone can hold, for rendering one that already exists. */
 export const STONE_STATUS_LABELS: Record<string, string> = {
   received: 'Received',
-  under_identification: 'Under full identification',
+  under_identification: 'Under findings',
   billed: 'Billed',
   paid: 'Paid',
   certified: 'Certified',
@@ -17,6 +17,38 @@ export const STONE_STATUS_LABELS: Record<string, string> = {
   collected: 'Collected',
   on_hold: 'On hold',
   cancelled: 'Cancelled',
+}
+
+/**
+ * Statuses in which a stone's **type** may still be corrected.
+ *
+ * `received` is the working state; `on_hold` and `cancelled` are the two a
+ * human parks a stone in precisely *to* fix something. Every other status means
+ * a bill has been priced from this stone's type — and the type is the price, so
+ * changing it afterwards would silently make an issued bill wrong.
+ *
+ * An explicit set rather than a rank comparison over `STONE_STATUS_LABELS`:
+ * relying on object key order for a business rule is a trap, and the two side
+ * states are not "past" anything.
+ *
+ * Mirrors `RETYPEABLE_STATUSES` in `apps/orders/services/stone.py`, which is
+ * what actually enforces it.
+ */
+const RETYPEABLE_STATUSES = ['received', 'on_hold', 'cancelled']
+
+/**
+ * Whether a stone has been billed, and so can no longer be edited here.
+ *
+ * Note this locks the **record's own screen**, not the stone outright: weight
+ * arrives later than billing by design — the bench weighs the stone during the
+ * findings, when it is already paid — and that is recorded on the findings
+ * form, which stays open.
+ *
+ * @param stone - The stone to test, or null before a row is chosen.
+ * @returns True once a bill has been priced from this stone.
+ */
+export function isStoneLocked(stone: { status: string } | null): boolean {
+  return Boolean(stone) && !RETYPEABLE_STATUSES.includes(stone!.status)
 }
 
 /**

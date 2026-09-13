@@ -26,9 +26,9 @@ const route = getRouteApi('/_authenticated/worklists/$slug/')
 
 /** Which row the primary action was pressed on, and which dialog it opens. */
 type PendingAction =
-  | { slug: 'preliminary-identification'; order: Order }
+  | { slug: 'identification'; order: Order }
   | { slug: 'billing'; order: Order }
-  | { slug: 'full-identification'; stone: Stone }
+  | { slug: 'findings'; stone: Stone }
   | { slug: 'certification'; stone: Stone }
 
 /**
@@ -103,8 +103,8 @@ function WorklistContent({ config }: { config: WorklistConfig }) {
     ...ordersDataColumns,
     actionColumn<Order>((order) =>
       setPending(
-        config.slug === 'preliminary-identification'
-          ? { slug: 'preliminary-identification', order }
+        config.slug === 'identification'
+          ? { slug: 'identification', order }
           : { slug: 'billing', order }
       )
     ),
@@ -114,8 +114,8 @@ function WorklistContent({ config }: { config: WorklistConfig }) {
     ...stonesDataColumns,
     actionColumn<Stone>((stone) =>
       setPending(
-        config.slug === 'full-identification'
-          ? { slug: 'full-identification', stone }
+        config.slug === 'findings'
+          ? { slug: 'findings', stone }
           : { slug: 'certification', stone }
       )
     ),
@@ -124,7 +124,7 @@ function WorklistContent({ config }: { config: WorklistConfig }) {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
@@ -163,7 +163,7 @@ function WorklistContent({ config }: { config: WorklistConfig }) {
 
       {/* The dialogs belong to the features that own the action, so a queue
         cannot drift from the screen the same action is performed on. */}
-      {pending?.slug === 'preliminary-identification' && (
+      {pending?.slug === 'identification' && (
         <AddStoneDialog
           open
           onOpenChange={(isOpen) => !isOpen && setPending(null)}
@@ -179,7 +179,7 @@ function WorklistContent({ config }: { config: WorklistConfig }) {
         />
       )}
 
-      {pending?.slug === 'full-identification' && (
+      {pending?.slug === 'findings' && (
         <ReportMutateDialog
           open
           onOpenChange={(isOpen) => !isOpen && setPending(null)}

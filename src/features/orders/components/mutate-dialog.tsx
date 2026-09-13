@@ -118,7 +118,7 @@ type OrderMutateDialogProps = {
   onRequestEdit?: () => void
   /** The record's row actions, shown in the footer of the read-only view. */
   actions?: RowAction[]
-  /** Opens the preliminary-identification dialog from the embedded panel. */
+  /** Opens the identification dialog from the embedded panel. */
   onRegisterStone?: () => void
 }
 

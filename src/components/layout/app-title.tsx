@@ -1,15 +1,26 @@
 import { Link } from '@tanstack/react-router'
 import { appConfig } from '@/config/app-config'
+import { Logo } from '@/assets/logo'
 import {
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
 
 /**
- * The sidebar header: app name linking home, beside the collapse trigger.
+ * The sidebar header: the crest above the short wordmark, linking home.
+ *
+ * Deliberately **not** wrapped in `SidebarMenuButton`. That component is a
+ * fixed `h-12` box with `overflow-hidden`, and its variants force
+ * `group-data-[collapsible=icon]:size-8!` — an important-flagged 32px square
+ * that a `size-24` here could not beat, and that would crop the crest rather
+ * than scale it. `SidebarHeader` is an unopinionated flex column, so the
+ * stacked layout is built directly inside it.
+ *
+ * Collapsing to icon mode shrinks the crest to 32px and hides the wordmark.
+ * `data-collapsible` is only set on the sidebar *while collapsed*, so the
+ * expanded sizes need no counterpart selector. None of these rules apply on
+ * mobile, where the sidebar is a full-width sheet.
  *
  * The name comes from `config/app-config.ts` — change it there, not here.
  *
@@ -22,22 +33,22 @@ export function AppTitle() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton
-          size='lg'
-          className='gap-0 py-0 hover:bg-transparent active:bg-transparent'
-          asChild
+        <Link
+          to='/'
+          aria-label={`${appConfig.name} — go to the dashboard`}
+          onClick={() => setOpenMobile(false)}
+          className='flex flex-col items-center gap-2 rounded-md py-3 transition-opacity group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:py-1 hover:opacity-80'
         >
-          <div>
-            <Link
-              to='/'
-              onClick={() => setOpenMobile(false)}
-              className='grid flex-1 text-start text-sm leading-tight'
-            >
-              <span className='truncate font-bold'>{appConfig.name}</span>
-            </Link>
-            <SidebarTrigger className='size-8 max-md:scale-125' />
-          </div>
-        </SidebarMenuButton>
+          {/* alt is empty: the wordmark below already names the app, and the
+              link carries its own label. */}
+          <Logo
+            alt=''
+            className='size-24 group-data-[collapsible=icon]:size-8'
+          />
+          <span className='truncate text-sm font-bold tracking-wide group-data-[collapsible=icon]:hidden'>
+            {appConfig.shortName}
+          </span>
+        </Link>
       </SidebarMenuItem>
     </SidebarMenu>
   )

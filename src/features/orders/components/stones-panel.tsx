@@ -11,7 +11,7 @@ import { isFullyIdentified, type Order } from '../data/schema'
 
 type OrderStonesPanelProps = {
   order: Order
-  /** Opens the preliminary-identification dialog; omitted in read-only contexts. */
+  /** Opens the identification dialog; omitted in read-only contexts. */
   onRegister?: () => void
 }
 

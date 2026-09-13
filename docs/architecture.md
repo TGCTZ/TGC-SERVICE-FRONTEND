@@ -95,11 +95,14 @@ src/
 │   ├── layout/           App shell: sidebar, header, nav, and the authenticated layout
 │   │   ├── authenticated-layout.tsx  Sidebar + header frame + error boundary around <Outlet>
 │   │   ├── app-sidebar.tsx           Assembles the sidebar from sidebar-data
-│   │   ├── app-title.tsx             Brand title (reads app-config)
+│   │   ├── app-title.tsx             Crest + wordmark (reads app-config)
 │   │   ├── header.tsx / main.tsx     Content region primitives
+│   │   ├── breadcrumbs.tsx           The header trail, derived from the URL
+│   │   ├── back-button.tsx           History back, disabled at the root
 │   │   ├── nav-group.tsx / nav-user.tsx  Sidebar nav rendering
-│   │   └── data/                     sidebar-data.ts (the navigation model) and
-│   │                                 filter-nav.ts (permission filtering)
+│   │   └── data/                     sidebar-data.ts (the navigation model),
+│   │                                 filter-nav.ts (permission filtering) and
+│   │                                 breadcrumbs.ts (URL → trail)
 │   └── *.tsx             Cross-feature widgets. The load-bearing ones:
 │                           can.tsx                 permission gate for UI
 │                           dialog-body.tsx         scrollable dialog region
@@ -390,6 +393,18 @@ list:
 | `requirePermission([...])` from `lib/authz.ts` | Guarding a whole route | `beforeLoad: requirePermission(['products.viewAny'])` |
 | `<Can permission='products.create'>` from `components/can.tsx` | Hiding UI actions | Wrap the "Add product" button |
 | `filterNavGroups()` in `layout/data/filter-nav.ts` | Sidebar + command palette | Hides unreachable pages |
+
+One more read of the same navigation model, which deliberately does **not**
+consume permissions:
+
+| Tool | Use for | Example |
+| --- | --- | --- |
+| `resolveBreadcrumbs()` in `layout/data/breadcrumbs.ts` | The header trail | `/lookups/colors` → `Home › Administration › Reference data › Colours` |
+
+It reads `sidebarData` **unfiltered**: `filterNavGroups` drops a whole group
+once the user can see none of its items, so filtering the trail too would punch
+holes in the path of a page the user can legitimately reach. Nothing leaks —
+every ancestor crumb renders as plain text, never a link.
 
 Permissions rather than roles, because that is exactly how the API enforces
 access — a role gate would drift the moment someone edited that role from the

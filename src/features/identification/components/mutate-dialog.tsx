@@ -48,11 +48,8 @@ import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
-import {
-  createReport,
-  fullIdentificationWorklistQuery,
-  updateReport,
-} from '../data/api'
+import { WEIGHT_UNITS } from '@/features/stones/data/enums'
+import { createReport, findingsWorklistQuery, updateReport } from '../data/api'
 import {
   NATURE_TYPES,
   OPTIC_CHARACTERS,
@@ -100,6 +97,8 @@ const reportFormSchema = z.object({
   dimensions: z.string().optional(),
   refractive_index: z.string().optional(),
   specific_gravity: z.string().optional(),
+  weight: z.string().optional(),
+  weight_unit: z.string().default('carat'),
   is_polished: z.boolean().default(false),
   conclusion: z.string().optional(),
 })
@@ -122,7 +121,7 @@ type ReportMutateDialogProps = {
   /** The record's row actions, shown in the footer of the read-only view. */
   actions?: RowAction[]
   /**
-   * Preselected stone, when the dialog is opened from the full-identification queue.
+   * Preselected stone, when the dialog is opened from the findings queue.
    *
    * Only meaningful while creating; the select still renders, so the choice
    * stays visible and changeable.
@@ -149,7 +148,7 @@ export function ReportMutateDialog({
 
   // Only needed while creating: the endpoint encodes "paid, not yet finalized".
   const { data: worklist = [] } = useQuery({
-    ...fullIdentificationWorklistQuery(),
+    ...findingsWorklistQuery(),
     enabled: open && !isEdit,
   })
 
@@ -183,6 +182,8 @@ export function ReportMutateDialog({
       dimensions: currentRow?.dimensions ?? '',
       refractive_index: currentRow?.refractive_index ?? '',
       specific_gravity: currentRow?.specific_gravity ?? '',
+      weight: currentRow?.stone_weight ?? '',
+      weight_unit: currentRow?.stone_weight_unit ?? 'carat',
       is_polished: currentRow?.is_polished ?? false,
       conclusion: currentRow?.conclusion ?? '',
     })
@@ -209,6 +210,9 @@ export function ReportMutateDialog({
         specific_gravity: values.specific_gravity?.trim()
           ? values.specific_gravity.trim()
           : null,
+        // Applied to the stone by the service, not stored on the report.
+        weight: values.weight?.trim() ? values.weight.trim() : null,
+        weight_unit: values.weight_unit,
         is_polished: values.is_polished,
         conclusion: values.conclusion ?? '',
       }
@@ -225,7 +229,7 @@ export function ReportMutateDialog({
     },
     onSuccess: (report) => {
       toast.success(
-        isEdit ? 'Full identification saved' : `Opened ${report.report_number}`
+        isEdit ? 'Findings saved' : `Opened ${report.report_number}`
       )
       queryClient.invalidateQueries({ queryKey: ['identification-reports'] })
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
@@ -249,10 +253,7 @@ export function ReportMutateDialog({
       // An unpaid bill and a finalized report are both refused by name — the
       // API's sentence is the clearest explanation the user will get.
       toast.error(
-        serverMessageOr(
-          error,
-          'Could not save the full identification. Please try again.'
-        )
+        serverMessageOr(error, 'Could not save the findings. Please try again.')
       )
     },
   })
@@ -265,14 +266,14 @@ export function ReportMutateDialog({
             {readOnly
               ? currentRow?.report_number
               : isEdit
-                ? 'Edit full identification'
-                : 'Record full identification'}
+                ? 'Edit findings'
+                : 'Record findings'}
             {currentRow?.is_finalized && <Badge>Finalized</Badge>}
           </DialogTitle>
           <DialogDescription>
             {currentRow
               ? `Stone ${currentRow.stone_label} · ${currentRow.order_reference}`
-              : 'Only paid stones without a finished full identification can be opened.'}
+              : 'Only paid stones without finished findings can be opened.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -307,7 +308,7 @@ export function ReportMutateDialog({
                           >
                             <FormControl>
                               <SelectTrigger className='w-full'>
-                                <SelectValue placeholder='Select a stone awaiting full identification' />
+                                <SelectValue placeholder='Select a stone awaiting findings' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -391,6 +392,62 @@ export function ReportMutateDialog({
                 <section className='space-y-4'>
                   <h3 className='text-sm font-medium'>Measurements</h3>
                   <div className='grid gap-4 sm:grid-cols-2'>
+                    {/* Weight is the one measurement stored on the stone rather
+                        than the report — the certificate snapshots the stone.
+                        The API takes it here and hands it on. */}
+                    <div className='grid grid-cols-[1fr_8rem] gap-3'>
+                      <FormField
+                        control={form.control}
+                        name='weight'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Weight</FormLabel>
+                            <FormControl>
+                              <Input
+                                type='number'
+                                step='0.001'
+                                min='0'
+                                {...field}
+                                value={field.value ?? ''}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='weight_unit'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Unit</FormLabel>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <FormControl>
+                                <SelectTrigger className='w-full'>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {WEIGHT_UNITS.map((unit) => (
+                                  <SelectItem
+                                    key={unit.value}
+                                    value={unit.value}
+                                  >
+                                    {unit.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <TextField
                       control={form.control}
                       name='dimensions'

@@ -27,6 +27,25 @@ export const ordersQuery = (params: ListParams) =>
     placeholderData: (previous) => previous,
   })
 
+/**
+ * Orders with stones still to identify.
+ *
+ * The same endpoint the identification queue reads, reused to populate the
+ * order picker: it returns exactly the orders that still have a free slot, so
+ * a full order cannot be chosen and the list empties itself when there is no
+ * work left.
+ */
+export const identifiableOrdersQuery = () =>
+  queryOptions({
+    queryKey: ['worklist', 'identification', 'options'],
+    queryFn: async () => {
+      const res = await api.get('/orders/worklist', {
+        params: { page_size: 100, ordering: 'received_date' },
+      })
+      return paginatedSchema(orderSchema).parse(res.data).results
+    },
+  })
+
 export type OrderPayload = Record<string, unknown>
 
 export async function createOrder(payload: OrderPayload): Promise<Order> {
@@ -52,7 +71,7 @@ export async function restoreOrder(id: number): Promise<void> {
 }
 
 /**
- * Record the preliminary identification of the next stone.
+ * Record the identification of the next stone.
  *
  * A sub-resource rather than `POST /stones/`: the service owns the A/B/C label
  * sequence and the cap at `order.stone_count`, and refuses with a 400 once the

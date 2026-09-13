@@ -10,6 +10,7 @@ import {
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useStones } from '../components/provider'
+import { isStoneLocked } from '../data/enums'
 import { type Stone } from '../data/schema'
 
 /**
@@ -40,6 +41,9 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
   if (!stone) return []
 
   const isDeleted = Boolean(stone.deleted_at)
+  // Billed: the type priced the bill, so the record is settled. Weight is still
+  // editable, but on the findings form rather than here.
+  const isLocked = isStoneLocked(stone)
 
   return [
     {
@@ -53,14 +57,14 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
       icon: Pencil,
       permission: perm('stones', 'change'),
       onSelect: () => select('update'),
-      hidden: isDeleted,
+      hidden: isDeleted || isLocked,
     },
     {
       label: 'Change status',
       icon: ArrowRightLeft,
       permission: PERMISSIONS.transitionStone,
       onSelect: () => select('transition'),
-      hidden: isDeleted,
+      hidden: isDeleted || isLocked,
     },
     {
       label: 'Status history',
@@ -89,7 +93,7 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
       permission: perm('stones', 'delete'),
       onSelect: () => select('delete'),
       variant: 'destructive',
-      hidden: isDeleted,
+      hidden: isDeleted || isLocked,
       separatorBefore: true,
     },
   ]

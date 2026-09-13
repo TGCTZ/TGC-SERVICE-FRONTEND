@@ -190,6 +190,11 @@ screen.
 The page reads table state from the URL, runs the query, and handles the error
 state explicitly.
 
+`<Header>` already carries the sidebar toggle, the back button and the
+breadcrumb trail on every screen — pass it the page's own controls and nothing
+else. No `ms-auto` or `me-auto`: the header owns that alignment, and the trail
+is derived from the URL via the sidebar entry you add in step 6.
+
 ```tsx
 const search = route.useSearch()
 const { data, isPending, isError, isFetching } = useQuery(

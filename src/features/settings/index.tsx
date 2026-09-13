@@ -42,7 +42,7 @@ export function Settings() {
     <>
       {/* ===== Top Heading ===== */}
       <Header>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />

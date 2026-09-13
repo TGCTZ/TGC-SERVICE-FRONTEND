@@ -10,8 +10,17 @@
  * update the favicons in `public/images/` per project.
  */
 export const appConfig = {
-  /** Display name shown in the sidebar header, etc. */
+  /** Display name: the browser title, the sign-in page, the certificate PDF. */
   name: 'Tanzania Gemmological Centre',
+
+  /**
+   * Short wordmark for the sidebar, where the full name does not fit.
+   *
+   * Deliberately separate from `name` rather than replacing it — `name` is
+   * injected into `index.html` via the `%APP_NAME%` token and is what the
+   * customer sees on a certificate.
+   */
+  shortName: 'TGC-SERVICE',
 
   /** Short tagline / description used in metadata. */
   description:

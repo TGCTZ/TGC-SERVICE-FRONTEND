@@ -39,6 +39,7 @@ type ModelRef = {
  */
 const RESOURCE_MODELS = {
   // Reference data.
+  'stone-categories': { app: 'gems', model: 'stonecategory' },
   'stone-types': { app: 'gems', model: 'stonetype' },
   species: { app: 'gems', model: 'species' },
   varieties: { app: 'gems', model: 'variety' },

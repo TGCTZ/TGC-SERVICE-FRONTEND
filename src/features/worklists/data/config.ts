@@ -40,8 +40,8 @@ export type WorklistConfig = {
 
 const worklistConfigs: WorklistConfig[] = [
   {
-    slug: 'preliminary-identification',
-    title: 'Awaiting preliminary identification',
+    slug: 'identification',
+    title: 'Awaiting identification',
     description:
       "Orders with stones still to be typed. A stone's type is what prices it, so nothing here can be billed yet.",
     endpoint: '/orders/worklist',
@@ -64,21 +64,21 @@ const worklistConfigs: WorklistConfig[] = [
     emptyMessage: 'Nothing is waiting to be billed.',
   },
   {
-    slug: 'full-identification',
-    title: 'Awaiting full identification',
+    slug: 'findings',
+    title: 'Awaiting findings',
     description:
-      'Paid stones on the bench, whose full identification has not been finalized yet.',
+      'Paid stones on the bench, whose findings has not been finalized yet.',
     endpoint: '/identification-reports/worklist',
     rowKind: 'stone',
-    actionLabel: 'Record full identification',
+    actionLabel: 'Record findings',
     permission: perm('identification-reports', 'add'),
-    emptyMessage: 'No stones are waiting for full identification.',
+    emptyMessage: 'No stones are waiting for findings.',
   },
   {
     slug: 'certification',
     title: 'Ready to certify',
     description:
-      'Stones with a finalized full identification and a settled bill, not yet certified.',
+      'Stones with a finalized findings and a settled bill, not yet certified.',
     endpoint: '/certificates/worklist',
     rowKind: 'stone',
     actionLabel: 'Issue certificate',

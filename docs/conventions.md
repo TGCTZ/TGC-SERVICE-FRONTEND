@@ -401,7 +401,11 @@ A bare `src/lib/api.ts` is acceptable only because it is *the* HTTP client.
 - [ ] View reuses the mutate dialog with `readOnly`
 - [ ] Show deleted toggle, if the resource soft-deletes
 - [ ] Route guarded with `requirePermission`
-- [ ] Sidebar entry carries its `permission`
+- [ ] Sidebar entry carries its `permission` — the breadcrumb trail comes free
+      from it; a screen missing from `sidebar-data.ts` falls back to a
+      humanised path
+- [ ] `<Header>` children are the right-hand controls only — no `ms-auto` or
+      `me-auto`, the header owns that alignment
 - [ ] Dates and money go through `lib/format.ts`
 - [ ] `subject-types.ts` entry, if you want history
 - [ ] Checked as `viewer@test.com` — the menu should collapse to View

@@ -82,7 +82,7 @@ function IdentificationContent() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
@@ -91,13 +91,11 @@ function IdentificationContent() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              Full identification
-            </h2>
+            <h2 className='text-2xl font-bold tracking-tight'>Findings</h2>
             <p className='text-muted-foreground'>
-              What the bench found, per stone — the full identification, which
-              follows the preliminary one. A report can only be opened once the
-              stone&apos;s bill is settled.
+              What the bench found, per stone — the findings recorded after
+              payment. A report can only be opened once the stone&apos;s bill is
+              settled.
             </p>
           </div>
 
@@ -108,7 +106,7 @@ function IdentificationContent() {
                 setOpen('create')
               }}
             >
-              Record full identification
+              Record findings
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>

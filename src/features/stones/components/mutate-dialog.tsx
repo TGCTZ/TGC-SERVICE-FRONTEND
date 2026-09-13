@@ -39,7 +39,7 @@ import { DialogBody } from '@/components/dialog-body'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
 import { updateStone } from '../data/api'
-import { WEIGHT_UNITS } from '../data/enums'
+import { WEIGHT_UNITS, isStoneLocked } from '../data/enums'
 import { type Stone } from '../data/schema'
 import { StoneStatusBadge } from './status-badge'
 
@@ -79,6 +79,10 @@ export function StoneMutateDialog({
 }: StoneMutateDialogProps) {
   const queryClient = useQueryClient()
   const { data: stoneTypes = [] } = useQuery(lookupOptionsQuery('stone-types'))
+  // A billed stone is settled by the service, so the form is read-only whether
+  // or not the caller asked for a view.
+  const locked = isStoneLocked(currentRow)
+  const isLocked = readOnly || locked
 
   const form = useForm<FormValues>({
     resolver: zodResolver(stoneFormSchema),
@@ -140,9 +144,11 @@ export function StoneMutateDialog({
             {currentRow && <StoneStatusBadge status={currentRow.status} />}
           </DialogTitle>
           <DialogDescription>
-            {currentRow?.order_reference
-              ? `Identified under ${currentRow.order_reference}.`
-              : 'A stone in an order.'}
+            {locked
+              ? 'Billed, so its type can no longer change — that type is what priced the bill. Weight is recorded with the findings.'
+              : currentRow?.order_reference
+                ? `Identified under ${currentRow.order_reference}.`
+                : 'A stone in an order.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -154,7 +160,7 @@ export function StoneMutateDialog({
               className='px-1'
             >
               {/* One fieldset disables every control, Radix triggers included. */}
-              <fieldset disabled={readOnly} className='space-y-4'>
+              <fieldset disabled={isLocked} className='space-y-4'>
                 <FormField
                   control={form.control}
                   name='stone_type'
@@ -242,7 +248,8 @@ export function StoneMutateDialog({
             <ViewFooterActions
               actions={actions}
               primary={
-                onRequestEdit && (
+                onRequestEdit &&
+                !locked && (
                   <Can permission={perm('stones', 'change')}>
                     <Button onClick={onRequestEdit}>
                       <Pencil className='me-1 size-4' />
@@ -264,7 +271,7 @@ export function StoneMutateDialog({
               <Button
                 type='submit'
                 form='stone-form'
-                disabled={mutation.isPending}
+                disabled={isLocked || mutation.isPending}
               >
                 {mutation.isPending ? 'Saving...' : 'Save'}
               </Button>

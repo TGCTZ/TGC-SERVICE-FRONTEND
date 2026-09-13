@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { formatMoney } from '@/lib/format'
 import { fieldErrors, serverMessageOr } from '@/lib/handle-server-error'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
@@ -17,12 +18,12 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -31,14 +32,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
-import { WEIGHT_UNITS } from '@/features/stones/data/enums'
-import { addStone } from '../data/api'
+import { addStone, identifiableOrdersQuery } from '../data/api'
 import { type Order } from '../data/schema'
 
 const addStoneSchema = z.object({
+  order: z.string().min(1, 'Order is required.'),
   stone_type: z.string().min(1, 'Stone type is required.'),
-  weight: z.string().optional(),
-  weight_unit: z.string().default('carat'),
 })
 
 type FormValues = z.input<typeof addStoneSchema>
@@ -46,15 +45,23 @@ type FormValues = z.input<typeof addStoneSchema>
 type AddStoneDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  order: Order
+  /**
+   * The order to identify against. Omit it to let the user pick one — that is
+   * how the Identification page opens this, where no order is on screen.
+   */
+  order?: Order
 }
 
 /**
- * Record the preliminary identification of the next stone.
+ * Record the identification of a stone: which order it came in on, and its type.
  *
- * There is no label field: the service allocates A, B, C… in sequence and caps
- * the count at `order.stone_count`, so the label is a fact about the order's
- * state rather than something a user chooses.
+ * **No weight.** Identification records only the type, because the type is what
+ * prices the bill. The stone is weighed at the bench and that weight is
+ * recorded with the findings, after payment.
+ *
+ * There is no label field either: the service allocates A, B, C… in sequence
+ * and caps the count at `order.stone_count`, so the label is a fact about the
+ * order's state rather than something a user chooses.
  */
 export function AddStoneDialog({
   open,
@@ -63,23 +70,34 @@ export function AddStoneDialog({
 }: AddStoneDialogProps) {
   const queryClient = useQueryClient()
   const { data: stoneTypes = [] } = useQuery(lookupOptionsQuery('stone-types'))
+  // Only fetched when the caller supplied no order, so the three entry points
+  // that already have one cost nothing extra.
+  const { data: orders = [] } = useQuery({
+    ...identifiableOrdersQuery(),
+    enabled: open && !order,
+  })
 
   const form = useForm<FormValues>({
     resolver: zodResolver(addStoneSchema),
-    defaultValues: { stone_type: '', weight: '', weight_unit: 'carat' },
+    defaultValues: { order: order ? String(order.id) : '', stone_type: '' },
   })
+
+  // The tier the chosen type belongs to, and the fee it commits the customer
+  // to. Read-only: it is a fact about the type, not a second choice.
+  const chosenType = useWatch({ control: form.control, name: 'stone_type' })
+  const category = stoneTypes.find(
+    (type) => String(type.id) === chosenType
+  )?.category_detail
 
   useEffect(() => {
     if (!open) return
-    form.reset({ stone_type: '', weight: '', weight_unit: 'carat' })
-  }, [open, form])
+    form.reset({ order: order ? String(order.id) : '', stone_type: '' })
+  }, [open, order, form])
 
   const mutation = useMutation({
     mutationFn: (values: FormValues) =>
-      addStone(order.id, {
+      addStone(Number(values.order), {
         stone_type: Number(values.stone_type),
-        weight: values.weight?.trim() ? values.weight.trim() : null,
-        weight_unit: values.weight_unit,
       }),
     onSuccess: (stone) => {
       toast.success(`Identified ${stone.label}`)
@@ -114,9 +132,9 @@ export function AddStoneDialog({
         <DialogHeader className='text-start'>
           <DialogTitle>Identify stone</DialogTitle>
           <DialogDescription>
-            {order.reference_number} — {order.identified_count} of{' '}
-            {order.stone_count} identified so far. The label is allocated
-            automatically.
+            {order
+              ? `${order.reference_number} — ${order.identified_count} of ${order.stone_count} identified so far. The label is allocated automatically.`
+              : 'Pick the order the stone came in on, then say what it is. The label is allocated automatically.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -126,6 +144,42 @@ export function AddStoneDialog({
             onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
             className='space-y-4'
           >
+            {!order && (
+              <FormField
+                control={form.control}
+                name='order'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Order</FormLabel>
+                    <Select
+                      value={field.value || undefined}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Select an order awaiting identification' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {orders.map((row) => (
+                          <SelectItem key={row.id} value={String(row.id)}>
+                            {row.reference_number} · {row.identified_count} of{' '}
+                            {row.stone_count} identified
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {orders.length === 0 && (
+                      <FormDescription>
+                        Nothing is waiting — every order is fully identified.
+                      </FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name='stone_type'
@@ -154,52 +208,26 @@ export function AddStoneDialog({
               )}
             />
 
-            <div className='grid grid-cols-[1fr_8rem] gap-3'>
-              <FormField
-                control={form.control}
-                name='weight'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Weight</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='number'
-                        step='0.001'
-                        min='0'
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {category && (
+              <div className='rounded-md border bg-muted/40 p-3'>
+                <dl className='grid grid-cols-2 gap-2 text-sm'>
+                  <dt className='text-muted-foreground'>Category</dt>
+                  <dd className='text-end font-medium'>{category.name}</dd>
 
-              <FormField
-                control={form.control}
-                name='weight_unit'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger className='w-full'>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {WEIGHT_UNITS.map((unit) => (
-                          <SelectItem key={unit.value} value={unit.value}>
-                            {unit.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                  <dt className='text-muted-foreground'>Identification fee</dt>
+                  <dd className='text-end font-medium tabular-nums'>
+                    {formatMoney(
+                      category.price === null ? null : Number(category.price)
+                    )}
+                  </dd>
+                </dl>
+                <p className='mt-2 text-xs text-muted-foreground'>
+                  {category.price === null
+                    ? 'This tier has no fee set, so the order cannot be billed until one is.'
+                    : 'The fee comes from the tier, not the type — this is what the customer is billed for this stone.'}
+                </p>
+              </div>
+            )}
           </form>
         </Form>
 

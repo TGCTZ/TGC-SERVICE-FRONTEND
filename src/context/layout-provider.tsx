@@ -5,9 +5,12 @@ import { getCookie, setCookie } from '@/lib/cookies'
  * How the sidebar collapses.
  *
  * - `icon` — shrinks to an icon rail, navigation stays reachable (the default)
- * - `offcanvas` — slides away entirely, **taking its trigger with it**, which
- *   is why `Header` restores one; see `components/layout/header.tsx`
+ * - `offcanvas` — slides away entirely
  * - `none` — always expanded
+ *
+ * The sidebar carries no trigger of its own in any mode: `Header` holds the
+ * only one, so it stays reachable even when the sidebar is fully off screen.
+ * See `components/layout/header.tsx`.
  */
 export type Collapsible = 'offcanvas' | 'icon' | 'none'
 type Variant = 'inset' | 'sidebar' | 'floating'

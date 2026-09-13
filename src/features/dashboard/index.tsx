@@ -63,7 +63,7 @@ export function Dashboard() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />

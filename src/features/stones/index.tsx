@@ -79,7 +79,7 @@ function StonesContent() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
@@ -87,13 +87,11 @@ function StonesContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div>
-          <h2 className='text-2xl font-bold tracking-tight'>
-            Preliminary identification
-          </h2>
+          <h2 className='text-2xl font-bold tracking-tight'>Stones</h2>
           <p className='text-muted-foreground'>
-            Every stone in the lab, and the type each was identified as — which
-            is what prices it. Stones are identified from their order, which
-            owns the label sequence.
+            Every stone in the lab, what it was typed as, and where it has got
+            to. Stones are typed on the Identification screen and weighed with
+            the findings.
           </p>
         </div>
 

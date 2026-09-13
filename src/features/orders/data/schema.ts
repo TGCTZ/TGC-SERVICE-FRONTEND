@@ -6,7 +6,7 @@ import { customerSchema } from '@/features/customers/data/schema'
  *
  * `reference_number` is allocated by the service on create and never sent back,
  * and `identified_count` is derived from the stones identified so far — it is
- * how far through preliminary identification this order is, against `stone_count`.
+ * how far through identification this order is, against `stone_count`.
  *
  * The order carries no status of its own: progress is per-stone, since two
  * stones from one visit can sit at different stages.

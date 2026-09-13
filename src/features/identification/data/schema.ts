@@ -29,6 +29,16 @@ export const reportSchema = z.object({
   id: z.number(),
   stone: z.number(),
   stone_label: z.string().nullable().default(null),
+  /**
+   * The stone's weight, mirrored here read-only.
+   *
+   * Weight is measured at the bench with the other readings, so it belongs on
+   * this form — but it lives on the Stone, which is what a certificate
+   * snapshots. The API takes `weight`/`weight_unit` write-only and hands them
+   * on, and reflects them back under `stone_*`.
+   */
+  stone_weight: z.string().nullable().default(null),
+  stone_weight_unit: z.string().default('carat'),
   order_reference: z.string().nullable().default(null),
   report_number: z.string(),
 
