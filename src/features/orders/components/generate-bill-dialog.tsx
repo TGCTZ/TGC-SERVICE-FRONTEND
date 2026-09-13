@@ -36,7 +36,7 @@ export function GenerateBillDialog({
       onOpenChange(false)
     },
     onError: (error) => {
-      // An unregistered order, an unpriced stone type or an existing bill are
+      // A partly identified order, an unpriced stone type or an existing bill are
       // all refused by name — show the API's sentence, not ours.
       toast.error(
         serverMessageOr(error, 'Could not generate the bill. Please try again.')

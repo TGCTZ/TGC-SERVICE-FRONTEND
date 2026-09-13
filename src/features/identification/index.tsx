@@ -92,11 +92,12 @@ function IdentificationContent() {
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <div>
             <h2 className='text-2xl font-bold tracking-tight'>
-              Identification
+              Full identification
             </h2>
             <p className='text-muted-foreground'>
-              What the bench found, per stone. A report can only be opened once
-              the stone&apos;s bill is settled.
+              What the bench found, per stone — the full identification, which
+              follows the preliminary one. A report can only be opened once the
+              stone&apos;s bill is settled.
             </p>
           </div>
 
@@ -107,7 +108,7 @@ function IdentificationContent() {
                 setOpen('create')
               }}
             >
-              Record findings
+              Record full identification
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>

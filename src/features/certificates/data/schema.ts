@@ -10,8 +10,8 @@ export const CERTIFICATE_STATUS_LABELS: Record<string, string> = {
  * A certificate as the lab sees it.
  *
  * Write-once: everything but `stone` is minted by the issuing service — the
- * number, the verification token and the four snapshots have to be created
- * together or the document does not mean anything.
+ * number and the four snapshots have to be created together or the document
+ * does not mean anything.
  *
  * The snapshots are copies, not joins, and that is the point: a certificate
  * must keep saying what it said on the day it was issued, even if the stone
@@ -27,17 +27,12 @@ export const certificateSchema = z.object({
   report_number: z.string().nullable().default(null),
 
   certificate_number: z.string(),
-  /** 64 hex characters. The only thing needed to verify the document. */
-  verification_token: z.string(),
 
   stone_type_snapshot: z.string().nullable().default(''),
   weight_snapshot: z.string().nullable().default(''),
   color_snapshot: z.string().nullable().default(''),
   origin_snapshot: z.string().nullable().default(''),
   gemmologist: z.string().nullable().default(''),
-
-  qr_code: z.string().nullable().default(null),
-  pdf_file: z.string().nullable().default(null),
 
   status: z.string(),
   issued_by: z.number().nullable().default(null),
@@ -50,14 +45,3 @@ export const certificateSchema = z.object({
 })
 
 export type Certificate = z.infer<typeof certificateSchema>
-
-/** One public verification hit. An append-only ledger. */
-export const accessLogSchema = z.object({
-  id: z.number(),
-  certificate: z.number(),
-  accessed_at: z.string(),
-  ip_address: z.string().nullable().default(null),
-  user_agent: z.string().nullable().default(''),
-})
-
-export type CertificateAccessLog = z.infer<typeof accessLogSchema>

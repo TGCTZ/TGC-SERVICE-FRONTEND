@@ -81,15 +81,15 @@ export async function finalizeReport(
 }
 
 /**
- * Paid stones whose findings are not finalized yet.
+ * Paid stones whose full identification is not finalized yet.
  *
  * The source for the create dialog's stone select: the endpoint already encodes
  * "billed, settled, and not done", so the dialog does not have to re-derive a
  * rule the server owns. Rows are stones, not reports.
  */
-export const findingsWorklistQuery = () =>
+export const fullIdentificationWorklistQuery = () =>
   queryOptions({
-    queryKey: ['worklist', 'findings'],
+    queryKey: ['worklist', 'full-identification'],
     queryFn: async (): Promise<Stone[]> => {
       const res = await api.get('/identification-reports/worklist', {
         params: { page_size: 100 },

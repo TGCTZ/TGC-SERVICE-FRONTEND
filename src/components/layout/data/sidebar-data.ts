@@ -4,12 +4,10 @@ import {
   ClipboardList,
   Contact,
   Gem,
-  Landmark,
   LayoutDashboard,
   ListChecks,
   Microscope,
   Receipt,
-  ScanLine,
   ScrollText,
   ShieldCheck,
   Tags,
@@ -25,9 +23,15 @@ import { type NavLink, type SidebarData } from '../types'
 /**
  * Sidebar navigation.
  *
- * The groups follow the stone's journey through the lab — reception, billing,
- * the bench, certification — then the reference data those stages draw on, then
- * administration. Each maps onto one of the API's `core.module_*` gates.
+ * Five groups following the stone's journey through the lab — reception, the
+ * two identification stages, billing, certification — while the work queues sit
+ * up in Overview beside the dashboard (they are what staff open first) and the
+ * reference tables those stages draw on sit under Administration.
+ *
+ * Identification holds both gemmological stages, because they are one person's
+ * work split by payment: preliminary identification types the stone and so
+ * fixes its price, then the bill is settled, then the full identification
+ * records the findings.
  *
  * Two rules worth keeping when you edit this:
  *
@@ -51,18 +55,12 @@ export const sidebarData: SidebarData = {
           url: '/',
           icon: LayoutDashboard,
         },
-      ],
-    },
-
-    /* ---------------------------------------------------------------- */
-    /* The queues — generated from the worklist configs, so adding one is */
-    /* a single entry there. Each is gated on what its endpoint enforces,  */
-    /* which for billing and certification is the workflow verb rather     */
-    /* than a view permission.                                             */
-    /* ---------------------------------------------------------------- */
-    {
-      title: 'Queues',
-      items: [
+        /* ------------------------------------------------------------ */
+        /* The queues — generated from the worklist configs, so adding   */
+        /* one is a single entry there. Each is gated on what its        */
+        /* endpoint enforces, which for billing and certification is the */
+        /* workflow verb rather than a view permission.                  */
+        /* ------------------------------------------------------------ */
         {
           title: 'Queues',
           icon: ListChecks,
@@ -91,31 +89,25 @@ export const sidebarData: SidebarData = {
           icon: ClipboardList,
           permission: perm('orders', 'view'),
         },
+      ],
+    },
+
+    {
+      title: 'Identification',
+      items: [
         {
-          title: 'Stones',
+          // The stone record *is* the preliminary identification: a label, a
+          // type, and therefore a price.
+          title: 'Preliminary identification',
           url: '/stones',
           icon: Gem,
           permission: perm('stones', 'view'),
         },
-      ],
-    },
-
-    /* ---------------------------------------------------------------- */
-    /* Reference data — generated from the lookup configs, so adding a    */
-    /* table is one entry there rather than an entry in two places.       */
-    /* ---------------------------------------------------------------- */
-    {
-      title: 'Reference data',
-      items: [
         {
-          title: 'Reference data',
-          icon: Boxes,
-          items: allLookupConfigs().map((config) => ({
-            title: config.title,
-            url: `/lookups/${config.slug}` as NavLink['url'],
-            icon: Tags,
-            permission: perm(config.resource, 'view'),
-          })),
+          title: 'Full identification',
+          url: '/identification-reports',
+          icon: Microscope,
+          permission: perm('identification-reports', 'view'),
         },
       ],
     },
@@ -135,24 +127,6 @@ export const sidebarData: SidebarData = {
           icon: Wallet,
           permission: perm('payments', 'view'),
         },
-        {
-          title: 'Service providers',
-          url: '/service-providers',
-          icon: Landmark,
-          permission: perm('service-providers', 'view'),
-        },
-      ],
-    },
-
-    {
-      title: 'Identification',
-      items: [
-        {
-          title: 'Reports',
-          url: '/identification-reports',
-          icon: Microscope,
-          permission: perm('identification-reports', 'view'),
-        },
       ],
     },
 
@@ -165,17 +139,12 @@ export const sidebarData: SidebarData = {
           icon: BadgeCheck,
           permission: perm('certificates', 'view'),
         },
-        {
-          title: 'Verification log',
-          url: '/certificate-access-logs',
-          icon: ScanLine,
-          permission: perm('certificate-access-logs', 'view'),
-        },
       ],
     },
 
     /* ---------------------------------------------------------------- */
-    /* Administration — the same in every project. Usually kept as-is.   */
+    /* Administration — users, logs, and the reference tables the lab    */
+    /* stages draw on.                                                   */
     /* ---------------------------------------------------------------- */
     {
       title: 'Administration',
@@ -217,6 +186,21 @@ export const sidebarData: SidebarData = {
               permission: PERMISSIONS.viewSystemLogs,
             },
           ],
+        },
+        /* ------------------------------------------------------------ */
+        /* Reference data — generated from the lookup configs, so adding */
+        /* a table is one entry there rather than an entry in two        */
+        /* places.                                                       */
+        /* ------------------------------------------------------------ */
+        {
+          title: 'Reference data',
+          icon: Boxes,
+          items: allLookupConfigs().map((config) => ({
+            title: config.title,
+            url: `/lookups/${config.slug}` as NavLink['url'],
+            icon: Tags,
+            permission: perm(config.resource, 'view'),
+          })),
         },
       ],
     },

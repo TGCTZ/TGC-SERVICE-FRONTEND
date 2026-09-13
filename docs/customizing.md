@@ -50,9 +50,15 @@ the login in `src/features/auth/data/api.ts`, and the refresh seam in
 
 ### 5. Navigation — `src/components/layout/data/sidebar-data.ts`
 
-Three tiers: **Overview**, **Workspace**, **Administration**, plus the
-scaffolded **Finance** and **Reports** placeholders. Only Workspace is
-project-specific — replace its contents and keep the shape.
+Five groups: **Overview** (Dashboard + the Queues collapsible), the three lab
+stages — **Reception**, **Billing**, **Identification** — then **Certificates**
+and **Administration** (Users, Logs, and the Reference data collapsible). The
+three middle groups are the project-specific part; replace their contents and
+keep the shape.
+
+Queues and Reference data are generated from
+`src/features/worklists/data/config.ts` and `src/features/lookups/data/config.ts`
+— add an entry there, not here.
 
 Every entry carries the `permission` the API enforces. The file's own docblock
 explains the rules in full.
@@ -117,9 +123,7 @@ on. Deleting it cleanly is the difference between a starting point and a mess.
 | --- | --- |
 | `src/features/products/` | The reference feature. Read it first, then replace it. |
 | `src/features/lookups/` | Keep the folder if you have reference tables; replace `lookup-config.ts`'s entries. |
-| The **Workspace** group in `sidebar-data.ts` | Your domain goes here. |
-| The **Finance** / **Reports** groups + `src/routes/_authenticated/finance/`, `src/routes/_authenticated/reports/` | Scaffolded placeholders. Build them or remove them. |
-| The Workspace half of `src/lib/subject-types.ts` | Keep `user` and `role`. |
+| The domain half of `src/lib/subject-types.ts` | Keep `user` and `role`. |
 | `src/features/dashboard/components/` | Demo charts with random data. |
 
 **Keep — this is the machinery:**

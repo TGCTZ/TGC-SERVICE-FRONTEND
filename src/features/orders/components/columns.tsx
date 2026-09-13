@@ -3,7 +3,7 @@ import { formatDate } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
-import { isFullyRegistered, type Order } from '../data/schema'
+import { isFullyIdentified, type Order } from '../data/schema'
 import { OrdersRowActions } from './row-actions'
 
 /**
@@ -54,16 +54,16 @@ export const ordersDataColumns: ColumnDef<Order>[] = [
     enableSorting: false,
     cell: ({ row }) => {
       const order = row.original
-      const complete = isFullyRegistered(order)
+      const complete = isFullyIdentified(order)
 
       return (
         <div className='flex items-center gap-2'>
           <span className='tabular-nums'>
             {order.identified_count} / {order.stone_count}
           </span>
-          {/* An order is only ready to bill once every stone is registered. */}
+          {/* An order is only ready to bill once every stone is identified. */}
           <Badge variant={complete ? 'default' : 'secondary'}>
-            {complete ? 'Registered' : 'Pending'}
+            {complete ? 'Identified' : 'Pending'}
           </Badge>
         </div>
       )

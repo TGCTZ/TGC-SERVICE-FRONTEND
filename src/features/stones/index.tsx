@@ -87,10 +87,13 @@ function StonesContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Stones</h2>
+          <h2 className='text-2xl font-bold tracking-tight'>
+            Preliminary identification
+          </h2>
           <p className='text-muted-foreground'>
-            Every stone in the lab. New stones are registered from their order,
-            which owns the label sequence.
+            Every stone in the lab, and the type each was identified as — which
+            is what prices it. Stones are identified from their order, which
+            owns the label sequence.
           </p>
         </div>
 

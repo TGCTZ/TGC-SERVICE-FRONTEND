@@ -90,7 +90,7 @@ export function StoneStatusHistorySheet({
                   </>
                 ) : (
                   <span className='text-sm text-muted-foreground'>
-                    Registered as
+                    Identified as
                   </span>
                 )}
                 <StoneStatusBadge status={entry.to_status} />

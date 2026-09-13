@@ -141,7 +141,7 @@ export function StoneMutateDialog({
           </DialogTitle>
           <DialogDescription>
             {currentRow?.order_reference
-              ? `Registered under ${currentRow.order_reference}.`
+              ? `Identified under ${currentRow.order_reference}.`
               : 'A stone in an order.'}
           </DialogDescription>
         </DialogHeader>

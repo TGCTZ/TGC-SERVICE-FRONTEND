@@ -15,9 +15,9 @@ import { type PermissionResource } from '@/lib/permissions'
  * **Only models the API registers with django-auditlog belong here.** It
  * registers every concrete `BaseModel` subclass, which deliberately excludes:
  *
- * - `statushistory` and `certificateaccesslog` — append-only ledgers; they are
- *   the log, so logging them would be circular. Stone status has its own
- *   history sheet fed by `/status-history/`.
+ * - `statushistory` — an append-only ledger; it *is* the log, so logging it
+ *   would be circular. Stone status has its own history sheet fed by
+ *   `/status-history/`.
  * - `group` (roles) — a Django built-in, not a `BaseModel`. A role's history is
  *   simply not recorded, so no entry here can produce one.
  *
@@ -44,7 +44,6 @@ export const subjectTypes = {
   bills: 'bill',
   'bill-items': 'billitem',
   payments: 'payment',
-  'service-providers': 'serviceprovider',
 
   // The bench.
   'identification-reports': 'identificationreport',

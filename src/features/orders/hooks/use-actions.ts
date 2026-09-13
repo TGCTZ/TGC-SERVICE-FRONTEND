@@ -10,12 +10,12 @@ import {
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useOrders } from '../components/provider'
-import { isFullyRegistered, type Order } from '../data/schema'
+import { isFullyIdentified, type Order } from '../data/schema'
 
 /**
  * Every action the API exposes for an order, in one place.
  *
- * The two workflow actions are hidden when they cannot succeed: registration
+ * The two workflow actions are hidden when they cannot succeed: identification
  * once the order is full, and billing until it is — the API enforces both, and
  * an action that always 400s is worse than no action at all.
  */
@@ -40,7 +40,7 @@ export function useOrderActions(order: Order | null): RowAction[] {
   if (!order) return []
 
   const isDeleted = Boolean(order.deleted_at)
-  const isFull = isFullyRegistered(order)
+  const isFull = isFullyIdentified(order)
 
   return [
     {
@@ -57,7 +57,7 @@ export function useOrderActions(order: Order | null): RowAction[] {
       hidden: isDeleted,
     },
     {
-      label: 'Register stone',
+      label: 'Identify stone',
       icon: Plus,
       permission: perm('stones', 'add'),
       onSelect: () => select('add-stone'),

@@ -8,12 +8,7 @@ import {
   type Paginated,
 } from '@/lib/api-query'
 import { stoneSchema, type Stone } from '@/features/stones/data/schema'
-import {
-  accessLogSchema,
-  certificateSchema,
-  type Certificate,
-  type CertificateAccessLog,
-} from './schema'
+import { certificateSchema, type Certificate } from './schema'
 
 const listSchema = paginatedSchema(certificateSchema)
 
@@ -37,8 +32,8 @@ export const certificatesQuery = (params: ListParams) =>
 /**
  * Issue a certificate for a stone.
  *
- * The stone is the whole payload: the service mints the number, the token and
- * the snapshots together. It refuses a stone with no finalized report, an
+ * The stone is the whole payload: the service mints the number and the
+ * snapshots together. It refuses a stone with no finalized report, an
  * unsettled bill, or a certificate already issued — each by name.
  */
 export async function issueCertificate(stone: number): Promise<Certificate> {
@@ -49,9 +44,9 @@ export async function issueCertificate(stone: number): Promise<Certificate> {
 /**
  * Withdraw a certificate.
  *
- * The record stays, and so does its verification link — a holder checking a
- * withdrawn document needs to be told it was withdrawn, not that it never
- * existed.
+ * The record stays, and so does its number — the PDF keeps downloading, now
+ * watermarked REVOKED, so a holder checking a withdrawn document is told it was
+ * withdrawn rather than that it never existed.
  */
 export async function revokeCertificate(id: number): Promise<Certificate> {
   const res = await api.post(`/certificates/${id}/revoke`)
@@ -76,37 +71,14 @@ export const certificationWorklistQuery = () =>
     },
   })
 
-const accessLogListSchema = paginatedSchema(accessLogSchema)
-
-export async function fetchAccessLogs(
-  params: ListParams
-): Promise<Paginated<CertificateAccessLog>> {
-  const res = await api.get('/certificate-access-logs', {
-    params: buildListParams(params),
-  })
-
-  return toPaginated(accessLogListSchema.parse(res.data), params)
+/**
+ * Fetch one certificate's PDF.
+ *
+ * Deliberately unparsed: the Zod-at-the-boundary rule guards JSON shapes, and a
+ * PDF has none. `responseType: 'blob'` is what stops axios decoding the bytes
+ * as text and corrupting them.
+ */
+export async function fetchCertificatePdf(id: number): Promise<Blob> {
+  const res = await api.get(`/certificates/${id}/pdf`, { responseType: 'blob' })
+  return res.data as Blob
 }
-
-export const accessLogsQuery = (params: ListParams) =>
-  queryOptions({
-    queryKey: ['certificate-access-logs', params],
-    queryFn: () => fetchAccessLogs(params),
-    placeholderData: (previous) => previous,
-  })
-
-/** The verification hits on one certificate, for its view dialog. */
-export const certificateAccessLogsQuery = (certificateId: number) =>
-  queryOptions({
-    queryKey: ['certificate-access-logs', 'by-certificate', certificateId],
-    queryFn: async () => {
-      const res = await api.get('/certificate-access-logs', {
-        params: {
-          'filter[certificate]': certificateId,
-          page_size: 20,
-          ordering: '-accessed_at',
-        },
-      })
-      return accessLogListSchema.parse(res.data).results
-    },
-  })

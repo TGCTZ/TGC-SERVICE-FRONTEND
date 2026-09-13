@@ -9,7 +9,7 @@ import { PERMISSIONS, perm } from '@/lib/permissions'
  * dialog the primary action opens. Four feature folders would be four copies of
  * one file.
  *
- * The endpoints themselves encode the queue's rules (registered, billed,
+ * The endpoints themselves encode the queue's rules (identified, billed,
  * settled, finalized). Nothing here re-derives them.
  */
 
@@ -40,21 +40,23 @@ export type WorklistConfig = {
 
 const worklistConfigs: WorklistConfig[] = [
   {
-    slug: 'registration',
-    title: 'Awaiting registration',
+    slug: 'preliminary-identification',
+    title: 'Awaiting preliminary identification',
     description:
-      'Orders with stones the customer submitted but the lab has not booked in yet.',
-    endpoint: '/orders/worklist-registration',
+      "Orders with stones still to be typed. A stone's type is what prices it, so nothing here can be billed yet.",
+    endpoint: '/orders/worklist',
     rowKind: 'order',
-    actionLabel: 'Register stone',
-    permission: perm('orders', 'view'),
-    emptyMessage: 'Every order is fully registered.',
+    actionLabel: 'Identify stone',
+    // The workflow verb, not `view`: the endpoint enforces orders.add_stone,
+    // because the only reason to open this queue is to work it.
+    permission: perm('stones', 'add'),
+    emptyMessage: 'Every order is fully identified.',
   },
   {
     slug: 'billing',
     title: 'Ready to bill',
     description:
-      'Orders with every stone registered and no bill raised against them.',
+      'Orders with every stone identified and no bill raised against them.',
     endpoint: '/bills/worklist',
     rowKind: 'order',
     actionLabel: 'Generate bill',
@@ -62,21 +64,21 @@ const worklistConfigs: WorklistConfig[] = [
     emptyMessage: 'Nothing is waiting to be billed.',
   },
   {
-    slug: 'findings',
-    title: 'Awaiting findings',
+    slug: 'full-identification',
+    title: 'Awaiting full identification',
     description:
-      'Paid stones on the bench, whose report has not been finalized yet.',
+      'Paid stones on the bench, whose full identification has not been finalized yet.',
     endpoint: '/identification-reports/worklist',
     rowKind: 'stone',
-    actionLabel: 'Record findings',
+    actionLabel: 'Record full identification',
     permission: perm('identification-reports', 'add'),
-    emptyMessage: 'No stones are waiting for findings.',
+    emptyMessage: 'No stones are waiting for full identification.',
   },
   {
     slug: 'certification',
     title: 'Ready to certify',
     description:
-      'Stones with finalized findings and a settled bill, not yet certified.',
+      'Stones with a finalized full identification and a settled bill, not yet certified.',
     endpoint: '/certificates/worklist',
     rowKind: 'stone',
     actionLabel: 'Issue certificate',

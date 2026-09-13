@@ -52,13 +52,13 @@ export async function restoreOrder(id: number): Promise<void> {
 }
 
 /**
- * Register the next stone against an order.
+ * Record the preliminary identification of the next stone.
  *
  * A sub-resource rather than `POST /stones/`: the service owns the A/B/C label
  * sequence and the cap at `order.stone_count`, and refuses with a 400 once the
  * order is full.
  *
- * @param orderId - The order to register against.
+ * @param orderId - The order the stone belongs to.
  * @param payload - `stone_type`, and optionally `weight` and `weight_unit`.
  * @returns The stone the service created, label included.
  */

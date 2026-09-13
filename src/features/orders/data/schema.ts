@@ -5,8 +5,8 @@ import { customerSchema } from '@/features/customers/data/schema'
  * An order as returned by the API.
  *
  * `reference_number` is allocated by the service on create and never sent back,
- * and `identified_count` is derived from the stones registered so far — it is
- * how far through registration this order is, against `stone_count`.
+ * and `identified_count` is derived from the stones identified so far — it is
+ * how far through preliminary identification this order is, against `stone_count`.
  *
  * The order carries no status of its own: progress is per-stone, since two
  * stones from one visit can sit at different stages.
@@ -28,6 +28,6 @@ export const orderSchema = z.object({
 export type Order = z.infer<typeof orderSchema>
 
 /** Whether every stone the customer submitted has been registered. */
-export function isFullyRegistered(order: Order): boolean {
+export function isFullyIdentified(order: Order): boolean {
   return order.identified_count >= order.stone_count
 }

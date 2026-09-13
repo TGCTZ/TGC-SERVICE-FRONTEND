@@ -32,8 +32,8 @@ export const reportsColumns: ColumnDef<IdentificationReport>[] = [
     cell: ({ row }) => row.original.order_reference ?? '—',
   },
   {
-    id: 'findings',
-    header: () => <span>Findings</span>,
+    id: 'full-identification',
+    header: () => <span>Full identification</span>,
     enableSorting: false,
     cell: ({ row }) => {
       const report = row.original

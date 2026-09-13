@@ -162,23 +162,23 @@ features/<name>/
 
 ## Navigation structure
 
-`sidebar-data.ts` is organised in three tiers, which hold for any admin app
-regardless of domain:
+`sidebar-data.ts` holds five groups. The middle three follow the stone's
+journey through the lab; the outer two are the same in any admin app:
 
 ```
-Overview         Dashboard                     ← rarely more than one entry
-Workspace        Products · Reference data     ← THE SWAP POINT
-Finance          (scaffolded placeholder)      ← build it or delete it
-Reports          (scaffolded placeholder)
-Administration   Users · Roles · Logs          ← same in every project
+Overview         Dashboard · Queues              ← what staff open first
+Reception        Customers · Orders · Stones     ← ─┐
+Billing          Bills · Payments                ←  │ the lab's stages
+Identification   Reports                         ← ─┘
+Certificates     Certificates
+Administration   Users · Logs · Reference data   ← same in every project
 ```
 
-Finance and Reports point at the shared `ComingSoon` screen: they make the
-intended shape visible without pretending to work.
-
-Only **Workspace** is project-specific. The example is a product catalogue
-because that is what the bundled TestAPI serves — replace its contents
-wholesale and keep the shape.
+**Queues** and **Reference data** are collapsibles generated from
+`features/worklists/data/config.ts` and `features/lookups/data/config.ts`, so
+adding a queue or a lookup table is one config entry rather than an entry in two
+places. Queues sits in Overview because it is the working day's starting point;
+reference data sits under Administration because it is maintained, not worked.
 
 Two invariants make the structure hold itself together:
 
@@ -187,8 +187,10 @@ Two invariants make the structure hold itself together:
   children are hidden, and drops a group once it is empty — so a heading only
   appears for someone who has something under it. A `viewer` sees a genuinely
   smaller sidebar, not a full one with dead links.
-- Group headings track the `module.*` gates the API seeds (`module.catalog`,
-  `module.user`, `module.audit`), so navigation and authorization cannot drift.
+- Group headings track the `core.module_*` gates the API seeds (`module_orders`,
+  `module_billing`, `module_reference`, …), so navigation and authorization
+  cannot drift. Gate on the **item**, never the group: `NavGroup` carries no
+  `permission` field and `filterNavGroups` would not read one.
 
 The sidebar is one of the per-project swap points listed in
 [customizing.md](./customizing.md).

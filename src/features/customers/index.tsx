@@ -1,10 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
-import { perm } from '@/lib/permissions'
 import { subjectTypes } from '@/lib/subject-types'
-import { Button } from '@/components/ui/button'
-import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -90,20 +86,9 @@ function CustomersContent() {
             <h2 className='text-2xl font-bold tracking-tight'>Customers</h2>
             <p className='text-muted-foreground'>
               The people and companies that submit stones for identification.
+              New ones are registered while receiving an order.
             </p>
           </div>
-
-          <Can permission={perm('customers', 'add')}>
-            <Button
-              onClick={() => {
-                setCurrentRow(null)
-                setOpen('create')
-              }}
-            >
-              Add customer
-              <Plus className='ms-1 size-4' />
-            </Button>
-          </Can>
         </div>
 
         {isError ? (
@@ -137,15 +122,15 @@ function CustomersContent() {
 
       {/* View and Edit share one dialog; `readOnly` decides which. */}
       <CustomerMutateDialog
-        key={currentRow ? `customer-${currentRow.id}` : 'create'}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        key={currentRow ? `customer-${currentRow.id}` : 'none'}
+        open={open === 'view' || open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
             setCurrentRow(null)
           }
         }}
-        currentRow={open === 'create' ? null : currentRow}
+        currentRow={currentRow}
         readOnly={open === 'view'}
         onRequestEdit={() => setOpen('update')}
         actions={actions}

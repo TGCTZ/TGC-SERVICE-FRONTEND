@@ -91,8 +91,8 @@ function CertificatesContent() {
           <div>
             <h2 className='text-2xl font-bold tracking-tight'>Certificates</h2>
             <p className='text-muted-foreground'>
-              The documents the lab stands behind. Each carries a public
-              verification link and can be withdrawn, but never edited.
+              The documents the lab stands behind. Each downloads as a PDF for
+              printing, and can be withdrawn, but never edited.
             </p>
           </div>
 

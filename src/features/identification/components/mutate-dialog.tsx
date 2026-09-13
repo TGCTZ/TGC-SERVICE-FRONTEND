@@ -48,7 +48,11 @@ import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
-import { createReport, findingsWorklistQuery, updateReport } from '../data/api'
+import {
+  createReport,
+  fullIdentificationWorklistQuery,
+  updateReport,
+} from '../data/api'
 import {
   NATURE_TYPES,
   OPTIC_CHARACTERS,
@@ -118,7 +122,7 @@ type ReportMutateDialogProps = {
   /** The record's row actions, shown in the footer of the read-only view. */
   actions?: RowAction[]
   /**
-   * Preselected stone, when the dialog is opened from the findings queue.
+   * Preselected stone, when the dialog is opened from the full-identification queue.
    *
    * Only meaningful while creating; the select still renders, so the choice
    * stays visible and changeable.
@@ -145,7 +149,7 @@ export function ReportMutateDialog({
 
   // Only needed while creating: the endpoint encodes "paid, not yet finalized".
   const { data: worklist = [] } = useQuery({
-    ...findingsWorklistQuery(),
+    ...fullIdentificationWorklistQuery(),
     enabled: open && !isEdit,
   })
 
@@ -221,7 +225,7 @@ export function ReportMutateDialog({
     },
     onSuccess: (report) => {
       toast.success(
-        isEdit ? 'Findings saved' : `Opened ${report.report_number}`
+        isEdit ? 'Full identification saved' : `Opened ${report.report_number}`
       )
       queryClient.invalidateQueries({ queryKey: ['identification-reports'] })
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
@@ -245,7 +249,10 @@ export function ReportMutateDialog({
       // An unpaid bill and a finalized report are both refused by name — the
       // API's sentence is the clearest explanation the user will get.
       toast.error(
-        serverMessageOr(error, 'Could not save the findings. Please try again.')
+        serverMessageOr(
+          error,
+          'Could not save the full identification. Please try again.'
+        )
       )
     },
   })
@@ -258,14 +265,14 @@ export function ReportMutateDialog({
             {readOnly
               ? currentRow?.report_number
               : isEdit
-                ? 'Edit findings'
-                : 'Record findings'}
+                ? 'Edit full identification'
+                : 'Record full identification'}
             {currentRow?.is_finalized && <Badge>Finalized</Badge>}
           </DialogTitle>
           <DialogDescription>
             {currentRow
               ? `Stone ${currentRow.stone_label} · ${currentRow.order_reference}`
-              : 'Only paid stones without finished findings can be opened.'}
+              : 'Only paid stones without a finished full identification can be opened.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -300,7 +307,7 @@ export function ReportMutateDialog({
                           >
                             <FormControl>
                               <SelectTrigger className='w-full'>
-                                <SelectValue placeholder='Select a stone awaiting findings' />
+                                <SelectValue placeholder='Select a stone awaiting full identification' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>

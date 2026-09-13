@@ -50,7 +50,7 @@ type AddStoneDialogProps = {
 }
 
 /**
- * Register the next stone against an order.
+ * Record the preliminary identification of the next stone.
  *
  * There is no label field: the service allocates A, B, C… in sequence and caps
  * the count at `order.stone_count`, so the label is a fact about the order's
@@ -82,7 +82,7 @@ export function AddStoneDialog({
         weight_unit: values.weight_unit,
       }),
     onSuccess: (stone) => {
-      toast.success(`Registered ${stone.label}`)
+      toast.success(`Identified ${stone.label}`)
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['stones'] })
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
@@ -102,7 +102,7 @@ export function AddStoneDialog({
       toast.error(
         serverMessageOr(
           error,
-          'Could not register the stone. Please try again.'
+          'Could not identify the stone. Please try again.'
         )
       )
     },
@@ -112,10 +112,10 @@ export function AddStoneDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader className='text-start'>
-          <DialogTitle>Register stone</DialogTitle>
+          <DialogTitle>Identify stone</DialogTitle>
           <DialogDescription>
             {order.reference_number} — {order.identified_count} of{' '}
-            {order.stone_count} registered so far. The label is allocated
+            {order.stone_count} identified so far. The label is allocated
             automatically.
           </DialogDescription>
         </DialogHeader>
@@ -216,7 +216,7 @@ export function AddStoneDialog({
             form='add-stone-form'
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? 'Registering...' : 'Register'}
+            {mutation.isPending ? 'Identifying...' : 'Identify'}
           </Button>
         </DialogFooter>
       </DialogContent>

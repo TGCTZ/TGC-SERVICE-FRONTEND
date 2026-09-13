@@ -27,21 +27,26 @@ export const customersQuery = (params: ListParams) =>
   })
 
 /**
- * Every customer, for the order form's dropdown.
+ * Customers matching a search term, for the order form's picker.
  *
- * Fetched whole rather than paged: the list is small enough, and a `<Select>`
- * that pages is worse than one that does not.
+ * The API's `search` is an OR of `icontains` across names, phone, email,
+ * company and ID number, so one field finds a returning customer whether
+ * reception remembers their name or reads their phone off a receipt.
+ *
+ * Disabled below two characters by the caller: a one-letter term matches most
+ * of the table and tells nobody anything.
  */
-export const customerOptionsQuery = () =>
+export const customerSearchQuery = (term: string) =>
   queryOptions({
-    queryKey: ['customer-options'],
+    queryKey: ['customers', 'search', term],
     queryFn: async () => {
       const res = await api.get('/customers', {
-        params: { page_size: 200, ordering: 'first_name' },
+        params: { search: term, page_size: 10, ordering: 'first_name' },
       })
       return listSchema.parse(res.data).results
     },
-    staleTime: 5 * 60 * 1000,
+    enabled: term.trim().length >= 2,
+    staleTime: 60 * 1000,
   })
 
 export type CustomerPayload = Record<string, unknown>

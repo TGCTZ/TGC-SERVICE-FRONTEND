@@ -57,7 +57,6 @@ const RESOURCE_MODELS = {
   bills: { app: 'billing', model: 'bill' },
   'bill-items': { app: 'billing', model: 'billitem' },
   payments: { app: 'billing', model: 'payment' },
-  'service-providers': { app: 'billing', model: 'serviceprovider' },
 
   // The bench.
   'identification-reports': {
@@ -68,10 +67,6 @@ const RESOURCE_MODELS = {
 
   // Certification.
   certificates: { app: 'certificates', model: 'certificate' },
-  'certificate-access-logs': {
-    app: 'certificates',
-    model: 'certificateaccesslog',
-  },
 
   // Administration.
   users: { app: 'users', model: 'user' },

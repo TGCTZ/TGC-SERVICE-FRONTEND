@@ -1,13 +1,12 @@
 import { createContext, useContext, useState } from 'react'
 import { type Customer } from '../data/schema'
 
-type CustomersDialogType =
-  | 'view'
-  | 'history'
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'restore'
+/**
+ * No 'create': a customer is registered while receiving their order, in
+ * `features/orders/components/customer-picker.tsx`. This screen is where they
+ * are found, corrected and audited afterwards.
+ */
+type CustomersDialogType = 'view' | 'history' | 'update' | 'delete' | 'restore'
 
 type CustomersContextType = {
   open: CustomersDialogType | null
@@ -19,8 +18,8 @@ type CustomersContextType = {
 const CustomersContext = createContext<CustomersContextType | null>(null)
 
 /**
- * Holds which customer dialog is open and which row it acts on, so the table,
- * the toolbar button and the dialogs need not thread that state through props.
+ * Holds which customer dialog is open and which row it acts on, so the table
+ * and the dialogs need not thread that state through props.
  */
 export function CustomersProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState<CustomersDialogType | null>(null)

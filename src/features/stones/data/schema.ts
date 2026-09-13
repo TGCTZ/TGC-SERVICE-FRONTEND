@@ -13,7 +13,7 @@ const stoneTypeSchema = z
  * A stone as returned by the API.
  *
  * `label`, `status` and `order` are read-only: the label is allocated by the
- * registration service, the status only ever moves through
+ * preliminary-identification service, the status only ever moves through
  * `POST {id}/transition/` so that every change writes a history row, and a
  * stone cannot be moved between orders.
  *

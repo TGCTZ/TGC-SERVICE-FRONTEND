@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Check, Copy } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
+import { perm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,16 +10,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Can } from '@/components/can'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
 import { ViewFooterActions } from '@/components/view-footer-actions'
-import { certificateAccessLogsQuery } from '../data/api'
 import { type Certificate } from '../data/schema'
-import { verificationUrl } from '../data/verification-link'
+import { useDownloadCertificatePdf } from '../hooks/use-download-pdf'
 import { CertificateStatusBadge } from './status-badge'
 
 type CertificateViewDialogProps = {
@@ -31,9 +28,9 @@ type CertificateViewDialogProps = {
 }
 
 /**
- * Everything on one certificate, plus the link that proves it.
+ * Everything on one certificate, and the button that gets it out of the system.
  *
- * The four snapshot fields are shown as the document's own words rather than
+ * The four snapshot fields are shown as the document\'s own words rather than
  * joined to the live records — that is what a certificate is.
  */
 export function CertificateViewDialog({
@@ -42,25 +39,8 @@ export function CertificateViewDialog({
   certificate,
   actions = [],
 }: CertificateViewDialogProps) {
-  const [copied, setCopied] = useState(false)
-  const link = verificationUrl(certificate.verification_token)
-
-  const { data: visits, isPending } = useQuery({
-    ...certificateAccessLogsQuery(certificate.id),
-    enabled: open,
-  })
-
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(link)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard access is denied in some browsers and over plain HTTP; the
-      // input beside the button is selectable, so there is still a way through.
-      setCopied(false)
-    }
-  }
+  const { download, isDownloading } = useDownloadCertificatePdf()
+  const isRevoked = certificate.status === 'revoked'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -94,22 +74,28 @@ export function CertificateViewDialog({
           <Separator />
 
           <div className='space-y-2'>
-            <h3 className='text-sm font-medium'>Verification link</h3>
-            <div className='flex gap-2'>
-              <Input readOnly value={link} className='font-mono text-xs' />
-              <Button type='button' variant='outline' onClick={copyLink}>
-                {copied ? (
-                  <Check className='me-1 size-4' />
-                ) : (
-                  <Copy className='me-1 size-4' />
-                )}
-                {copied ? 'Copied' : 'Copy'}
+            <h3 className='text-sm font-medium'>The document</h3>
+            <Can permission={perm('certificates', 'view')}>
+              <Button
+                type='button'
+                size='lg'
+                className='w-full sm:w-auto'
+                disabled={isDownloading}
+                onClick={() => download(certificate)}
+              >
+                <Download className='me-1 size-4' />
+                {isDownloading ? 'Preparing...' : 'Download PDF'}
               </Button>
-            </div>
+            </Can>
             <p className='text-xs text-muted-foreground'>
-              Anyone holding the printed certificate can open this without
-              signing in. Every visit is recorded below.
+              The PDF is the certificate. Print it from your PDF reader — what
+              you download is what the customer receives.
             </p>
+            {isRevoked && (
+              <p className='text-xs text-muted-foreground'>
+                Revoked certificates download with a REVOKED watermark.
+              </p>
+            )}
           </div>
 
           <Separator />
@@ -122,36 +108,6 @@ export function CertificateViewDialog({
                 { label: 'On', value: formatDateTime(certificate.issued_at) },
               ]}
             />
-          </div>
-
-          <Separator />
-
-          <div className='space-y-3'>
-            <h3 className='text-sm font-medium'>Recent verifications</h3>
-
-            {isPending && <Skeleton className='h-16 w-full' />}
-
-            {!isPending && visits?.length === 0 && (
-              <p className='rounded-md border border-dashed p-4 text-sm text-muted-foreground'>
-                Nobody has checked this certificate yet.
-              </p>
-            )}
-
-            {visits && visits.length > 0 && (
-              <ul className='divide-y rounded-md border'>
-                {visits.map((visit) => (
-                  <li key={visit.id} className='p-3'>
-                    <div className='text-sm'>
-                      {formatDateTime(visit.accessed_at)}
-                    </div>
-                    <div className='text-xs break-all text-muted-foreground'>
-                      {visit.ip_address ?? 'Unknown address'} ·{' '}
-                      {visit.user_agent || 'No user agent'}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
         </DialogBody>
 

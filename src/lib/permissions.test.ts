@@ -22,9 +22,6 @@ describe('perm', () => {
     expect(perm('identification-reports', 'delete')).toBe(
       'identification.delete_identificationreport'
     )
-    expect(perm('certificate-access-logs', 'view')).toBe(
-      'certificates.view_certificateaccesslog'
-    )
   })
 
   it('maps roles onto Django groups', () => {
@@ -36,9 +33,6 @@ describe('perm', () => {
     expect(perm('customers', 'view')).toBe('orders.view_customer')
     expect(perm('stones', 'view')).toBe('orders.view_stone')
     expect(perm('bills', 'view')).toBe('billing.view_bill')
-    expect(perm('service-providers', 'view')).toBe(
-      'billing.view_serviceprovider'
-    )
     expect(perm('certificates', 'view')).toBe('certificates.view_certificate')
   })
 })

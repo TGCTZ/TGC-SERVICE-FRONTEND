@@ -14,7 +14,7 @@ type RevokeDialogProps = {
 /**
  * Withdraw a certificate.
  *
- * Not a delete: the record and its verification link survive, so a holder
+ * Not a delete: the record and its number survive, so a holder
  * checking the printed document is told it was withdrawn rather than that it
  * never existed. That is the whole point of revoking rather than removing.
  */
@@ -43,7 +43,7 @@ export function RevokeCertificateDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Revoke certificate'
-      desc={`Revoke ${currentRow.certificate_number}? Anyone checking its verification link will be told the document has been withdrawn.`}
+      desc={`Revoke ${currentRow.certificate_number}? It will keep downloading, watermarked REVOKED, so whoever holds a printed copy learns it has been withdrawn.`}
       confirmText={mutation.isPending ? 'Revoking...' : 'Revoke'}
       destructive
       disabled={mutation.isPending}

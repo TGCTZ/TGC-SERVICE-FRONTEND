@@ -23,21 +23,18 @@ import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedSystemLogsIndexRouteImport } from './routes/_authenticated/system-logs/index'
 import { Route as AuthenticatedStonesIndexRouteImport } from './routes/_authenticated/stones/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
-import { Route as AuthenticatedServiceProvidersIndexRouteImport } from './routes/_authenticated/service-providers/index'
 import { Route as AuthenticatedRolesIndexRouteImport } from './routes/_authenticated/roles/index'
 import { Route as AuthenticatedPaymentsIndexRouteImport } from './routes/_authenticated/payments/index'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders/index'
 import { Route as AuthenticatedIdentificationReportsIndexRouteImport } from './routes/_authenticated/identification-reports/index'
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers/index'
 import { Route as AuthenticatedCertificatesIndexRouteImport } from './routes/_authenticated/certificates/index'
-import { Route as AuthenticatedCertificateAccessLogsIndexRouteImport } from './routes/_authenticated/certificate-access-logs/index'
 import { Route as AuthenticatedBillsIndexRouteImport } from './routes/_authenticated/bills/index'
 import { Route as AuthenticatedAuditLogsIndexRouteImport } from './routes/_authenticated/audit-logs/index'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
-import { Route as publicVerifyTokenRouteImport } from './routes/(public)/verify.$token'
 import { Route as AuthenticatedWorklistsSlugIndexRouteImport } from './routes/_authenticated/worklists/$slug/index'
 import { Route as AuthenticatedLookupsSlugIndexRouteImport } from './routes/_authenticated/lookups/$slug/index'
 
@@ -114,12 +111,6 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
-const AuthenticatedServiceProvidersIndexRoute =
-  AuthenticatedServiceProvidersIndexRouteImport.update({
-    id: '/service-providers/',
-    path: '/service-providers/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedRolesIndexRoute = AuthenticatedRolesIndexRouteImport.update({
   id: '/roles/',
   path: '/roles/',
@@ -153,12 +144,6 @@ const AuthenticatedCertificatesIndexRoute =
   AuthenticatedCertificatesIndexRouteImport.update({
     id: '/certificates/',
     path: '/certificates/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCertificateAccessLogsIndexRoute =
-  AuthenticatedCertificateAccessLogsIndexRouteImport.update({
-    id: '/certificate-access-logs/',
-    path: '/certificate-access-logs/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedBillsIndexRoute = AuthenticatedBillsIndexRouteImport.update({
@@ -196,11 +181,6 @@ const AuthenticatedSettingsAccountRoute =
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
-const publicVerifyTokenRoute = publicVerifyTokenRouteImport.update({
-  id: '/(public)/verify/$token',
-  path: '/verify/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedWorklistsSlugIndexRoute =
   AuthenticatedWorklistsSlugIndexRouteImport.update({
     id: '/worklists/$slug/',
@@ -224,21 +204,18 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
-  '/verify/$token': typeof publicVerifyTokenRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/audit-logs/': typeof AuthenticatedAuditLogsIndexRoute
   '/bills/': typeof AuthenticatedBillsIndexRoute
-  '/certificate-access-logs/': typeof AuthenticatedCertificateAccessLogsIndexRoute
   '/certificates/': typeof AuthenticatedCertificatesIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
   '/identification-reports/': typeof AuthenticatedIdentificationReportsIndexRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
   '/payments/': typeof AuthenticatedPaymentsIndexRoute
   '/roles/': typeof AuthenticatedRolesIndexRoute
-  '/service-providers/': typeof AuthenticatedServiceProvidersIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/stones/': typeof AuthenticatedStonesIndexRoute
   '/system-logs/': typeof AuthenticatedSystemLogsIndexRoute
@@ -255,21 +232,18 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
-  '/verify/$token': typeof publicVerifyTokenRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/audit-logs': typeof AuthenticatedAuditLogsIndexRoute
   '/bills': typeof AuthenticatedBillsIndexRoute
-  '/certificate-access-logs': typeof AuthenticatedCertificateAccessLogsIndexRoute
   '/certificates': typeof AuthenticatedCertificatesIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
   '/identification-reports': typeof AuthenticatedIdentificationReportsIndexRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
   '/payments': typeof AuthenticatedPaymentsIndexRoute
   '/roles': typeof AuthenticatedRolesIndexRoute
-  '/service-providers': typeof AuthenticatedServiceProvidersIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/stones': typeof AuthenticatedStonesIndexRoute
   '/system-logs': typeof AuthenticatedSystemLogsIndexRoute
@@ -289,21 +263,18 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/(public)/verify/$token': typeof publicVerifyTokenRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/audit-logs/': typeof AuthenticatedAuditLogsIndexRoute
   '/_authenticated/bills/': typeof AuthenticatedBillsIndexRoute
-  '/_authenticated/certificate-access-logs/': typeof AuthenticatedCertificateAccessLogsIndexRoute
   '/_authenticated/certificates/': typeof AuthenticatedCertificatesIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/identification-reports/': typeof AuthenticatedIdentificationReportsIndexRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
   '/_authenticated/payments/': typeof AuthenticatedPaymentsIndexRoute
   '/_authenticated/roles/': typeof AuthenticatedRolesIndexRoute
-  '/_authenticated/service-providers/': typeof AuthenticatedServiceProvidersIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/stones/': typeof AuthenticatedStonesIndexRoute
   '/_authenticated/system-logs/': typeof AuthenticatedSystemLogsIndexRoute
@@ -323,21 +294,18 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
-    | '/verify/$token'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
     | '/audit-logs/'
     | '/bills/'
-    | '/certificate-access-logs/'
     | '/certificates/'
     | '/customers/'
     | '/identification-reports/'
     | '/orders/'
     | '/payments/'
     | '/roles/'
-    | '/service-providers/'
     | '/settings/'
     | '/stones/'
     | '/system-logs/'
@@ -354,21 +322,18 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
-    | '/verify/$token'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
     | '/audit-logs'
     | '/bills'
-    | '/certificate-access-logs'
     | '/certificates'
     | '/customers'
     | '/identification-reports'
     | '/orders'
     | '/payments'
     | '/roles'
-    | '/service-providers'
     | '/settings'
     | '/stones'
     | '/system-logs'
@@ -387,21 +352,18 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
-    | '/(public)/verify/$token'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
     | '/_authenticated/audit-logs/'
     | '/_authenticated/bills/'
-    | '/_authenticated/certificate-access-logs/'
     | '/_authenticated/certificates/'
     | '/_authenticated/customers/'
     | '/_authenticated/identification-reports/'
     | '/_authenticated/orders/'
     | '/_authenticated/payments/'
     | '/_authenticated/roles/'
-    | '/_authenticated/service-providers/'
     | '/_authenticated/settings/'
     | '/_authenticated/stones/'
     | '/_authenticated/system-logs/'
@@ -419,7 +381,6 @@ export interface RootRouteChildren {
   errors404Route: typeof errors404Route
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
-  publicVerifyTokenRoute: typeof publicVerifyTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -522,13 +483,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
-    '/_authenticated/service-providers/': {
-      id: '/_authenticated/service-providers/'
-      path: '/service-providers'
-      fullPath: '/service-providers/'
-      preLoaderRoute: typeof AuthenticatedServiceProvidersIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/roles/': {
       id: '/_authenticated/roles/'
       path: '/roles'
@@ -569,13 +523,6 @@ declare module '@tanstack/react-router' {
       path: '/certificates'
       fullPath: '/certificates/'
       preLoaderRoute: typeof AuthenticatedCertificatesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/certificate-access-logs/': {
-      id: '/_authenticated/certificate-access-logs/'
-      path: '/certificate-access-logs'
-      fullPath: '/certificate-access-logs/'
-      preLoaderRoute: typeof AuthenticatedCertificateAccessLogsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/bills/': {
@@ -619,13 +566,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/account'
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/(public)/verify/$token': {
-      id: '/(public)/verify/$token'
-      path: '/verify/$token'
-      fullPath: '/verify/$token'
-      preLoaderRoute: typeof publicVerifyTokenRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/worklists/$slug/': {
       id: '/_authenticated/worklists/$slug/'
@@ -672,14 +612,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAuditLogsIndexRoute: typeof AuthenticatedAuditLogsIndexRoute
   AuthenticatedBillsIndexRoute: typeof AuthenticatedBillsIndexRoute
-  AuthenticatedCertificateAccessLogsIndexRoute: typeof AuthenticatedCertificateAccessLogsIndexRoute
   AuthenticatedCertificatesIndexRoute: typeof AuthenticatedCertificatesIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
   AuthenticatedIdentificationReportsIndexRoute: typeof AuthenticatedIdentificationReportsIndexRoute
   AuthenticatedOrdersIndexRoute: typeof AuthenticatedOrdersIndexRoute
   AuthenticatedPaymentsIndexRoute: typeof AuthenticatedPaymentsIndexRoute
   AuthenticatedRolesIndexRoute: typeof AuthenticatedRolesIndexRoute
-  AuthenticatedServiceProvidersIndexRoute: typeof AuthenticatedServiceProvidersIndexRoute
   AuthenticatedStonesIndexRoute: typeof AuthenticatedStonesIndexRoute
   AuthenticatedSystemLogsIndexRoute: typeof AuthenticatedSystemLogsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
@@ -692,8 +630,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAuditLogsIndexRoute: AuthenticatedAuditLogsIndexRoute,
   AuthenticatedBillsIndexRoute: AuthenticatedBillsIndexRoute,
-  AuthenticatedCertificateAccessLogsIndexRoute:
-    AuthenticatedCertificateAccessLogsIndexRoute,
   AuthenticatedCertificatesIndexRoute: AuthenticatedCertificatesIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
   AuthenticatedIdentificationReportsIndexRoute:
@@ -701,8 +637,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdersIndexRoute: AuthenticatedOrdersIndexRoute,
   AuthenticatedPaymentsIndexRoute: AuthenticatedPaymentsIndexRoute,
   AuthenticatedRolesIndexRoute: AuthenticatedRolesIndexRoute,
-  AuthenticatedServiceProvidersIndexRoute:
-    AuthenticatedServiceProvidersIndexRoute,
   AuthenticatedStonesIndexRoute: AuthenticatedStonesIndexRoute,
   AuthenticatedSystemLogsIndexRoute: AuthenticatedSystemLogsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
@@ -722,7 +656,6 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
-  publicVerifyTokenRoute: publicVerifyTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

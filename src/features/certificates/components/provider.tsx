@@ -3,7 +3,7 @@ import { type Certificate } from '../data/schema'
 
 /**
  * A certificate is write-once: there is no edit, and no delete or restore in
- * the UI — withdrawing one is `revoke`, which keeps the record and its link.
+ * the UI — withdrawing one is `revoke`, which keeps the record and its number.
  */
 type CertificatesDialogType = 'view' | 'history' | 'issue' | 'revoke'
 

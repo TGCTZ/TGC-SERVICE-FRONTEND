@@ -10,7 +10,7 @@ pnpm preview    # serve dist/ locally, to check the real build
 
 ## The SPA rewrite is not optional
 
-Routing happens in the browser. A visitor who opens `/products` directly asks
+Routing happens in the browser. A visitor who opens `/orders` directly asks
 the host for a file at that path, which does not exist — so **every** route must
 fall back to `index.html`.
 

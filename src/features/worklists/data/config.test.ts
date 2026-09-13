@@ -23,11 +23,11 @@ describe('worklist configs', () => {
   })
 
   it('points each queue at the endpoint that owns it', () => {
-    expect(worklistConfigBySlug('registration')?.endpoint).toBe(
-      '/orders/worklist-registration'
+    expect(worklistConfigBySlug('preliminary-identification')?.endpoint).toBe(
+      '/orders/worklist'
     )
     expect(worklistConfigBySlug('billing')?.endpoint).toBe('/bills/worklist')
-    expect(worklistConfigBySlug('findings')?.endpoint).toBe(
+    expect(worklistConfigBySlug('full-identification')?.endpoint).toBe(
       '/identification-reports/worklist'
     )
     expect(worklistConfigBySlug('certification')?.endpoint).toBe(
@@ -38,9 +38,11 @@ describe('worklist configs', () => {
   it('knows which queues list orders and which list stones', () => {
     // The row kind selects the column array; getting it wrong would render
     // order columns against stone rows.
-    expect(worklistConfigBySlug('registration')?.rowKind).toBe('order')
+    expect(worklistConfigBySlug('preliminary-identification')?.rowKind).toBe(
+      'order'
+    )
     expect(worklistConfigBySlug('billing')?.rowKind).toBe('order')
-    expect(worklistConfigBySlug('findings')?.rowKind).toBe('stone')
+    expect(worklistConfigBySlug('full-identification')?.rowKind).toBe('stone')
     expect(worklistConfigBySlug('certification')?.rowKind).toBe('stone')
   })
 
@@ -53,10 +55,10 @@ describe('worklist configs', () => {
     expect(worklistConfigBySlug('certification')?.permission).toBe(
       'certificates.issue_certificate'
     )
-    expect(worklistConfigBySlug('findings')?.permission).toBe(
+    expect(worklistConfigBySlug('full-identification')?.permission).toBe(
       'identification.add_identificationreport'
     )
-    expect(worklistConfigBySlug('registration')?.permission).toBe(
+    expect(worklistConfigBySlug('preliminary-identification')?.permission).toBe(
       'orders.view_order'
     )
   })

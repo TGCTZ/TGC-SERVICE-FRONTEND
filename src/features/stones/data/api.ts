@@ -32,7 +32,7 @@ export const stonesQuery = (params: ListParams) =>
   })
 
 /**
- * The stones registered against one order.
+ * The stones identified against one order.
  *
  * Filtered server-side rather than fetched whole and filtered here — an order
  * holds a handful of stones and the database is the right place to say which.
@@ -53,7 +53,7 @@ export type StonePayload = Record<string, unknown>
 /**
  * Update a stone's editable facts.
  *
- * There is no create here on purpose: a stone is registered through
+ * There is no create here on purpose: a stone is identified through
  * `POST /orders/{id}/stones/`, which owns the A/B/C label sequence and the cap
  * at `order.stone_count`. A bare create would bypass both.
  */

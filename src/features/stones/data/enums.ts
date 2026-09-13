@@ -9,7 +9,7 @@
 /** Every status a stone can hold, for rendering one that already exists. */
 export const STONE_STATUS_LABELS: Record<string, string> = {
   received: 'Received',
-  under_identification: 'Under identification',
+  under_identification: 'Under full identification',
   billed: 'Billed',
   paid: 'Paid',
   certified: 'Certified',
