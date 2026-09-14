@@ -27,8 +27,12 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
  * reading order and nothing else: an `ms-auto` or `me-auto` on a child now
  * fights the wrapper instead of helping it.
  *
- * With `fixed`, it sticks to the top and grows a blur backdrop once the page
- * scrolls past 10px, so content does not read through it.
+ * The bar paints `--header`, which is the navigation surface rather than the
+ * content sheet beneath it: the header and the sidebar are one continuous band
+ * of chrome wrapping the content, so they carry one colour. That opaque fill is
+ * also what stops content reading through a `fixed` header — it replaces the
+ * translucent blur wash this used to grow on scroll, which could never fully
+ * hide what passed under it. The shadow past 10px stays, as the lift cue.
  *
  * @param props.fixed - Stick to the top of the scroll container
  * @param props.children - The page's controls, laid out at the end of the bar
@@ -50,22 +54,16 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
 
   return (
     <header
+      data-slot='page-header'
       className={cn(
-        'z-50 h-16',
+        'z-50 h-16 border-b border-header-border bg-header text-header-foreground',
         fixed && 'header-fixed peer/header sticky top-0 w-[inherit]',
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
         className
       )}
       {...props}
     >
-      <div
-        className={cn(
-          'relative flex h-full items-center gap-3 p-4 sm:gap-4',
-          offset > 10 &&
-            fixed &&
-            'after:absolute after:inset-0 after:-z-10 after:bg-background/20 after:backdrop-blur-lg'
-        )}
-      >
+      <div className='relative flex h-full items-center gap-3 p-4 sm:gap-4'>
         <SidebarTrigger variant='outline' className='max-md:scale-125' />
         <Separator orientation='vertical' className='h-6' />
         <BackButton />

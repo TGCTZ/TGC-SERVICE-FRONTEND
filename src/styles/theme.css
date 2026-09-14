@@ -102,19 +102,48 @@
    *
    * In the default `inset` variant the page takes --sidebar and the content
    * floats on it as a --background card, so this one value is what makes the
-   * content read as raised. It carries a teal tint rather than plain grey:
-   * spec §5 assigns navigation to the institutional colour, and §16's light
-   * navigation keeps the tint faint so the active blue still reads.
+   * content read as raised.
+   *
+   * Blue rather than the institutional teal: the tint is carried here rather
+   * than on --background because `bg-background` is not only the page ground —
+   * shadcn paints Dialog, Sheet, outline Button and the active Tab with it, so
+   * tinting that token colours half the component library. The sidebar is a
+   * surface in its own right, so the colour lands where it was wanted and
+   * nowhere else.
+   *
+   * §16 keeps light navigation faint so the active blue still reads, which is
+   * why --sidebar-accent sits a full step darker at blue-100.
    */
-  --sidebar: #eef8fb; /* teal-50 */
+  --sidebar: #eff6ff; /* blue-50 */
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  /* Distinctly darker than the track, or hover is invisible on the tint. */
-  --sidebar-accent: #d7eef4; /* teal-100 */
+  /*
+   * Two steps darker than the track, not one.
+   *
+   * Track and active state are now the same hue, so lightness is the only
+   * signal left telling them apart — blue-100 against a blue-50 track was too
+   * close to place the current page at a glance. Teal could afford one step
+   * because it also had hue contrast against the active blue.
+   */
+  --sidebar-accent: #b8d5f2; /* blue-200 */
   --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: #cfe6ee;
+  /* A step below the accent, so a divider never outweighs a selection. */
+  --sidebar-border: #82b4e5; /* blue-300 */
   --sidebar-ring: var(--ring);
+
+  /*
+   * The page header is chrome, not content — so it takes the navigation
+   * surface rather than the content sheet it sits on.
+   *
+   * Aliased to the sidebar rather than given its own hexes: the two are one
+   * continuous band of chrome around the content, and a header that drifts a
+   * shade off the rail it meets reads as a rendering fault. Re-point these to
+   * their own values only if the two are ever meant to differ.
+   */
+  --header: var(--sidebar);
+  --header-foreground: var(--sidebar-foreground);
+  --header-border: var(--sidebar-border);
 
   /*
    * Table headers need their own tone, not --muted.
@@ -273,4 +302,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-header: var(--header);
+  --color-header-foreground: var(--header-foreground);
+  --color-header-border: var(--header-border);
 }

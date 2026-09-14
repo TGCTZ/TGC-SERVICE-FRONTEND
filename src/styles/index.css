@@ -7,14 +7,59 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+
+    /*
+     * A thumb you can actually find.
+     *
+     * Was --border on a transparent track: a #E2E8F0 thumb on a near-white
+     * ground is invisible until you are already dragging it, which hides the
+     * one cue telling you a region scrolls at all. --border-strong against
+     * --muted gives the thumb a track to sit in and enough contrast to read as
+     * a control in both themes.
+     */
     scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    scrollbar-color: var(--border-strong) var(--muted);
+  }
+
+  /*
+   * WebKit needs its own spelling — `scrollbar-color` only landed in Chrome
+   * 121, and Safari does not support it at all, so without this the scrollbars
+   * there stay at the OS default (and on macOS, overlay-hidden entirely).
+   */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border: 2px solid var(--muted);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+  ::-webkit-scrollbar-corner {
+    background: var(--muted);
   }
   html {
     @apply overflow-x-hidden;
   }
   body {
     @apply min-h-svh w-full bg-background text-foreground has-[div[data-variant='inset']]:bg-sidebar;
+  }
+
+  /*
+   * The inset layout rounds the content sheet's corners, but nothing clips to
+   * them — `overflow-hidden` on the sheet would turn it into a scroll container
+   * and break the sticky header outright. So the header, now that it paints an
+   * opaque fill, has to follow the same radius itself or it squares off the top
+   * two corners. Only from `md`, which is where the inset margins begin.
+   */
+  body:has(div[data-variant='inset']) header[data-slot='page-header'] {
+    @apply md:rounded-t-xl;
   }
 
   /* Override Radix scroll locking for sticky headers */

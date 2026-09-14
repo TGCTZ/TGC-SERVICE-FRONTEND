@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
 import { getCookie, setCookie } from '@/lib/cookies'
@@ -139,19 +139,69 @@ export function NavGroup({ title, items }: NavGroupProps) {
   )
 }
 
+/**
+ * Bring the active nav item into view inside the sidebar.
+ *
+ * The nav is taller than the rail on a short viewport — `SidebarContent` is
+ * `overflow-auto` — so the current page can sit below the fold with nothing on
+ * screen saying where you are. Deep-linking or reloading lands you there with
+ * the nav scrolled to the top.
+ *
+ * Scrolls the sidebar's own scroll container rather than calling
+ * `scrollIntoView`, which walks every scrollable ancestor and can drag the page
+ * itself. Only acts when the item is actually out of view, so it never fights a
+ * user who has just scrolled the nav by hand.
+ *
+ * @param isActive - Whether this item is the current page
+ * @returns A ref to attach to the item's element
+ */
+function useScrollActiveIntoView(isActive: boolean) {
+  const ref = useRef<HTMLLIElement>(null)
+
+  useEffect(() => {
+    if (!isActive) return
+
+    const item = ref.current
+    const container = item?.closest<HTMLElement>(
+      '[data-slot="sidebar-content"]'
+    )
+    if (!item || !container) return
+
+    const itemBox = item.getBoundingClientRect()
+    const containerBox = container.getBoundingClientRect()
+
+    if (
+      itemBox.top >= containerBox.top &&
+      itemBox.bottom <= containerBox.bottom
+    ) {
+      return
+    }
+
+    // Centre it rather than scrolling the minimum distance: an item flush
+    // against the top or bottom edge reads as the end of the list.
+    const offset =
+      itemBox.top -
+      containerBox.top -
+      (containerBox.height - itemBox.height) / 2
+
+    container.scrollBy({ top: offset, behavior: 'smooth' })
+  }, [isActive])
+
+  return ref
+}
+
 function NavBadge({ children }: { children: ReactNode }) {
   return <Badge className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
 }
 
 function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
   const { setOpenMobile } = useSidebar()
+  const isActive = checkIsActive(href, item)
+  const ref = useScrollActiveIntoView(isActive)
+
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={checkIsActive(href, item)}
-        tooltip={item.title}
-      >
+    <SidebarMenuItem ref={ref}>
+      <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
         <Link to={item.url} onClick={() => setOpenMobile(false)}>
           {item.icon && <item.icon />}
           <span>{item.title}</span>
@@ -188,23 +238,49 @@ function SidebarMenuCollapsible({
         <CollapsibleContent className='CollapsibleContent'>
           <SidebarMenuSub>
             {item.items.map((subItem) => (
-              <SidebarMenuSubItem key={subItem.title}>
-                <SidebarMenuSubButton
-                  asChild
-                  isActive={checkIsActive(href, subItem)}
-                >
-                  <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
-                    {subItem.icon && <subItem.icon />}
-                    <span>{subItem.title}</span>
-                    {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
-                  </Link>
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
+              <SidebarMenuSubLink
+                key={subItem.title}
+                item={subItem}
+                href={href}
+                onNavigate={() => setOpenMobile(false)}
+              />
             ))}
           </SidebarMenuSub>
         </CollapsibleContent>
       </SidebarMenuItem>
     </Collapsible>
+  )
+}
+
+/**
+ * One link inside an expanded collapsible group.
+ *
+ * Extracted from the `.map()` so it can hold a hook — a nested item is the most
+ * likely one to sit below the fold, since its group has to be open for it to
+ * exist at all.
+ */
+function SidebarMenuSubLink({
+  item,
+  href,
+  onNavigate,
+}: {
+  item: NavLink
+  href: string
+  onNavigate: () => void
+}) {
+  const isActive = checkIsActive(href, item)
+  const ref = useScrollActiveIntoView(isActive)
+
+  return (
+    <SidebarMenuSubItem ref={ref}>
+      <SidebarMenuSubButton asChild isActive={isActive}>
+        <Link to={item.url} onClick={onNavigate}>
+          {item.icon && <item.icon />}
+          <span>{item.title}</span>
+          {item.badge && <NavBadge>{item.badge}</NavBadge>}
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
   )
 }
 

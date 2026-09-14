@@ -36,7 +36,10 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
-      <SidebarHeader>
+      {/* The seams are borders rather than <SidebarSeparator>: the nav scrolls
+          between them, and a separator inside that scroll region would travel
+          with the content instead of marking where the region begins. */}
+      <SidebarHeader className='border-b border-sidebar-border'>
         <AppTitle />
       </SidebarHeader>
       <SidebarContent>
@@ -44,7 +47,7 @@ export function AppSidebar() {
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className='border-t border-sidebar-border'>
         <NavUser />
       </SidebarFooter>
       <SidebarRail />
