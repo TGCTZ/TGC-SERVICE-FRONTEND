@@ -28,7 +28,9 @@ export function GenerateBillDialog({
   const mutation = useMutation({
     mutationFn: () => generateBill(order.id),
     onSuccess: (bill) => {
-      toast.success(`Bill ${bill.bill_number} created`)
+      toast.success(`Bill ${bill.bill_number} has been created`, {
+        description: `Raised against ${order.reference_number}. It is now awaiting payment.`,
+      })
       queryClient.invalidateQueries({ queryKey: ['bills'] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['stones'] })
@@ -38,9 +40,12 @@ export function GenerateBillDialog({
     onError: (error) => {
       // A partly identified order, an unpriced stone type or an existing bill are
       // all refused by name — show the API's sentence, not ours.
-      toast.error(
-        serverMessageOr(error, 'Could not generate the bill. Please try again.')
-      )
+      toast.error('The bill was not created', {
+        description: serverMessageOr(
+          error,
+          'Something went wrong and no bill was raised. Please try again.'
+        ),
+      })
     },
   })
 

@@ -28,18 +28,21 @@ export function FinalizeReportDialog({
   const mutation = useMutation({
     mutationFn: () => finalizeReport(currentRow.id),
     onSuccess: (report) => {
-      toast.success(`${report.report_number} finalized`)
+      toast.success(`Report ${report.report_number} has been finalized`, {
+        description:
+          'It can no longer be edited, and the stone is ready for certification.',
+      })
       queryClient.invalidateQueries({ queryKey: ['identification-reports'] })
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
       onOpenChange(false)
     },
     onError: (error) =>
-      toast.error(
-        serverMessageOr(
+      toast.error('The report was not finalized', {
+        description: serverMessageOr(
           error,
-          'Could not finalize the report. Please try again.'
-        )
-      ),
+          'Something went wrong and nothing was changed. Please try again.'
+        ),
+      }),
   })
 
   return (

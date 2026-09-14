@@ -3,10 +3,8 @@ import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
-import { perm } from '@/lib/permissions'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,10 +26,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Can } from '@/components/can'
-import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
-import { ViewFooterActions } from '@/components/view-footer-actions'
 import { createOrder, updateOrder } from '../data/api'
 import { type Order } from '../data/schema'
 import { CustomerPicker } from './customer-picker'
@@ -112,12 +107,6 @@ type OrderMutateDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   currentRow?: Order | null
-  /** Render the same form as a read-only view. */
-  readOnly?: boolean
-  /** Switches a read-only view into edit mode, when the user may edit. */
-  onRequestEdit?: () => void
-  /** The record's row actions, shown in the footer of the read-only view. */
-  actions?: RowAction[]
   /** Opens the identification dialog from the embedded panel. */
   onRegisterStone?: () => void
 }
@@ -126,9 +115,6 @@ export function OrderMutateDialog({
   open,
   onOpenChange,
   currentRow,
-  readOnly = false,
-  onRequestEdit,
-  actions = [],
   onRegisterStone,
 }: OrderMutateDialogProps) {
   const isEdit = Boolean(currentRow)
@@ -188,11 +174,18 @@ export function OrderMutateDialog({
         : createOrder(payload)
     },
     onSuccess: (order) => {
-      toast.success(
-        isEdit
-          ? `Updated ${order.reference_number}`
-          : `Received ${order.reference_number}`
-      )
+      // The reference is what reception writes on the customer's slip, and the
+      // description names the next step, so nobody has to ask what follows.
+      if (isEdit) {
+        toast.success(`Order ${order.reference_number} updated`, {
+          description: 'The changes have been saved.',
+        })
+      } else {
+        const count = order.stone_count
+        toast.success(`Order ${order.reference_number} has been created`, {
+          description: `${count} ${count === 1 ? 'stone is' : 'stones are'} ready for identification.`,
+        })
+      }
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
       onOpenChange(false)
@@ -216,16 +209,25 @@ export function OrderMutateDialog({
 
           form.setError(field as keyof FormValues, { message: messages[0] })
         }
-        toast.error('Please fix the highlighted fields.')
+        toast.error('The order was not saved', {
+          description:
+            'Some details need fixing — check the highlighted fields.',
+        })
         return
       }
 
       if (error instanceof AxiosError && error.response?.status === 403) {
-        toast.error('You do not have permission to do that.')
+        toast.error('The order was not saved', {
+          description:
+            'You do not have permission to do that. Ask an administrator for access.',
+        })
         return
       }
 
-      toast.error('Something went wrong. Please try again.')
+      toast.error('The order was not saved', {
+        description:
+          'Something went wrong reaching the server. Nothing was changed — please try again.',
+      })
     },
   })
 
@@ -234,16 +236,10 @@ export function OrderMutateDialog({
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-lg'>
         <DialogHeader className='text-start'>
           <DialogTitle>
-            {readOnly
-              ? currentRow?.reference_number
-              : isEdit
-                ? 'Edit order'
-                : 'Receive order'}
+            {isEdit ? `Edit ${currentRow?.reference_number}` : 'Create order'}
           </DialogTitle>
           <DialogDescription>
-            {readOnly
-              ? currentRow?.customer_detail?.full_name
-              : 'Who brought the stones, when, and how many.'}
+            Who brought the stones, when, and how many.
           </DialogDescription>
         </DialogHeader>
 
@@ -254,11 +250,10 @@ export function OrderMutateDialog({
               onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
               className='px-1'
             >
-              {/* One fieldset disables every control, Radix triggers included. */}
-              <fieldset disabled={readOnly} className='space-y-4'>
+              <fieldset className='space-y-4'>
                 {/* Reassigning an existing order picks somebody already on
                     file; registering happens at intake. */}
-                <CustomerPicker allowCreate={!isEdit} readOnly={readOnly} />
+                <CustomerPicker allowCreate={!isEdit} />
 
                 <div className='grid gap-4 sm:grid-cols-2'>
                   <FormField
@@ -311,38 +306,20 @@ export function OrderMutateDialog({
         </DialogBody>
 
         <DialogFooter>
-          {readOnly ? (
-            <ViewFooterActions
-              actions={actions}
-              primary={
-                onRequestEdit && (
-                  <Can permission={perm('orders', 'change')}>
-                    <Button onClick={onRequestEdit}>
-                      <Pencil className='me-1 size-4' />
-                      Edit
-                    </Button>
-                  </Can>
-                )
-              }
-            />
-          ) : (
-            <>
-              <Button
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={mutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                form='order-form'
-                disabled={mutation.isPending}
-              >
-                {mutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </>
-          )}
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button type='submit' form='order-form' disabled={mutation.isPending}>
+            {mutation.isPending
+              ? 'Saving...'
+              : isEdit
+                ? 'Save changes'
+                : 'Create order'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -61,7 +61,8 @@ export function StoneTransitionDialog({
     mutationFn: () => transitionStone(currentRow.id, toStatus, note),
     onSuccess: (stone) => {
       toast.success(
-        `${stone.label} is now ${STONE_STATUS_LABELS[stone.status] ?? stone.status}`
+        `Stone ${stone.label} moved to ${STONE_STATUS_LABELS[stone.status] ?? stone.status}`,
+        { description: 'The change has been recorded in its status history.' }
       )
       queryClient.invalidateQueries({ queryKey: ['stones'] })
       queryClient.invalidateQueries({ queryKey: ['status-history'] })
@@ -70,9 +71,12 @@ export function StoneTransitionDialog({
     },
     onError: (error) => {
       // The service refuses illegal moves with an explanation; show it verbatim.
-      toast.error(
-        serverMessageOr(error, 'Could not change the status. Please try again.')
-      )
+      toast.error('The status was not changed', {
+        description: serverMessageOr(
+          error,
+          'Something went wrong and the stone is unchanged. Please try again.'
+        ),
+      })
     },
   })
 

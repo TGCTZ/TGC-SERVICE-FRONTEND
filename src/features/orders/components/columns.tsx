@@ -1,6 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import { isFullyIdentified, type Order } from '../data/schema'
@@ -57,14 +58,21 @@ export const ordersDataColumns: ColumnDef<Order>[] = [
       const complete = isFullyIdentified(order)
 
       return (
-        <div className='flex items-center gap-2'>
-          <span className='tabular-nums'>
-            {order.identified_count} / {order.stone_count}
-          </span>
-          {/* An order is only ready to bill once every stone is identified. */}
-          <Badge variant={complete ? 'default' : 'secondary'}>
-            {complete ? 'Identified' : 'Pending'}
-          </Badge>
+        <div className='w-40 space-y-1.5'>
+          <div className='flex items-center justify-between gap-2'>
+            <span className='text-xs tabular-nums'>
+              {order.identified_count} of {order.stone_count} identified
+            </span>
+            {/* An order is only ready to bill once every stone is identified. */}
+            <Badge variant={complete ? 'default' : 'secondary'}>
+              {complete ? 'Done' : 'Pending'}
+            </Badge>
+          </div>
+          <Progress
+            value={order.identified_count}
+            max={order.stone_count}
+            label={`Identification progress for ${order.reference_number}`}
+          />
         </div>
       )
     },

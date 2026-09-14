@@ -109,7 +109,11 @@ export function handleServerError(error: unknown) {
     console.log(error)
   }
 
-  let errMsg = 'Something went wrong!'
+  // Title states the outcome, description explains it: with no server message
+  // the generic title alone tells the user nothing they can act on.
+  let title = 'That did not work'
+  let description =
+    'Something went wrong and the action was not completed. Please try again.'
 
   if (
     error &&
@@ -117,12 +121,23 @@ export function handleServerError(error: unknown) {
     'status' in error &&
     Number(error.status) === 204
   ) {
-    errMsg = 'No content.'
+    title = 'Nothing to show'
+    description = 'The server returned no content for that request.'
   }
 
   if (error instanceof AxiosError) {
-    errMsg = serverMessage(error) ?? errMsg
+    const message = serverMessage(error)
+    if (message) {
+      description = message
+    }
+
+    if (error.response?.status === 403) {
+      title = 'Not allowed'
+      description =
+        message ??
+        'You do not have permission to do that. Ask an administrator for access.'
+    }
   }
 
-  toast.error(errMsg)
+  toast.error(title, { description })
 }

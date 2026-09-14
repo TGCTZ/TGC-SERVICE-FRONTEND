@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { perm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Can } from '@/components/can'
 import { formatWeight } from '@/features/stones/components/columns'
@@ -33,11 +34,20 @@ export function OrderStonesPanel({ order, onRegister }: OrderStonesPanelProps) {
   return (
     <div className='space-y-3'>
       <div className='flex flex-wrap items-center justify-between gap-2'>
-        <div>
-          <h3 className='text-sm font-medium'>Stones</h3>
-          <p className='text-xs text-muted-foreground'>
-            {order.identified_count} of {order.stone_count} identified
-          </p>
+        <div className='min-w-48 flex-1 space-y-1.5'>
+          <div className='flex items-center justify-between gap-2'>
+            <h3 className='text-sm font-medium'>Stones</h3>
+            <p className='text-xs text-muted-foreground tabular-nums'>
+              {order.identified_count} of {order.stone_count} identified
+              {!isFull &&
+                ` · ${order.stone_count - order.identified_count} to go`}
+            </p>
+          </div>
+          <Progress
+            value={order.identified_count}
+            max={order.stone_count}
+            label='Identification progress'
+          />
         </div>
 
         {onRegister && !isFull && (

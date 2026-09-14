@@ -100,7 +100,11 @@ export function AddStoneDialog({
         stone_type: Number(values.stone_type),
       }),
     onSuccess: (stone) => {
-      toast.success(`Identified ${stone.label}`)
+      toast.success(`Stone ${stone.label} has been identified`, {
+        // The dialog opens with or without an order in hand, so name the one
+        // the API actually filed the stone under.
+        description: `Recorded against ${stone.order_reference ?? order?.reference_number ?? 'the order'}. It is now ready for the next stage.`,
+      })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['stones'] })
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
@@ -117,12 +121,12 @@ export function AddStoneDialog({
 
       // Registering past `stone_count` is refused with an explanation naming
       // the cap, which is far more useful than a generic failure.
-      toast.error(
-        serverMessageOr(
+      toast.error('The stone was not identified', {
+        description: serverMessageOr(
           error,
-          'Could not identify the stone. Please try again.'
-        )
-      )
+          'Something went wrong and nothing was recorded. Please try again.'
+        ),
+      })
     },
   })
 

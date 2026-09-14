@@ -20,6 +20,7 @@ import { OrderMutateDialog } from './components/mutate-dialog'
 import { OrdersProvider, useOrders } from './components/provider'
 import { OrderRestoreDialog } from './components/restore-dialog'
 import { OrdersTable, type OrdersQueryState } from './components/table'
+import { OrderViewDialog } from './components/view-dialog'
 import { ordersQuery } from './data/api'
 import { useOrderActions } from './hooks/use-actions'
 
@@ -102,7 +103,7 @@ function OrdersContent() {
                 setOpen('create')
               }}
             >
-              Receive order
+              Create order
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>
@@ -137,10 +138,28 @@ function OrdersContent() {
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
+      {currentRow && (
+        <OrderViewDialog
+          key={`order-view-${currentRow.id}`}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          order={currentRow}
+          onRequestEdit={() => setOpen('update')}
+          onRegisterStone={() => setOpen('add-stone')}
+          actions={actions}
+        />
+      )}
+
       <OrderMutateDialog
         key={currentRow ? `order-${currentRow.id}` : 'create'}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        open={open === 'create' || open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
@@ -148,10 +167,7 @@ function OrdersContent() {
           }
         }}
         currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
         onRegisterStone={() => setOpen('add-stone')}
-        actions={actions}
       />
 
       {currentRow && (
