@@ -29,6 +29,8 @@ export const stoneSchema = z.object({
   stone_type_detail: stoneTypeSchema.nullable().default(null),
   weight: z.string().nullable().default(null),
   weight_unit: z.string().default('carat'),
+  /** Absolute URL of the bench photograph, or null. Printed on the certificate. */
+  photo: z.string().nullable().default(null),
   status: z.string(),
 
   created_at: z.string().nullable().default(null),

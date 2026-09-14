@@ -1,5 +1,5 @@
-import { Eye, History, Pencil, RotateCcw, Trash2 } from 'lucide-react'
-import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
+import { Eye, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useCustomers } from '../components/provider'
 import { type Customer } from '../data/schema'
@@ -38,12 +38,6 @@ export function useCustomerActions(customer: Customer | null): RowAction[] {
       permission: perm('customers', 'change'),
       onSelect: () => select('update'),
       hidden: isDeleted,
-    },
-    {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
     },
     {
       label: 'Restore',

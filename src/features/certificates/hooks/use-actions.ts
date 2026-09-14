@@ -1,4 +1,4 @@
-import { Ban, Download, Eye, History } from 'lucide-react'
+import { Ban, Download, Eye } from 'lucide-react'
 import { PERMISSIONS, perm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useCertificates } from '../components/provider'
@@ -42,12 +42,6 @@ export function useCertificateActions(
       icon: Download,
       permission: perm('certificates', 'view'),
       onSelect: () => download(certificate),
-    },
-    {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
     },
     {
       label: 'Revoke',

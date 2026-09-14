@@ -1,5 +1,5 @@
-import { Eye, History } from 'lucide-react'
-import { PERMISSIONS, perm } from '@/lib/permissions'
+import { Eye } from 'lucide-react'
+import { perm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useBills } from '../components/provider'
 import { type Bill } from '../data/schema'
@@ -27,12 +27,6 @@ export function useBillActions(bill: Bill | null): RowAction[] {
       icon: Eye,
       permission: perm('bills', 'view'),
       onSelect: () => select('view'),
-    },
-    {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
     },
   ]
 }

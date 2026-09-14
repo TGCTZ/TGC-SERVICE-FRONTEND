@@ -65,6 +65,9 @@ export function OrderViewDialog({
             <Badge variant={complete ? 'default' : 'secondary'}>
               {complete ? 'Fully identified' : 'Awaiting identification'}
             </Badge>
+            {order.bill_number && (
+              <Badge variant='outline'>Billed {order.bill_number}</Badge>
+            )}
             {order.deleted_at && <Badge variant='destructive'>Deleted</Badge>}
           </DialogTitle>
           <DialogDescription>
@@ -120,6 +123,7 @@ export function OrderViewDialog({
                 { label: 'Received', value: formatDate(order.received_date) },
                 { label: 'Stones submitted', value: order.stone_count },
                 { label: 'Stones identified', value: order.identified_count },
+                { label: 'Bill', value: order.bill_number },
                 { label: 'Created', value: formatDateTime(order.created_at) },
                 {
                   label: 'Last updated',

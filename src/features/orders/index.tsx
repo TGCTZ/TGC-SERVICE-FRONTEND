@@ -2,22 +2,22 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { perm } from '@/lib/permissions'
-import { subjectTypes } from '@/lib/subject-types'
 import { Button } from '@/components/ui/button'
 import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { AddStoneDialog } from './components/add-stone-dialog'
 import { OrderDeleteDialog } from './components/delete-dialog'
 import { GenerateBillDialog } from './components/generate-bill-dialog'
+import { HoldOrderDialog } from './components/hold-dialog'
 import { OrderMutateDialog } from './components/mutate-dialog'
 import { OrdersProvider, useOrders } from './components/provider'
+import { ReleaseOrderDialog } from './components/release-dialog'
 import { OrderRestoreDialog } from './components/restore-dialog'
 import { OrdersTable, type OrdersQueryState } from './components/table'
 import { OrderViewDialog } from './components/view-dialog'
@@ -126,18 +126,6 @@ function OrdersContent() {
         )}
       </Main>
 
-      {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.orders}
-          subjectId={currentRow.id}
-          title={currentRow.reference_number}
-          open={open === 'history'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
-          }}
-        />
-      )}
-
       {/* Viewing and editing are separate components: a record is read as a
           definition list, not as a form nobody may type into. */}
       {currentRow && (
@@ -173,6 +161,26 @@ function OrdersContent() {
       {currentRow && (
         <AddStoneDialog
           open={open === 'add-stone'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setOpen(null)
+          }}
+          order={currentRow}
+        />
+      )}
+
+      {currentRow && (
+        <HoldOrderDialog
+          open={open === 'hold'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setOpen(null)
+          }}
+          order={currentRow}
+        />
+      )}
+
+      {currentRow && (
+        <ReleaseOrderDialog
+          open={open === 'release'}
           onOpenChange={(isOpen) => {
             if (!isOpen) setOpen(null)
           }}

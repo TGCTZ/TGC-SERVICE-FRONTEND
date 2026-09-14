@@ -70,6 +70,15 @@ export const reportSchema = z.object({
   is_finalized: z.boolean().default(false),
   identified_by: z.number().nullable().default(null),
   identified_by_label: z.string().nullable().default(null),
+  /**
+   * The second gemmologist, named beside the first on the certificate.
+   *
+   * Nullable: a report can be closed when only one person saw the stone, and
+   * the certificate then prints a single name. Set at finalize time, not while
+   * the findings are being written — it is a sign-off, not a finding.
+   */
+  verified_by: z.number().nullable().default(null),
+  verified_by_label: z.string().nullable().default(null),
   identified_at: z.string().nullable().default(null),
 
   created_at: z.string().nullable().default(null),

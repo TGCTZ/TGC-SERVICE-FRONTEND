@@ -55,6 +55,7 @@ import {
 } from '../data/enums'
 import { type IdentificationReport } from '../data/schema'
 import { InstrumentsPanel } from './instruments-panel'
+import { StonePhotoPanel } from './stone-photo-panel'
 
 /** Radix forbids an empty-string SelectItem value, so "not recorded" needs one. */
 const NONE = 'none'
@@ -509,10 +510,20 @@ export function ReportMutateDialog({
             </form>
           </Form>
 
-          {/* Instruments save immediately through their own endpoint, so the
-            panel sits outside the report form rather than inside it. */}
+          {/* The photograph and the instruments both save immediately through
+            their own endpoints, so these panels sit outside the report form
+            rather than inside it. The photograph writes to the stone, not the
+            report. */}
           {currentRow && (
             <>
+              <Separator className='my-6' />
+              <div className='px-1'>
+                <StonePhotoPanel
+                  stoneId={currentRow.stone}
+                  readOnly={isLocked}
+                />
+              </div>
+
               <Separator className='my-6' />
               <div className='px-1'>
                 <InstrumentsPanel

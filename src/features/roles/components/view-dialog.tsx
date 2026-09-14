@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Can } from '@/components/can'
@@ -153,6 +154,14 @@ export function RoleViewDialog({
                     <span className='text-xs text-muted-foreground tabular-nums'>
                       {held.length} of {total}
                     </span>
+                    {/* How much of a module this role holds: "6 of 14" means
+                        more when you can see the shape of it. */}
+                    <Progress
+                      value={held.length}
+                      max={total}
+                      label={`${group} permissions held`}
+                      className='ms-auto h-1.5 w-24'
+                    />
                   </div>
 
                   <div className='mt-3 flex flex-wrap gap-1.5'>

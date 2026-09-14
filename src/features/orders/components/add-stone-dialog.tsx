@@ -24,6 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Progress } from '@/components/ui/progress'
 import {
   Select,
   SelectContent,
@@ -85,6 +86,9 @@ export function AddStoneDialog({
   // The tier the chosen type belongs to, and the fee it commits the customer
   // to. Read-only: it is a fact about the type, not a second choice.
   const chosenType = useWatch({ control: form.control, name: 'stone_type' })
+  const remaining = order
+    ? Math.max(0, order.stone_count - order.identified_count)
+    : 0
   const category = stoneTypes.find(
     (type) => String(type.id) === chosenType
   )?.category_detail
@@ -137,10 +141,31 @@ export function AddStoneDialog({
           <DialogTitle>Identify stone</DialogTitle>
           <DialogDescription>
             {order
-              ? `${order.reference_number} — ${order.identified_count} of ${order.stone_count} identified so far. The label is allocated automatically.`
+              ? `${order.reference_number} — the label is allocated automatically.`
               : 'Pick the order the stone came in on, then say what it is. The label is allocated automatically.'}
           </DialogDescription>
         </DialogHeader>
+
+        {/* Only with an order in hand: opened from the identification queue
+            there is no order yet, and the select below chooses one. */}
+        {order && (
+          <div className='space-y-1.5'>
+            <div className='flex items-center justify-between gap-2'>
+              <span className='text-sm font-medium'>
+                Identification progress
+              </span>
+              <span className='text-xs text-muted-foreground tabular-nums'>
+                {order.identified_count} of {order.stone_count} identified
+                {remaining > 0 && ` · ${remaining} to go`}
+              </span>
+            </div>
+            <Progress
+              value={order.identified_count}
+              max={order.stone_count}
+              label={`Identification progress for ${order.reference_number}`}
+            />
+          </div>
+        )}
 
         <Form {...form}>
           <form
@@ -167,8 +192,22 @@ export function AddStoneDialog({
                       <SelectContent>
                         {orders.map((row) => (
                           <SelectItem key={row.id} value={String(row.id)}>
-                            {row.reference_number} · {row.identified_count} of{' '}
-                            {row.stone_count} identified
+                            {/* The bar is how you pick: the order with the most
+                                left to do is the one to open next. */}
+                            <span className='flex w-full items-center gap-2'>
+                              <span className='truncate'>
+                                {row.reference_number}
+                              </span>
+                              <Progress
+                                value={row.identified_count}
+                                max={row.stone_count}
+                                label={`Identification progress for ${row.reference_number}`}
+                                className='h-1.5 w-16 shrink-0'
+                              />
+                              <span className='shrink-0 text-xs text-muted-foreground tabular-nums'>
+                                {row.identified_count}/{row.stone_count}
+                              </span>
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>

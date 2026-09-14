@@ -8,7 +8,7 @@ type ProgressProps = {
   /** Accessible name, since the bar itself carries no text. */
   label: string
   className?: string
-  /** Paints the bar in the success colour once it is full. */
+  /** Overrides the fill once the bar is full. Defaults to the success colour. */
   completeClassName?: string
 }
 
@@ -29,7 +29,7 @@ export function Progress({
   max,
   label,
   className,
-  completeClassName = 'bg-primary',
+  completeClassName = 'bg-success',
 }: ProgressProps) {
   const safeMax = Math.max(0, max)
   const safeValue = Math.min(Math.max(0, value), safeMax)
@@ -51,7 +51,10 @@ export function Progress({
       <div
         className={cn(
           'h-full rounded-full transition-[width] duration-300',
-          isComplete ? completeClassName : 'bg-amber-500'
+          // Semantic, not decorative: amber says "still outstanding", green
+          // says "done". A brand-coloured full bar reads as just another blue
+          // element rather than as a finished state.
+          isComplete ? completeClassName : 'bg-warning'
         )}
         style={{ width: `${percent}%` }}
       />

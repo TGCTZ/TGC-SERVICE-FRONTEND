@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { type RowAction } from '@/components/data-table'
@@ -45,6 +46,11 @@ export function BillViewDialog({
     enabled: open,
   })
 
+  const outstanding = Math.max(
+    0,
+    Number(bill.total_amount ?? 0) - Number(bill.amount_paid ?? 0)
+  )
+
   const money = (value: string | null) =>
     formatMoney(value === null ? null : Number(value), bill.currency)
 
@@ -62,6 +68,24 @@ export function BillViewDialog({
         </DialogHeader>
 
         <DialogBody className='space-y-5'>
+          {/* Leads, like identification progress on an order: how much of this
+              bill is settled decides what happens to the stones next. */}
+          <div className='space-y-2 rounded-md border p-3'>
+            <div className='flex flex-wrap items-baseline justify-between gap-2'>
+              <h3 className='text-sm font-medium'>Payment progress</h3>
+              <span className='text-xs text-muted-foreground tabular-nums'>
+                {money(bill.amount_paid)} of {money(bill.total_amount)}
+                {outstanding > 0 &&
+                  ` · ${formatMoney(outstanding, bill.currency)} outstanding`}
+              </span>
+            </div>
+            <Progress
+              value={Number(bill.amount_paid ?? 0)}
+              max={Number(bill.total_amount ?? 0)}
+              label={`Payment progress for ${bill.bill_number}`}
+            />
+          </div>
+
           <DefinitionList
             items={[
               { label: 'Control number', value: bill.control_number },

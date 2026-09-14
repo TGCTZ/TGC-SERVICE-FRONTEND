@@ -24,6 +24,21 @@ export async function fetchStones(
   return toPaginated(listSchema.parse(res.data), params)
 }
 
+/**
+ * One stone, fetched on its own.
+ *
+ * Needed where a screen holds a stone id but not the row — the identification
+ * form knows which stone a report belongs to, and needs its photograph.
+ */
+export const stoneQuery = (id: number) =>
+  queryOptions({
+    queryKey: ['stones', 'detail', id],
+    queryFn: async (): Promise<Stone> => {
+      const res = await api.get(`/stones/${id}`)
+      return stoneSchema.parse(res.data)
+    },
+  })
+
 export const stonesQuery = (params: ListParams) =>
   queryOptions({
     queryKey: ['stones', params],
@@ -62,6 +77,32 @@ export async function updateStone(
   payload: StonePayload
 ): Promise<Stone> {
   const res = await api.put(`/stones/${id}`, payload)
+  return stoneSchema.parse(res.data)
+}
+
+/**
+ * Set or clear a stone's bench photograph.
+ *
+ * Its own call rather than a field on {@link updateStone}: that one sends JSON,
+ * and JSON is what lets a null clear a field and a number stay a number. Routing
+ * every stone write through multipart to carry one optional file would turn
+ * every value into a string on the wire.
+ *
+ * A PATCH, not a PUT — the body carries only the photograph, and a PUT would
+ * blank every field it omits.
+ *
+ * @param id - The stone to photograph.
+ * @param photo - The image, or null to remove the one on file.
+ */
+export async function setStonePhoto(
+  id: number,
+  photo: File | null
+): Promise<Stone> {
+  const body = new FormData()
+  // An empty string is how multipart says "clear it"; there is no null.
+  body.append('photo', photo ?? '')
+
+  const res = await api.patch(`/stones/${id}`, body)
   return stoneSchema.parse(res.data)
 }
 

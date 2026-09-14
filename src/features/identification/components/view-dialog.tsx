@@ -196,8 +196,12 @@ export function ReportViewDialog({
                 { label: 'Stone', value: report.stone_label },
                 { label: 'Order', value: report.order_reference },
                 {
-                  label: 'Identified by',
+                  label: 'Gemmologist 1',
                   value: report.identified_by_label,
+                },
+                {
+                  label: 'Gemmologist 2',
+                  value: report.verified_by_label,
                 },
                 {
                   label: 'Identified at',

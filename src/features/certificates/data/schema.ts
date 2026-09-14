@@ -10,8 +10,8 @@ export const CERTIFICATE_STATUS_LABELS: Record<string, string> = {
  * A certificate as the lab sees it.
  *
  * Write-once: everything but `stone` is minted by the issuing service — the
- * number and the four snapshots have to be created together or the document
- * does not mean anything.
+ * number and every snapshot have to be created together or the document does
+ * not mean anything.
  *
  * The snapshots are copies, not joins, and that is the point: a certificate
  * must keep saying what it said on the day it was issued, even if the stone
@@ -30,9 +30,42 @@ export const certificateSchema = z.object({
 
   stone_type_snapshot: z.string().nullable().default(''),
   weight_snapshot: z.string().nullable().default(''),
+  weight_unit_snapshot: z.string().nullable().default('carat'),
   color_snapshot: z.string().nullable().default(''),
   origin_snapshot: z.string().nullable().default(''),
+
+  /*
+   * The rest of what the printed document states, frozen at issue.
+   *
+   * Every one is a plain string on the wire, including specific gravity — a
+   * decimal crosses as text to keep its precision. `instruments_snapshot` is a
+   * JSON list of {name, reading}, not a relation.
+   */
+  species_snapshot: z.string().nullable().default(''),
+  variety_snapshot: z.string().nullable().default(''),
+  shape_cut_snapshot: z.string().nullable().default(''),
+  transparency_snapshot: z.string().nullable().default(''),
+  optic_character_snapshot: z.string().nullable().default(''),
+  treatment_snapshot: z.string().nullable().default(''),
+  nature_type_snapshot: z.string().nullable().default(''),
+  dimensions_snapshot: z.string().nullable().default(''),
+  refractive_index_snapshot: z.string().nullable().default(''),
+  specific_gravity_snapshot: z.string().nullable().default(''),
+  comments_snapshot: z.string().nullable().default(''),
+  instruments_snapshot: z
+    .array(
+      z.object({
+        name: z.string().default(''),
+        reading: z.string().default(''),
+      })
+    )
+    .default([]),
+  report_number_snapshot: z.string().nullable().default(''),
+  /** Absolute URL of the photograph as it was at issue, or null. */
+  photo_snapshot: z.string().nullable().default(null),
+
   gemmologist: z.string().nullable().default(''),
+  gemmologist_two: z.string().nullable().default(''),
 
   status: z.string(),
   issued_by: z.number().nullable().default(null),

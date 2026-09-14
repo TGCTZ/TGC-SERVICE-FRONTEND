@@ -1,8 +1,9 @@
 import {
   Eye,
   FileText,
-  History,
+  PauseCircle,
   Pencil,
+  PlayCircle,
   Plus,
   RotateCcw,
   Trash2,
@@ -10,7 +11,7 @@ import {
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useOrders } from '../components/provider'
-import { isFullyIdentified, type Order } from '../data/schema'
+import { isBilled, isFullyIdentified, isHeld, type Order } from '../data/schema'
 
 /**
  * Every action the API exposes for an order, in one place.
@@ -25,12 +26,13 @@ export function useOrderActions(order: Order | null): RowAction[] {
   function select(
     dialog:
       | 'view'
-      | 'history'
       | 'update'
       | 'delete'
       | 'restore'
       | 'add-stone'
       | 'generate-bill'
+      | 'hold'
+      | 'release'
   ) {
     setCurrentRow(order)
     setOpen(dialog)
@@ -69,13 +71,25 @@ export function useOrderActions(order: Order | null): RowAction[] {
       icon: FileText,
       permission: PERMISSIONS.generateBill,
       onSelect: () => select('generate-bill'),
-      hidden: isDeleted || !isFull,
+      // Gone once a bill exists, not just before every stone is identified: an
+      // order awaiting payment is already billed, and `Bill.order` is a
+      // OneToOne, so a second attempt is refused by the API anyway.
+      hidden: isDeleted || !isFull || isBilled(order),
     },
     {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
+      label: 'Hold',
+      icon: PauseCircle,
+      permission: PERMISSIONS.holdOrder,
+      onSelect: () => select('hold'),
+      hidden: isDeleted || isHeld(order),
+      separatorBefore: true,
+    },
+    {
+      label: 'Release',
+      icon: PlayCircle,
+      permission: PERMISSIONS.holdOrder,
+      onSelect: () => select('release'),
+      hidden: isDeleted || !isHeld(order),
       separatorBefore: true,
     },
     {

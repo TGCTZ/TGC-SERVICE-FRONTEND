@@ -15,10 +15,14 @@ const TOAST_DURATION_MS = 16_000
 /**
  * App-wide toast host.
  *
- * Toasts appear top-centre rather than sonner's bottom-right default: actions
- * here are triggered from dialogs and table row menus that sit high on the
- * page, and a confirmation in the opposite corner is easy to miss entirely.
- * The top edge is also clear of the sticky pagination bar every table renders.
+ * Toasts sit bottom-right, sonner's default. They stack away from the page
+ * header and the dialogs most actions are triggered from, so a confirmation
+ * never lands on top of the thing you are still reading — and with a 16s
+ * duration and a close button, one that outlives its welcome can be dismissed
+ * rather than waited out.
+ *
+ * Watch the sticky pagination bar every table renders: it shares this corner,
+ * and `offset` is the lever if the two start to collide.
  *
  * `richColors` is what makes success and failure distinguishable at a glance —
  * without it every toast paints from the same `--popover` pair and a red
@@ -36,7 +40,7 @@ export function Toaster({ ...props }: ToasterProps) {
   return (
     <Sonner
       theme={theme as ToasterProps['theme']}
-      position='top-center'
+      position='bottom-right'
       dir={dir}
       duration={TOAST_DURATION_MS}
       richColors

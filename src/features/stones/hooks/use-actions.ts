@@ -1,12 +1,4 @@
-import {
-  ArrowRightLeft,
-  Eye,
-  History,
-  ListOrdered,
-  Pencil,
-  RotateCcw,
-  Trash2,
-} from 'lucide-react'
+import { ArrowRightLeft, Eye, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useStones } from '../components/provider'
@@ -65,19 +57,6 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
       permission: PERMISSIONS.transitionStone,
       onSelect: () => select('transition'),
       hidden: isDeleted || isLocked,
-    },
-    {
-      label: 'Status history',
-      icon: ListOrdered,
-      permission: perm('status-history', 'view'),
-      onSelect: () => select('statuses'),
-      separatorBefore: true,
-    },
-    {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
     },
     {
       label: 'Restore',

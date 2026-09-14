@@ -1,11 +1,6 @@
 import { hasAnyPermission } from '@/lib/authz'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 
 /**
  * One action available on a table row.
@@ -53,12 +48,21 @@ function visibleActions(actions: RowAction[]) {
 /**
  * Row actions, rendered inline in the table cell.
  *
- * Icons rather than a dropdown: with at most four actions visible at once
- * (Delete and Restore are mutually exclusive) there is room to show them, and
- * a menu costs two clicks plus a guess at what the row can do.
+ * **Labelled**, not icon-only. A row of bare icons asks the user to decode a
+ * pictogram before every click: a document glyph could be "view", "generate
+ * bill" or "certificate", and the same icon means different things on
+ * different screens. Tooltips do not answer it either — they need a hover, so
+ * they do not exist on touch devices and are useless to anyone scanning the
+ * column. The label is the affordance; the icon only speeds up recognition
+ * once you already know what you are looking for.
  *
- * When the column gets tight the buttons **wrap** rather than shrink — a
- * half-size icon is harder to hit and no easier to read than a second line.
+ * Icons rather than a dropdown: with at most four or five actions visible at
+ * once (Delete and Restore are mutually exclusive) there is room to show them,
+ * and a menu costs two clicks plus a guess at what the row can do.
+ *
+ * The buttons **wrap** rather than shrink or truncate, so a narrow column makes
+ * the row taller instead of hiding what it can do. That is the deliberate
+ * trade: vertical space is cheap, a misread action is not.
  *
  * Actions are declared as data rather than JSX so each table lists its full
  * capability in one place, and so the same list can be reused by the record's
@@ -71,32 +75,29 @@ export function DataTableRowActions({ actions }: { actions: RowAction[] }) {
   if (visible.length === 0) return null
 
   return (
-    <div className='flex flex-wrap items-center justify-end gap-0.5'>
+    // The max-width is what makes `flex-wrap` mean anything. A table cell sizes
+    // to its content, so without a cap the buttons would sit on one ever-wider
+    // line and push the whole table into horizontal scroll instead of wrapping.
+    <div className='ms-auto flex max-w-80 flex-wrap items-center justify-end gap-1'>
       {visible.map((action, index) => (
         <div key={action.label} className='flex items-center'>
           {/* Never lead with a divider, however the list filtered down. */}
           {action.separatorBefore && index > 0 && (
-            <span className='mx-1 h-4 w-px shrink-0 bg-border' />
+            <span className='me-1 h-4 w-px shrink-0 bg-border' />
           )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='ghost'
-                size='icon'
-                className={cn(
-                  'size-8',
-                  action.variant === 'destructive' &&
-                    'text-destructive hover:bg-destructive/10 hover:text-destructive'
-                )}
-                // Icon-only controls are unusable without this.
-                aria-label={action.label}
-                onClick={action.onSelect}
-              >
-                <action.icon className='size-4' />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{action.label}</TooltipContent>
-          </Tooltip>
+          <Button
+            variant='ghost'
+            size='sm'
+            className={cn(
+              'h-8 gap-1.5 px-2 font-normal',
+              action.variant === 'destructive' &&
+                'text-destructive hover:bg-destructive/10 hover:text-destructive'
+            )}
+            onClick={action.onSelect}
+          >
+            <action.icon className='size-4 shrink-0' />
+            {action.label}
+          </Button>
         </div>
       ))}
     </div>

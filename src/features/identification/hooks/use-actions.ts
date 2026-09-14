@@ -1,4 +1,4 @@
-import { Eye, History, Lock, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { Eye, Lock, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useReports } from '../components/provider'
@@ -49,13 +49,6 @@ export function useReportActions(
       permission: PERMISSIONS.finalizeReport,
       onSelect: () => select('finalize'),
       hidden: isDeleted || isLocked,
-    },
-    {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
-      separatorBefore: true,
     },
     {
       label: 'Restore',

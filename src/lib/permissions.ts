@@ -127,6 +127,7 @@ export const PERMISSIONS = {
 
   // Workflow verbs.
   transitionStone: 'orders.transition_stone',
+  holdOrder: 'orders.hold_order',
   generateBill: 'billing.generate_bill',
   finalizeReport: 'identification.finalize_report',
   issueCertificate: 'certificates.issue_certificate',

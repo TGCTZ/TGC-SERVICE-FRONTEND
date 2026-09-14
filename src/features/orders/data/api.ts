@@ -109,3 +109,24 @@ export async function generateBill(
   })
   return res.data
 }
+
+/**
+ * Pause or withdraw a whole order.
+ *
+ * The one part of an order's state that is written rather than derived: a
+ * customer asking the lab to stop is a fact about the visit, not about any
+ * stone in it. Undoes nothing — stones keep their statuses and the bill stands.
+ */
+export async function holdOrder(
+  id: number,
+  payload: { hold_status: 'on_hold' | 'cancelled'; reason: string }
+): Promise<Order> {
+  const res = await api.post(`/orders/${id}/hold`, payload)
+  return orderSchema.parse(res.data)
+}
+
+/** Return a held or cancelled order to active work. */
+export async function releaseOrder(id: number): Promise<Order> {
+  const res = await api.post(`/orders/${id}/release`)
+  return orderSchema.parse(res.data)
+}

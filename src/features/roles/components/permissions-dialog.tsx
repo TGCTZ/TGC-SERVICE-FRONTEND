@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
 import { Switch } from '@/components/ui/switch'
 import { DialogBody } from '@/components/dialog-body'
 import { groupedPermissionsQuery, roleQuery, updateRole } from '../data/api'
@@ -218,15 +219,26 @@ export function RolePermissionsDialog({
                       </span>
                       <span
                         className={cn(
-                          'text-xs',
+                          'text-xs tabular-nums',
                           someChecked && !allChecked
                             ? 'font-medium text-primary'
                             : 'text-muted-foreground'
                         )}
                       >
-                        {permissions.filter((p) => selected.has(p)).length}/
+                        {permissions.filter((p) => selected.has(p)).length} of{' '}
                         {permissions.length}
                       </span>
+                      {/* A Switch has no indeterminate state, so the bar is
+                          what carries the partial case at a glance - the
+                          counts beside it say exactly how partial. */}
+                      <Progress
+                        value={
+                          permissions.filter((p) => selected.has(p)).length
+                        }
+                        max={permissions.length}
+                        label={`${group} permissions granted`}
+                        className='ms-2 h-1.5 w-20'
+                      />
                     </label>
 
                     <div className='mt-3 grid gap-2 sm:grid-cols-3'>

@@ -3,10 +3,10 @@ import { AxiosError } from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, History, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { Eye, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatMoney } from '@/lib/format'
-import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
+import { perm, restorePerm } from '@/lib/permissions'
 import { subjectTypes } from '@/lib/subject-types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -166,12 +166,6 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         permission: perm(config.resource, 'change'),
         onSelect: () => select('update', row),
         hidden: isDeleted,
-      },
-      {
-        label: 'History',
-        icon: History,
-        permission: PERMISSIONS.viewActivityLogs,
-        onSelect: () => select('history', row),
       },
       {
         label: 'Restore',
