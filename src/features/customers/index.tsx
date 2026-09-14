@@ -14,6 +14,7 @@ import { CustomerMutateDialog } from './components/mutate-dialog'
 import { CustomersProvider, useCustomers } from './components/provider'
 import { CustomerRestoreDialog } from './components/restore-dialog'
 import { CustomersTable, type CustomersQueryState } from './components/table'
+import { CustomerViewDialog } from './components/view-dialog'
 import { customersQuery } from './data/api'
 import { useCustomerActions } from './hooks/use-actions'
 
@@ -120,10 +121,27 @@ function CustomersContent() {
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
+      {currentRow && (
+        <CustomerViewDialog
+          key={`customer-view-${currentRow.id}`}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          customer={currentRow}
+          onRequestEdit={() => setOpen('update')}
+          actions={actions}
+        />
+      )}
+
       <CustomerMutateDialog
         key={currentRow ? `customer-${currentRow.id}` : 'none'}
-        open={open === 'view' || open === 'update'}
+        open={open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
@@ -131,9 +149,6 @@ function CustomersContent() {
           }
         }}
         currentRow={currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={actions}
       />
 
       {currentRow && (

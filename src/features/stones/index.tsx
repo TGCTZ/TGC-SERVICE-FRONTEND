@@ -16,6 +16,7 @@ import { StoneRestoreDialog } from './components/restore-dialog'
 import { StoneStatusHistorySheet } from './components/status-history-sheet'
 import { StonesTable, type StonesQueryState } from './components/table'
 import { StoneTransitionDialog } from './components/transition-dialog'
+import { StoneViewDialog } from './components/view-dialog'
 import { stonesQuery } from './data/api'
 import { useStoneActions } from './hooks/use-actions'
 
@@ -134,10 +135,27 @@ function StonesContent() {
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
+      {currentRow && (
+        <StoneViewDialog
+          key={`stone-view-${currentRow.id}`}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          stone={currentRow}
+          onRequestEdit={() => setOpen('update')}
+          actions={actions}
+        />
+      )}
+
       <StoneMutateDialog
         key={currentRow ? `stone-${currentRow.id}` : 'none'}
-        open={open === 'view' || open === 'update'}
+        open={open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
@@ -145,9 +163,6 @@ function StonesContent() {
           }
         }}
         currentRow={currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={actions}
       />
 
       {currentRow && (

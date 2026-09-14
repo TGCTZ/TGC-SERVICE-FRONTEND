@@ -3,7 +3,6 @@ import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
 import { perm } from '@/lib/permissions'
@@ -38,10 +37,8 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Can } from '@/components/can'
-import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
 import { PasswordInput } from '@/components/password-input'
-import { ViewFooterActions } from '@/components/view-footer-actions'
 import { rolesQuery } from '@/features/roles/data/api'
 import {
   createUser,
@@ -95,21 +92,12 @@ type UserMutateDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   currentRow?: User | null
-  /** Render the same form as a read-only view. */
-  readOnly?: boolean
-  /** Switches a read-only view into edit mode, when the user may edit. */
-  onRequestEdit?: () => void
-  /** The record's row actions, shown in the footer of the read-only view. */
-  actions?: RowAction[]
 }
 
 export function UserMutateDialog({
   open,
   onOpenChange,
   currentRow,
-  readOnly = false,
-  onRequestEdit,
-  actions = [],
 }: UserMutateDialogProps) {
   const isEdit = Boolean(currentRow)
   const queryClient = useQueryClient()
@@ -210,18 +198,14 @@ export function UserMutateDialog({
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-2xl'>
         <DialogHeader className='text-start'>
           <DialogTitle>
-            {readOnly
-              ? currentRow?.full_name || currentRow?.email
-              : isEdit
-                ? 'Edit user'
-                : 'Add user'}
+            {isEdit
+              ? `Edit ${currentRow?.full_name || currentRow?.email}`
+              : 'Add user'}
           </DialogTitle>
           <DialogDescription>
-            {readOnly
-              ? 'Viewing the account. Choose Edit to make changes.'
-              : isEdit
-                ? 'Update the account details below.'
-                : 'Create a new account and assign its access.'}
+            {isEdit
+              ? 'Update the account details below.'
+              : 'Create a new account and assign its access.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -238,10 +222,7 @@ export function UserMutateDialog({
                 that sits outside react-hook-form - the parts a per-field
                 `disabled` prop would miss. `contents` keeps the grid intact.
               */}
-              <fieldset
-                disabled={readOnly}
-                className='grid gap-4 sm:grid-cols-2'
-              >
+              <fieldset className='grid gap-4 sm:grid-cols-2'>
                 <TextField
                   control={form.control}
                   name='first_name'
@@ -420,38 +401,16 @@ export function UserMutateDialog({
         </DialogBody>
 
         <DialogFooter>
-          {readOnly ? (
-            <ViewFooterActions
-              actions={actions}
-              primary={
-                onRequestEdit && (
-                  <Can permission={perm('users', 'change')}>
-                    <Button onClick={onRequestEdit}>
-                      <Pencil className='me-1 size-4' />
-                      Edit
-                    </Button>
-                  </Can>
-                )
-              }
-            />
-          ) : (
-            <>
-              <Button
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={mutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                form='user-form'
-                disabled={mutation.isPending}
-              >
-                {mutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </>
-          )}
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button type='submit' form='user-form' disabled={mutation.isPending}>
+            {mutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

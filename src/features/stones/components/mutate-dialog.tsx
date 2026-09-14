@@ -3,10 +3,8 @@ import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
-import { perm } from '@/lib/permissions'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,10 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Can } from '@/components/can'
-import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
-import { ViewFooterActions } from '@/components/view-footer-actions'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
 import { updateStone } from '../data/api'
 import { WEIGHT_UNITS, isStoneLocked } from '../data/enums'
@@ -61,28 +56,18 @@ type StoneMutateDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   currentRow: Stone | null
-  /** Render the same form as a read-only view. */
-  readOnly?: boolean
-  /** Switches a read-only view into edit mode, when the user may edit. */
-  onRequestEdit?: () => void
-  /** The record's row actions, shown in the footer of the read-only view. */
-  actions?: RowAction[]
 }
 
 export function StoneMutateDialog({
   open,
   onOpenChange,
   currentRow,
-  readOnly = false,
-  onRequestEdit,
-  actions = [],
 }: StoneMutateDialogProps) {
   const queryClient = useQueryClient()
   const { data: stoneTypes = [] } = useQuery(lookupOptionsQuery('stone-types'))
-  // A billed stone is settled by the service, so the form is read-only whether
-  // or not the caller asked for a view.
-  const locked = isStoneLocked(currentRow)
-  const isLocked = readOnly || locked
+  // A billed stone is settled by the service: its type is what priced the
+  // bill, so the form stays locked even for someone who may otherwise edit.
+  const isLocked = isStoneLocked(currentRow)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(stoneFormSchema),
@@ -144,7 +129,7 @@ export function StoneMutateDialog({
             {currentRow && <StoneStatusBadge status={currentRow.status} />}
           </DialogTitle>
           <DialogDescription>
-            {locked
+            {isLocked
               ? 'Billed, so its type can no longer change — that type is what priced the bill. Weight is recorded with the findings.'
               : currentRow?.order_reference
                 ? `Identified under ${currentRow.order_reference}.`
@@ -244,39 +229,20 @@ export function StoneMutateDialog({
         </DialogBody>
 
         <DialogFooter>
-          {readOnly ? (
-            <ViewFooterActions
-              actions={actions}
-              primary={
-                onRequestEdit &&
-                !locked && (
-                  <Can permission={perm('stones', 'change')}>
-                    <Button onClick={onRequestEdit}>
-                      <Pencil className='me-1 size-4' />
-                      Edit
-                    </Button>
-                  </Can>
-                )
-              }
-            />
-          ) : (
-            <>
-              <Button
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={mutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                form='stone-form'
-                disabled={isLocked || mutation.isPending}
-              >
-                {mutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </>
-          )}
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type='submit'
+            form='stone-form'
+            disabled={isLocked || mutation.isPending}
+          >
+            {mutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

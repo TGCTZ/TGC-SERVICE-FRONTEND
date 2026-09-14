@@ -8,10 +8,9 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { fieldErrors, serverMessageOr } from '@/lib/handle-server-error'
-import { perm, type PermissionResource } from '@/lib/permissions'
+import { type PermissionResource } from '@/lib/permissions'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -43,10 +42,7 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { Can } from '@/components/can'
-import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
-import { ViewFooterActions } from '@/components/view-footer-actions'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
 import { WEIGHT_UNITS } from '@/features/stones/data/enums'
 import { createReport, findingsWorklistQuery, updateReport } from '../data/api'
@@ -114,12 +110,6 @@ type ReportMutateDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   currentRow?: IdentificationReport | null
-  /** Render the same form as a read-only view. */
-  readOnly?: boolean
-  /** Switches a read-only view into edit mode, when the user may edit. */
-  onRequestEdit?: () => void
-  /** The record's row actions, shown in the footer of the read-only view. */
-  actions?: RowAction[]
   /**
    * Preselected stone, when the dialog is opened from the findings queue.
    *
@@ -133,9 +123,6 @@ export function ReportMutateDialog({
   open,
   onOpenChange,
   currentRow,
-  readOnly = false,
-  onRequestEdit,
-  actions = [],
   initialStone,
 }: ReportMutateDialogProps) {
   const isEdit = Boolean(currentRow)
@@ -152,9 +139,9 @@ export function ReportMutateDialog({
     enabled: open && !isEdit,
   })
 
-  // A finalized report is locked by the service, so the form is read-only
-  // whether or not the caller asked for a view.
-  const isLocked = readOnly || Boolean(currentRow?.is_finalized)
+  // A finalized report is locked by the service — `is_finalized` is one-way —
+  // so the form stays locked even for someone who may otherwise edit.
+  const isLocked = Boolean(currentRow?.is_finalized)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(reportFormSchema),
@@ -263,11 +250,7 @@ export function ReportMutateDialog({
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-3xl'>
         <DialogHeader className='text-start'>
           <DialogTitle className='flex items-center gap-2'>
-            {readOnly
-              ? currentRow?.report_number
-              : isEdit
-                ? 'Edit findings'
-                : 'Record findings'}
+            {isEdit ? `Edit ${currentRow?.report_number}` : 'Record findings'}
             {currentRow?.is_finalized && <Badge>Finalized</Badge>}
           </DialogTitle>
           <DialogDescription>
@@ -542,39 +525,20 @@ export function ReportMutateDialog({
         </DialogBody>
 
         <DialogFooter>
-          {readOnly ? (
-            <ViewFooterActions
-              actions={actions}
-              primary={
-                onRequestEdit &&
-                !currentRow?.is_finalized && (
-                  <Can permission={perm('identification-reports', 'change')}>
-                    <Button onClick={onRequestEdit}>
-                      <Pencil className='me-1 size-4' />
-                      Edit
-                    </Button>
-                  </Can>
-                )
-              }
-            />
-          ) : (
-            <>
-              <Button
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={mutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                form='report-form'
-                disabled={isLocked || mutation.isPending}
-              >
-                {mutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </>
-          )}
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type='submit'
+            form='report-form'
+            disabled={isLocked || mutation.isPending}
+          >
+            {mutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

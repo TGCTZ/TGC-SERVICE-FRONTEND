@@ -18,6 +18,7 @@ import { UserMutateDialog } from './components/mutate-dialog'
 import { UsersProvider, useUsers } from './components/provider'
 import { UserRestoreDialog } from './components/restore-dialog'
 import { UsersTable, type UsersQueryState } from './components/table'
+import { UserViewDialog } from './components/view-dialog'
 import { usersQueryOptions } from './data/api'
 import { useUserActions } from './hooks/use-actions'
 
@@ -143,10 +144,27 @@ function UsersContent() {
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
+      {currentRow && (
+        <UserViewDialog
+          key={`user-view-${currentRow.id}`}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          user={currentRow}
+          onRequestEdit={() => setOpen('update')}
+          actions={actions}
+        />
+      )}
+
       <UserMutateDialog
         key={currentRow ? `user-${currentRow.id}` : 'create'}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        open={open === 'create' || open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
@@ -154,9 +172,6 @@ function UsersContent() {
           }
         }}
         currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={actions}
       />
 
       {currentRow && (

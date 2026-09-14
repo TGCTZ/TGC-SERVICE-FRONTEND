@@ -35,6 +35,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { RolePermissionsDialog } from './components/permissions-dialog'
+import { RoleViewDialog } from './components/view-dialog'
 import { createRole, deleteRole, rolesQuery, updateRole } from './data/api'
 import { type Role } from './data/schema'
 
@@ -257,20 +258,16 @@ export function Roles() {
         )}
       </Main>
 
-      {/*
-        A role IS its permissions, so the matrix doubles as the read-only view
-        rather than a separate detail layout that could drift from it.
-      */}
+      {/* Reading a role and re-scoping it are different jobs: this states what
+          the role holds, the matrix below is where a grant is changed. */}
       {viewFor && (
-        <RolePermissionsDialog
+        <RoleViewDialog
           key={`view-${viewFor.id}`}
           open={Boolean(viewFor)}
           onOpenChange={(open) => !open && setViewFor(null)}
           role={viewFor}
-          readOnly
-          // 'Permissions' is what the Edit button already does here — this
-          // dialog IS the permission matrix — so it would be a second button
-          // for the same thing.
+          // 'Permissions' is what the Edit button already does here — it opens
+          // the matrix — so it would be a second button for the same thing.
           actions={rowActions(viewFor).filter(
             (action) => action.label !== 'Permissions'
           )}

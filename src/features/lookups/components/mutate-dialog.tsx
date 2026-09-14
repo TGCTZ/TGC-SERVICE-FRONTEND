@@ -3,10 +3,9 @@ import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm, type Resolver } from 'react-hook-form'
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
-import { perm, type PermissionResource } from '@/lib/permissions'
+import { type PermissionResource } from '@/lib/permissions'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,10 +35,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { Can } from '@/components/can'
-import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
-import { ViewFooterActions } from '@/components/view-footer-actions'
 import {
   createLookupRow,
   lookupOptionsQuery,
@@ -111,12 +107,6 @@ type LookupMutateDialogProps = {
   currentRow: LookupRow | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Render the same form as a read-only view. */
-  readOnly?: boolean
-  /** Switches a read-only view into edit mode, when the user may edit. */
-  onRequestEdit?: () => void
-  /** The record's row actions, shown in the footer of the read-only view. */
-  actions?: RowAction[]
 }
 
 /**
@@ -130,9 +120,6 @@ export function LookupMutateDialog({
   currentRow,
   open,
   onOpenChange,
-  readOnly = false,
-  onRequestEdit,
-  actions = [],
 }: LookupMutateDialogProps) {
   const queryClient = useQueryClient()
   const isEdit = currentRow !== null
@@ -239,15 +226,9 @@ export function LookupMutateDialog({
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-md'>
         <DialogHeader className='text-start'>
           <DialogTitle>
-            {readOnly
-              ? currentRow?.name
-              : `${isEdit ? 'Edit' : 'Add'} ${config.title.toLowerCase()}`}
+            {`${isEdit ? 'Edit' : 'Add'} ${config.title.toLowerCase()}`}
           </DialogTitle>
-          <DialogDescription>
-            {readOnly
-              ? 'Viewing the record. Choose Edit to make changes.'
-              : config.description}
-          </DialogDescription>
+          <DialogDescription>{config.description}</DialogDescription>
         </DialogHeader>
 
         <DialogBody>
@@ -257,8 +238,7 @@ export function LookupMutateDialog({
               onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
               className='px-1'
             >
-              {/* One fieldset disables every control, Radix triggers included. */}
-              <fieldset disabled={readOnly} className='space-y-4'>
+              <fieldset className='space-y-4'>
                 <FormField
                   control={form.control}
                   name='name'
@@ -327,38 +307,20 @@ export function LookupMutateDialog({
         </DialogBody>
 
         <DialogFooter>
-          {readOnly ? (
-            <ViewFooterActions
-              actions={actions}
-              primary={
-                onRequestEdit && (
-                  <Can permission={perm(config.resource, 'change')}>
-                    <Button onClick={onRequestEdit}>
-                      <Pencil className='me-1 size-4' />
-                      Edit
-                    </Button>
-                  </Can>
-                )
-              }
-            />
-          ) : (
-            <>
-              <Button
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={mutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                form='lookup-form'
-                disabled={mutation.isPending}
-              >
-                {mutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </>
-          )}
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type='submit'
+            form='lookup-form'
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

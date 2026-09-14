@@ -31,6 +31,7 @@ import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { LookupMutateDialog } from './components/mutate-dialog'
+import { LookupViewDialog } from './components/view-dialog'
 import { deleteLookupRow, lookupRowsQuery, restoreLookupRow } from './data/api'
 import {
   lookupConfigBySlug,
@@ -363,17 +364,32 @@ function LookupsContent({ config }: { config: LookupConfig }) {
           />
         )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
+      {currentRow && (
+        <LookupViewDialog
+          key={`row-view-${currentRow.id}`}
+          config={config}
+          row={currentRow}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          onRequestEdit={() => setOpen('update')}
+          actions={rowActions(currentRow)}
+        />
+      )}
+
       <LookupMutateDialog
         key={
           currentRow && open !== 'create' ? `row-${currentRow.id}` : 'create'
         }
         config={config}
         currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={currentRow ? rowActions(currentRow) : []}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        open={open === 'create' || open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)

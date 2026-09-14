@@ -19,6 +19,7 @@ import { ReportMutateDialog } from './components/mutate-dialog'
 import { ReportsProvider, useReports } from './components/provider'
 import { ReportRestoreDialog } from './components/restore-dialog'
 import { ReportsTable, type ReportsQueryState } from './components/table'
+import { ReportViewDialog } from './components/view-dialog'
 import { reportsQuery } from './data/api'
 import { useReportActions } from './hooks/use-actions'
 
@@ -141,10 +142,27 @@ function IdentificationContent() {
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
+      {currentRow && (
+        <ReportViewDialog
+          key={`report-view-${currentRow.id}`}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          report={currentRow}
+          onRequestEdit={() => setOpen('update')}
+          actions={actions}
+        />
+      )}
+
       <ReportMutateDialog
         key={currentRow ? `report-${currentRow.id}` : 'create'}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        open={open === 'create' || open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
@@ -152,9 +170,6 @@ function IdentificationContent() {
           }
         }}
         currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={actions}
       />
 
       {currentRow && (
