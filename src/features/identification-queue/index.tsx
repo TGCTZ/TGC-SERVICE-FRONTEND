@@ -8,6 +8,7 @@ import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
@@ -108,13 +109,10 @@ export function IdentificationQueue() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Identification</h2>
-          <p className='text-muted-foreground'>
-            Orders with stones still to be typed. A stone&apos;s type is what
-            prices it, so nothing here can be billed until it is done.
-          </p>
-        </div>
+        <PageHeading
+          title='Identification'
+          description="Orders with stones still to be typed. A stone's type is what prices it, so nothing here can be billed until it is done."
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

@@ -4,8 +4,11 @@ import { type Bill } from '../data/schema'
 /**
  * A bill is a `ReadOnlyModelViewSet` on the API, so there is nothing to create,
  * edit, delete or restore — the dialog state is narrowed to match.
+ *
+ * `simulate-payment` is the exception, and a development-only one: it exists
+ * only where the server reports simulation is on.
  */
-type BillsDialogType = 'view' | 'history'
+type BillsDialogType = 'view' | 'simulate-payment'
 
 type BillsContextType = {
   open: BillsDialogType | null

@@ -55,7 +55,7 @@ export function useUserActions(user: User | null): RowAction[] {
       icon: Trash2,
       permission: perm('users', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
+      tone: 'destructive',
       hidden: isDeleted,
       separatorBefore: true,
     },

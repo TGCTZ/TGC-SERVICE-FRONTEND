@@ -8,7 +8,6 @@ import { toast } from 'sonner'
 import { formatMoney } from '@/lib/format'
 import { perm, restorePerm } from '@/lib/permissions'
 import { subjectTypes } from '@/lib/subject-types'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,8 +25,10 @@ import {
 } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { RecordHistorySheet } from '@/components/record-history-sheet'
+import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { LookupMutateDialog } from './components/mutate-dialog'
@@ -180,7 +181,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         icon: Trash2,
         permission: perm(config.resource, 'delete'),
         onSelect: () => select('delete', row),
-        variant: 'destructive',
+        tone: 'destructive',
         hidden: isDeleted,
         separatorBefore: true,
       },
@@ -197,7 +198,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         <div className='flex items-center gap-2 font-medium'>
           {row.original.name}
           {row.original.deleted_at && (
-            <Badge variant='destructive'>Deleted</Badge>
+            <StatusBadge tone='danger'>Deleted</StatusBadge>
           )}
         </div>
       ),
@@ -306,14 +307,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              {config.title}
-            </h2>
-            <p className='text-muted-foreground'>{config.description}</p>
-          </div>
-
+        <PageHeading title={config.title} description={config.description}>
           <Can permission={perm(config.resource, 'add')}>
             <Button
               onClick={() => {
@@ -325,7 +319,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>
-        </div>
+        </PageHeading>
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

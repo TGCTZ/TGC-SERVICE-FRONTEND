@@ -52,7 +52,7 @@ export function useCustomerActions(customer: Customer | null): RowAction[] {
       icon: Trash2,
       permission: perm('customers', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
+      tone: 'destructive',
       hidden: isDeleted,
       separatorBefore: true,
     },

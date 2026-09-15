@@ -12,15 +12,30 @@ import { orderSchema, type Order } from './schema'
 
 const listSchema = paginatedSchema(orderSchema)
 
-export async function fetchOrders(
-  params: ListParams
-): Promise<Paginated<Order>> {
-  const res = await api.get('/orders', { params: buildListParams(params) })
+export type OrdersParams = ListParams & {
+  /**
+   * An `OrderStage` value, narrowing to orders at that stage.
+   *
+   * Rides alongside the shared list contract rather than inside `filters`, for
+   * the same reason `identification` does: the stage is not a column. It is
+   * derived from the stones and the bill, and the API re-expresses that
+   * derivation as SQL — no `filter[field]` lookup can reach it.
+   */
+  stage?: string
+}
+
+export async function fetchOrders({
+  stage,
+  ...params
+}: OrdersParams): Promise<Paginated<Order>> {
+  const res = await api.get('/orders', {
+    params: { ...buildListParams(params), ...(stage ? { stage } : {}) },
+  })
 
   return toPaginated(listSchema.parse(res.data), params)
 }
 
-export const ordersQuery = (params: ListParams) =>
+export const ordersQuery = (params: OrdersParams) =>
   queryOptions({
     queryKey: ['orders', params],
     queryFn: () => fetchOrders(params),
@@ -35,6 +50,23 @@ export const ordersQuery = (params: ListParams) =>
  * a full order cannot be chosen and the list empties itself when there is no
  * work left.
  */
+/**
+ * One order, refetched on demand.
+ *
+ * Needed where a screen acts on an order repeatedly and has to see the result:
+ * the identify dialog stays open across several stones, so the progress and the
+ * next label it shows must come from a live read rather than the row snapshot
+ * it was handed when it opened.
+ */
+export const orderQuery = (id: number) =>
+  queryOptions({
+    queryKey: ['orders', 'detail', id],
+    queryFn: async (): Promise<Order> => {
+      const res = await api.get(`/orders/${id}`)
+      return orderSchema.parse(res.data)
+    },
+  })
+
 export const identifiableOrdersQuery = () =>
   queryOptions({
     queryKey: ['worklist', 'identification', 'options'],

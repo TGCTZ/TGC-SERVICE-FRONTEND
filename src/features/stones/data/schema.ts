@@ -24,6 +24,9 @@ export const stoneSchema = z.object({
   id: z.number(),
   order: z.number(),
   order_reference: z.string().nullable().default(null),
+  /** The customer whose visit this stone came in on. */
+  customer_name: z.string().nullable().default(null),
+  customer_phone: z.string().nullable().default(null),
   label: z.string(),
   stone_type: z.number().nullable().default(null),
   stone_type_detail: stoneTypeSchema.nullable().default(null),

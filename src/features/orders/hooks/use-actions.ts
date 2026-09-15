@@ -60,21 +60,26 @@ export function useOrderActions(order: Order | null): RowAction[] {
     },
     {
       label: 'Identify stone',
+      tone: 'advance',
       icon: Plus,
       permission: perm('stones', 'add'),
       onSelect: () => select('add-stone'),
-      hidden: isDeleted || isFull,
+      // Hidden while held, which is what a hold means: work on this visit has
+      // paused. It also keeps one solid button per row — Release is the
+      // headline on a held order, not identification.
+      hidden: isDeleted || isFull || isHeld(order),
       separatorBefore: true,
     },
     {
       label: 'Generate bill',
+      tone: 'advance',
       icon: FileText,
       permission: PERMISSIONS.generateBill,
       onSelect: () => select('generate-bill'),
       // Gone once a bill exists, not just before every stone is identified: an
       // order awaiting payment is already billed, and `Bill.order` is a
       // OneToOne, so a second attempt is refused by the API anyway.
-      hidden: isDeleted || !isFull || isBilled(order),
+      hidden: isDeleted || !isFull || isBilled(order) || isHeld(order),
     },
     {
       label: 'Hold',
@@ -86,6 +91,7 @@ export function useOrderActions(order: Order | null): RowAction[] {
     },
     {
       label: 'Release',
+      tone: 'advance',
       icon: PlayCircle,
       permission: PERMISSIONS.holdOrder,
       onSelect: () => select('release'),
@@ -105,7 +111,7 @@ export function useOrderActions(order: Order | null): RowAction[] {
       icon: Trash2,
       permission: perm('orders', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
+      tone: 'destructive',
       hidden: isDeleted,
       separatorBefore: true,
     },

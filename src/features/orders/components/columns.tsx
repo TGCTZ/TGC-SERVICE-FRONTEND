@@ -1,10 +1,10 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
+import { StatusBadge } from '@/components/status-badge'
 import {
-  ORDER_STAGE_VARIANTS,
+  ORDER_STAGE_TONES,
   isFullyIdentified,
   type Order,
 } from '../data/schema'
@@ -34,7 +34,7 @@ export const ordersDataColumns: ColumnDef<Order>[] = [
           <div className='flex items-center gap-2 font-medium'>
             {row.original.reference_number}
             {row.original.deleted_at && (
-              <Badge variant='destructive'>Deleted</Badge>
+              <StatusBadge tone='danger'>Deleted</StatusBadge>
             )}
           </div>
           {customer ? (
@@ -68,9 +68,9 @@ export const ordersDataColumns: ColumnDef<Order>[] = [
               {order.identified_count} of {order.stone_count} identified
             </span>
             {/* An order is only ready to bill once every stone is identified. */}
-            <Badge variant={complete ? 'default' : 'secondary'}>
+            <StatusBadge tone={complete ? 'success' : 'info'}>
               {complete ? 'Done' : 'Pending'}
-            </Badge>
+            </StatusBadge>
           </div>
           <Progress
             value={order.identified_count}
@@ -102,7 +102,7 @@ export const ordersDataColumns: ColumnDef<Order>[] = [
               {order.control_number}
             </div>
           ) : (
-            <Badge variant='destructive'>Awaiting number</Badge>
+            <StatusBadge tone='danger'>Awaiting number</StatusBadge>
           )}
           <div className='text-xs text-muted-foreground'>
             {order.bill_number}
@@ -122,9 +122,9 @@ export const ordersDataColumns: ColumnDef<Order>[] = [
         <div className='min-w-36 space-y-1'>
           {/* The label comes from the server so the words cannot drift from the
               rule that produced them; only the emphasis is decided here. */}
-          <Badge variant={ORDER_STAGE_VARIANTS[order.stage] ?? 'secondary'}>
+          <StatusBadge tone={ORDER_STAGE_TONES[order.stage]}>
             {order.stage_label || order.stage}
-          </Badge>
+          </StatusBadge>
           {order.hold_reason && (
             <LongText className='max-w-40 text-xs text-muted-foreground'>
               {order.hold_reason}

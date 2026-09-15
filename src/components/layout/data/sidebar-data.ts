@@ -18,7 +18,10 @@ import {
 } from 'lucide-react'
 import { PERMISSIONS, perm } from '@/lib/permissions'
 import { allLookupConfigs } from '@/features/lookups/data/config'
-import { allWorklistConfigs } from '@/features/worklists/data/config'
+import {
+  allWorklistConfigs,
+  worklistConfig,
+} from '@/features/worklists/data/config'
 import { type NavLink, type SidebarData } from '../types'
 
 /**
@@ -46,6 +49,9 @@ import { type NavLink, type SidebarData } from '../types'
  *   gate alongside the matching model permissions, so the per-item `view` check
  *   is a faithful proxy for the gate.
  */
+/** The certification queue, listed under Certificates as well as under Queues. */
+const certificationQueue = worklistConfig('certification')
+
 export const sidebarData: SidebarData = {
   navGroups: [
     {
@@ -139,6 +145,16 @@ export const sidebarData: SidebarData = {
           url: '/certificates',
           icon: BadgeCheck,
           permission: perm('certificates', 'view'),
+        },
+        /* The certification queue, repeated here as well as under Queues.
+           The Certificates screen is an archive of what has been issued, so
+           "what is waiting?" has no answer on it — and that is the question
+           people arrive at this group with. Same route either way. */
+        {
+          title: certificationQueue.title,
+          url: `/worklists/${certificationQueue.slug}` as NavLink['url'],
+          icon: ListChecks,
+          permission: certificationQueue.permission,
         },
       ],
     },

@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
+import { StatusBadge } from '@/components/status-badge'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { billPaymentsQuery } from '@/features/payments/data/api'
 import { type Bill } from '../data/schema'
@@ -177,7 +178,7 @@ export function BillViewDialog({
                       {formatDateTime(bill.gepg_submitted_at)}
                     </Badge>
                   ) : (
-                    <Badge variant='destructive'>Not submitted</Badge>
+                    <StatusBadge tone='danger'>Not submitted</StatusBadge>
                   ),
                 },
                 { label: 'Status code', value: bill.status_code },

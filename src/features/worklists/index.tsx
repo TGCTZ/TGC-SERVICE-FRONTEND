@@ -7,6 +7,7 @@ import { ConfigDrawer } from '@/components/config-drawer'
 import { DataTable, type TableQueryState } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
@@ -131,10 +132,7 @@ function WorklistContent({ config }: { config: WorklistConfig }) {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>{config.title}</h2>
-          <p className='text-muted-foreground'>{config.description}</p>
-        </div>
+        <PageHeading title={config.title} description={config.description} />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

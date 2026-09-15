@@ -1,7 +1,6 @@
 import { Pencil } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
 import { perm } from '@/lib/permissions'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,6 +15,7 @@ import { Can } from '@/components/can'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
+import { StatusBadge } from '@/components/status-badge'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { WEIGHT_UNIT_SYMBOLS } from '@/features/stones/data/enums'
 import {
@@ -78,10 +78,12 @@ export function ReportViewDialog({
         <DialogHeader className='text-start'>
           <DialogTitle className='flex flex-wrap items-center gap-2'>
             {report.report_number}
-            <Badge variant={report.is_finalized ? 'default' : 'secondary'}>
+            <StatusBadge tone={report.is_finalized ? 'success' : 'neutral'}>
               {report.is_finalized ? 'Finalized' : 'Draft'}
-            </Badge>
-            {report.deleted_at && <Badge variant='destructive'>Deleted</Badge>}
+            </StatusBadge>
+            {report.deleted_at && (
+              <StatusBadge tone='danger'>Deleted</StatusBadge>
+            )}
           </DialogTitle>
           <DialogDescription>
             {report.stone_label ?? 'Unknown stone'}

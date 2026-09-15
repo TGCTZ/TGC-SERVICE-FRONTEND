@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { subjectTypes } from '@/lib/subject-types'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { BillsProvider, useBills } from './components/provider'
+import { SimulatePaymentDialog } from './components/simulate-payment-dialog'
 import { BillsTable, type BillsQueryState } from './components/table'
 import { BillViewDialog } from './components/view-dialog'
 import { billsQuery } from './data/api'
@@ -78,13 +78,10 @@ function BillsContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Bills</h2>
-          <p className='text-muted-foreground'>
-            What each order was charged, and what GePG has collected. Bills are
-            raised from an order, not from here.
-          </p>
-        </div>
+        <PageHeading
+          title='Bills'
+          description='What each order was charged, and what GePG has collected. Bills are raised from an order, not from here.'
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
@@ -104,14 +101,16 @@ function BillsContent() {
       </Main>
 
       {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.bills}
-          subjectId={currentRow.id}
-          title={currentRow.bill_number}
-          open={open === 'history'}
+        <SimulatePaymentDialog
+          key={`simulate-${currentRow.id}`}
+          open={open === 'simulate-payment'}
           onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
           }}
+          bill={currentRow}
         />
       )}
 

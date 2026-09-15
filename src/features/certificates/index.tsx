@@ -8,6 +8,7 @@ import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
@@ -88,13 +89,10 @@ function CertificatesContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Certificates</h2>
-            <p className='text-muted-foreground'>
-              The documents the lab stands behind. Each downloads as a PDF for
-              printing, and can be withdrawn, but never edited.
-            </p>
-          </div>
+          <PageHeading
+            title='Certificates'
+            description='The documents the lab stands behind. Each downloads as a PDF for printing, and can be withdrawn, but never edited.'
+          />
 
           <Can permission={PERMISSIONS.issueCertificate}>
             <Button

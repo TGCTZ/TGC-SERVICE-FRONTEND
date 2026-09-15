@@ -1,9 +1,9 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatMoney } from '@/lib/format'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
+import { StatusBadge } from '@/components/status-badge'
 import { type Bill } from '../data/schema'
 import { BillsRowActions } from './row-actions'
 import { BillStatusBadge } from './status-badge'
@@ -32,7 +32,7 @@ export const billsColumns: ColumnDef<Bill>[] = [
           {row.original.control_number}
         </span>
       ) : (
-        <Badge variant='destructive'>Awaiting number</Badge>
+        <StatusBadge tone='danger'>Awaiting number</StatusBadge>
       ),
   },
   {

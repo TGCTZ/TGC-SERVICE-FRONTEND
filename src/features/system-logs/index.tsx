@@ -27,6 +27,7 @@ import { DataTable, DataTableColumnHeader } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -238,13 +239,10 @@ export function SystemLogs() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>System log</h2>
-          <p className='text-muted-foreground'>
-            Application errors and warnings written by the API. Credentials are
-            redacted before they leave the server.
-          </p>
-        </div>
+        <PageHeading
+          title='System log'
+          description='Application errors and warnings written by the API. Credentials are redacted before they leave the server.'
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

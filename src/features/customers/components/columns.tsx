@@ -1,7 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
+import { StatusBadge } from '@/components/status-badge'
 import { type Customer } from '../data/schema'
 import { CustomersRowActions } from './row-actions'
 
@@ -23,7 +23,7 @@ export const customersColumns: ColumnDef<Customer>[] = [
             {row.original.full_name}
           </LongText>
           {row.original.deleted_at && (
-            <Badge variant='destructive'>Deleted</Badge>
+            <StatusBadge tone='danger'>Deleted</StatusBadge>
           )}
         </div>
         <div className='text-xs text-muted-foreground'>

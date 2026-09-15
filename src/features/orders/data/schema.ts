@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { type StatusTone } from '@/components/status-badge'
 import { customerSchema } from '@/features/customers/data/schema'
 
 /**
@@ -19,6 +20,15 @@ export const orderSchema = z.object({
   received_date: z.string(),
   stone_count: z.number().default(0),
   identified_count: z.number().default(0),
+  /**
+   * What the next stone identified here will be called — A, B, C…
+   *
+   * Comes from the server rather than being derived in the browser: the label
+   * is allocated by `add_stone`, and a dialog that promises "C" while the
+   * service writes "D" is a disagreement nobody notices until a customer is
+   * holding the paperwork. Null once every submitted stone is identified.
+   */
+  next_stone_label: z.string().nullable().default(null),
   /**
    * The bill raised against this order, or null if there is none yet.
    *
@@ -85,25 +95,42 @@ export function isHeld(order: Order): boolean {
 }
 
 /**
- * How each stage should read, mirrored from `OrderStage` in `apps/gems/enums.py`.
+ * Every stage, in order, for the filter.
  *
- * `stage_label` already carries the words, so this maps only the *emphasis*:
- * which stages are exceptions, which are finished, and which are ordinary
- * progress.
+ * Rows carry their own `stage_label` from the server, so this is needed only
+ * where there is no row to read one from — a dropdown of stages nobody has
+ * matched yet. Mirrors `OrderStage` in `apps/gems/enums.py`.
  */
-export const ORDER_STAGE_VARIANTS: Record<
-  string,
-  'default' | 'secondary' | 'outline' | 'destructive'
-> = {
-  cancelled: 'destructive',
-  on_hold: 'destructive',
-  empty: 'secondary',
-  identifying: 'secondary',
-  ready_to_bill: 'default',
-  awaiting_payment: 'outline',
-  part_paid: 'outline',
-  in_findings: 'outline',
-  certified: 'default',
-  ready_for_collection: 'default',
-  collected: 'secondary',
+export const ORDER_STAGE_LABELS: Record<string, string> = {
+  empty: 'No stones yet',
+  identifying: 'Awaiting identification',
+  ready_to_bill: 'Ready to bill',
+  awaiting_payment: 'Awaiting payment',
+  part_paid: 'Partly paid',
+  in_findings: 'Findings in progress',
+  certified: 'Certified',
+  ready_for_collection: 'Ready for collection',
+  collected: 'Collected',
+  on_hold: 'On hold',
+  cancelled: 'Cancelled',
+}
+
+/**
+ * How each stage reads, in the shared five-tone vocabulary.
+ *
+ * Maps only the *meaning*, so a certified order is coloured the same as a
+ * certified stone or a paid bill.
+ */
+export const ORDER_STAGE_TONES: Record<string, StatusTone> = {
+  empty: 'neutral',
+  identifying: 'info',
+  ready_to_bill: 'warning',
+  awaiting_payment: 'warning',
+  part_paid: 'warning',
+  in_findings: 'info',
+  certified: 'success',
+  ready_for_collection: 'success',
+  collected: 'success',
+  on_hold: 'warning',
+  cancelled: 'danger',
 }

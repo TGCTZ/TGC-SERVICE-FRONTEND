@@ -8,6 +8,7 @@ import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
@@ -91,14 +92,10 @@ function IdentificationContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Findings</h2>
-            <p className='text-muted-foreground'>
-              What the bench found, per stone — the findings recorded after
-              payment. A report can only be opened once the stone&apos;s bill is
-              settled.
-            </p>
-          </div>
+          <PageHeading
+            title='Findings'
+            description="What the bench found, per stone — the findings recorded after payment. A report can only be opened once the stone's bill is settled."
+          />
 
           <Can permission={perm('identification-reports', 'add')}>
             <Button

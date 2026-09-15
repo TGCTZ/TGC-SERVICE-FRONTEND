@@ -1,7 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
+import { StatusBadge } from '@/components/status-badge'
 import { type IdentificationReport } from '../data/schema'
 import { ReportsRowActions } from './row-actions'
 
@@ -16,7 +16,7 @@ export const reportsColumns: ColumnDef<IdentificationReport>[] = [
         <div className='flex items-center gap-2 font-medium'>
           {row.original.report_number}
           {row.original.deleted_at && (
-            <Badge variant='destructive'>Deleted</Badge>
+            <StatusBadge tone='danger'>Deleted</StatusBadge>
           )}
         </div>
         <div className='text-xs text-muted-foreground'>
@@ -29,7 +29,28 @@ export const reportsColumns: ColumnDef<IdentificationReport>[] = [
     id: 'order',
     header: () => <span>Order</span>,
     enableSorting: false,
-    cell: ({ row }) => row.original.order_reference ?? '—',
+    // Shaped like the Order column on the Orders page: reference, then who it
+    // belongs to. A reference number alone identifies the paperwork; the name
+    // is what identifies the visit to anyone scanning a list of them.
+    cell: ({ row }) => {
+      const report = row.original
+
+      return (
+        <div className='min-w-40'>
+          <div>{report.order_reference ?? '—'}</div>
+          {report.customer_name && (
+            <>
+              <LongText className='max-w-48 text-sm'>
+                {report.customer_name}
+              </LongText>
+              <div className='text-xs text-muted-foreground'>
+                {report.customer_phone}
+              </div>
+            </>
+          )}
+        </div>
+      )
+    },
   },
   {
     id: 'findings',
@@ -63,9 +84,9 @@ export const reportsColumns: ColumnDef<IdentificationReport>[] = [
     ),
     cell: ({ row }) =>
       row.original.is_finalized ? (
-        <Badge>Finalized</Badge>
+        <StatusBadge tone='success'>Finalized</StatusBadge>
       ) : (
-        <Badge variant='secondary'>Draft</Badge>
+        <StatusBadge tone='neutral'>Draft</StatusBadge>
       ),
   },
   {

@@ -1,5 +1,4 @@
 import { hasAnyPermission } from '@/lib/authz'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 /**
@@ -12,8 +11,9 @@ import { Button } from '@/components/ui/button'
  * @example
  * const actions: RowAction[] = [
  *   { label: 'Edit', icon: Pencil, permission: perm('customers', 'change'), onSelect: openEdit },
+ *   { label: 'Generate bill', icon: FileText, tone: 'advance', onSelect: openBill },
  *   { label: 'Delete', icon: Trash, permission: perm('customers', 'delete'),
- *     variant: 'destructive', separatorBefore: true, onSelect: confirmDelete },
+ *     tone: 'destructive', separatorBefore: true, onSelect: confirmDelete },
  * ]
  */
 export type RowAction = {
@@ -22,12 +22,34 @@ export type RowAction = {
   onSelect: () => void
   /** Permission(s) required; the user needs at least one. Omit to always show. */
   permission?: string | string[]
-  variant?: 'default' | 'destructive'
+  /**
+   * What kind of thing this action is, which decides how loudly it is drawn.
+   *
+   * - `neutral` (default) — looking or editing. Outlined and quiet.
+   * - `advance` — moves the record to its next stage: identify, bill,
+   *   finalize, issue. **Solid blue**, and there should be at most one visible
+   *   per row, because it is the thing you came to that row to do.
+   * - `document` — hands over a finished document. **Solid green**.
+   * - `destructive` — deletes, revokes, cancels. Red, but outlined rather than
+   *   filled so it does not compete with the row's actual headline.
+   *
+   * Colour is rationed on purpose. Every button coloured is every button
+   * shouting, and a row of five equals means the eye has nowhere to land.
+   */
+  tone?: 'neutral' | 'advance' | 'document' | 'destructive'
   /** Draws a divider before this action, to fence destructive ones off. */
   separatorBefore?: boolean
   /** Hide entirely regardless of permission (e.g. Restore on a live record). */
   hidden?: boolean
 }
+
+/** How each tone is drawn. Solid reads as "this one"; outlined as "also available". */
+const TONE_VARIANT = {
+  neutral: 'outline',
+  advance: 'default',
+  document: 'success',
+  destructive: 'destructive-outline',
+} as const
 
 /**
  * Drop actions the user cannot perform or that do not apply to this row.
@@ -86,13 +108,9 @@ export function DataTableRowActions({ actions }: { actions: RowAction[] }) {
             <span className='me-1 h-4 w-px shrink-0 bg-border' />
           )}
           <Button
-            variant='ghost'
+            variant={TONE_VARIANT[action.tone ?? 'neutral']}
             size='sm'
-            className={cn(
-              'h-8 gap-1.5 px-2 font-normal',
-              action.variant === 'destructive' &&
-                'text-destructive hover:bg-destructive/10 hover:text-destructive'
-            )}
+            className='h-8 gap-1.5 px-2.5'
             onClick={action.onSelect}
           >
             <action.icon className='size-4 shrink-0' />
@@ -128,7 +146,7 @@ export function RowActionButtons({
         <Button
           key={action.label}
           type='button'
-          variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
+          variant={TONE_VARIANT[action.tone ?? 'neutral']}
           size='sm'
           className={className}
           onClick={action.onSelect}

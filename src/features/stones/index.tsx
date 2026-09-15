@@ -4,6 +4,7 @@ import { subjectTypes } from '@/lib/subject-types'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
@@ -87,14 +88,10 @@ function StonesContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Stones</h2>
-          <p className='text-muted-foreground'>
-            Every stone in the lab, what it was typed as, and where it has got
-            to. Stones are typed on the Identification screen and weighed with
-            the findings.
-          </p>
-        </div>
+        <PageHeading
+          title='Stones'
+          description='Every stone in the lab, what it was typed as, and where it has got to. Stones are typed on the Identification screen and weighed with the findings.'
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

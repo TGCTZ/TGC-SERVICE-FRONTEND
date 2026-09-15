@@ -1,7 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDateTime, formatMoney } from '@/lib/format'
-import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
+import { StatusBadge } from '@/components/status-badge'
 import { type Payment } from '../data/schema'
 import { PaymentsRowActions } from './row-actions'
 
@@ -54,7 +54,7 @@ export const paymentsColumns: ColumnDef<Payment>[] = [
         {/* Unprocessed means the notification arrived but has not been applied
           to its bill — worth seeing without opening the record. */}
         {!row.original.is_processed && (
-          <Badge variant='destructive'>Unprocessed</Badge>
+          <StatusBadge tone='warning'>Unprocessed</StatusBadge>
         )}
       </div>
     ),

@@ -2,7 +2,6 @@ import { useQueries } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import { PERMISSIONS, perm } from '@/lib/permissions'
-import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
@@ -17,6 +16,7 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
+import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { STONE_STATUS_LABELS } from '@/features/stones/data/enums'
 import { allWorklistConfigs } from '@/features/worklists/data/config'
@@ -72,7 +72,7 @@ export function Dashboard() {
       <Main className='flex flex-1 flex-col gap-6'>
         <div>
           <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
-          <p className='text-muted-foreground'>
+          <p className='max-w-prose rounded-md border border-primary/30 px-3 py-2 text-sm/relaxed text-muted-foreground'>
             What the lab is holding, and what is waiting on someone.
           </p>
         </div>
@@ -188,7 +188,7 @@ export function Dashboard() {
                   <CardContent className='flex items-center gap-2'>
                     <Counter query={unprocessed} />
                     {(unprocessed.data ?? 0) > 0 && (
-                      <Badge variant='destructive'>Needs attention</Badge>
+                      <StatusBadge tone='danger'>Needs attention</StatusBadge>
                     )}
                   </CardContent>
                 </Card>

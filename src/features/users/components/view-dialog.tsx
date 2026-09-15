@@ -16,6 +16,7 @@ import { Can } from '@/components/can'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
+import { StatusBadge } from '@/components/status-badge'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { type User } from '../data/schema'
 
@@ -68,10 +69,12 @@ export function UserViewDialog({
         <DialogHeader className='text-start'>
           <DialogTitle className='flex flex-wrap items-center gap-2'>
             {user.full_name || user.username}
-            <Badge variant={user.is_active ? 'default' : 'secondary'}>
+            <StatusBadge tone={user.is_active ? 'success' : 'neutral'}>
               {user.is_active ? 'Active' : 'Inactive'}
-            </Badge>
-            {user.deleted_at && <Badge variant='destructive'>Deleted</Badge>}
+            </StatusBadge>
+            {user.deleted_at && (
+              <StatusBadge tone='danger'>Deleted</StatusBadge>
+            )}
           </DialogTitle>
           <DialogDescription>
             {user.username} · {user.email}

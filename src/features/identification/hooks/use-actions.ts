@@ -45,6 +45,7 @@ export function useReportActions(
     },
     {
       label: 'Finalize',
+      tone: 'advance',
       icon: Lock,
       permission: PERMISSIONS.finalizeReport,
       onSelect: () => select('finalize'),
@@ -63,7 +64,7 @@ export function useReportActions(
       icon: Trash2,
       permission: perm('identification-reports', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
+      tone: 'destructive',
       hidden: isDeleted,
       separatorBefore: true,
     },

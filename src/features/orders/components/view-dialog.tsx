@@ -1,7 +1,6 @@
 import { Pencil } from 'lucide-react'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { perm } from '@/lib/permissions'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,6 +16,7 @@ import { Can } from '@/components/can'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
+import { StatusBadge } from '@/components/status-badge'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { isFullyIdentified, type Order } from '../data/schema'
 import { OrderStonesPanel } from './stones-panel'
@@ -62,13 +62,17 @@ export function OrderViewDialog({
         <DialogHeader className='text-start'>
           <DialogTitle className='flex flex-wrap items-center gap-2'>
             {order.reference_number}
-            <Badge variant={complete ? 'default' : 'secondary'}>
+            <StatusBadge tone={complete ? 'success' : 'info'}>
               {complete ? 'Fully identified' : 'Awaiting identification'}
-            </Badge>
+            </StatusBadge>
             {order.bill_number && (
-              <Badge variant='outline'>Billed {order.bill_number}</Badge>
+              <StatusBadge tone='warning'>
+                Billed {order.bill_number}
+              </StatusBadge>
             )}
-            {order.deleted_at && <Badge variant='destructive'>Deleted</Badge>}
+            {order.deleted_at && (
+              <StatusBadge tone='danger'>Deleted</StatusBadge>
+            )}
           </DialogTitle>
           <DialogDescription>
             Received {formatDate(order.received_date)}

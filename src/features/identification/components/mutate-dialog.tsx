@@ -12,7 +12,6 @@ import { toast } from 'sonner'
 import { fieldErrors, serverMessageOr } from '@/lib/handle-server-error'
 import { type PermissionResource } from '@/lib/permissions'
 import { zodResolver } from '@/lib/zod-resolver'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -43,6 +42,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { DialogBody } from '@/components/dialog-body'
+import { StatusBadge } from '@/components/status-badge'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
 import { WEIGHT_UNITS } from '@/features/stones/data/enums'
 import { createReport, findingsWorklistQuery, updateReport } from '../data/api'
@@ -252,7 +252,9 @@ export function ReportMutateDialog({
         <DialogHeader className='text-start'>
           <DialogTitle className='flex items-center gap-2'>
             {isEdit ? `Edit ${currentRow?.report_number}` : 'Record findings'}
-            {currentRow?.is_finalized && <Badge>Finalized</Badge>}
+            {currentRow?.is_finalized && (
+              <StatusBadge tone='success'>Finalized</StatusBadge>
+            )}
           </DialogTitle>
           <DialogDescription>
             {currentRow

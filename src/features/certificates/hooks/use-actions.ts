@@ -39,6 +39,7 @@ export function useCertificateActions(
     },
     {
       label: 'Download PDF',
+      tone: 'document',
       icon: Download,
       permission: perm('certificates', 'view'),
       onSelect: () => download(certificate),
@@ -48,7 +49,7 @@ export function useCertificateActions(
       icon: Ban,
       permission: PERMISSIONS.revokeCertificate,
       onSelect: () => select('revoke'),
-      variant: 'destructive',
+      tone: 'destructive',
       hidden: certificate.status === 'revoked',
       separatorBefore: true,
     },

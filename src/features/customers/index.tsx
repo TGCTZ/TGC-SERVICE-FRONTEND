@@ -4,6 +4,7 @@ import { subjectTypes } from '@/lib/subject-types'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
@@ -83,13 +84,10 @@ function CustomersContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Customers</h2>
-            <p className='text-muted-foreground'>
-              The people and companies that submit stones for identification.
-              New ones are registered while receiving an order.
-            </p>
-          </div>
+          <PageHeading
+            title='Customers'
+            description='The people and companies that submit stones for identification. New ones are registered while receiving an order.'
+          />
         </div>
 
         {isError ? (

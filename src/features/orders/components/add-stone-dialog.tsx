@@ -33,7 +33,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
-import { addStone, identifiableOrdersQuery } from '../data/api'
+import { orderStonesQuery } from '@/features/stones/data/api'
+import { addStone, identifiableOrdersQuery, orderQuery } from '../data/api'
 import { type Order } from '../data/schema'
 
 const addStoneSchema = z.object({
@@ -78,6 +79,23 @@ export function AddStoneDialog({
     enabled: open && !order,
   })
 
+  // Every stone already on the order, refetched as each one is added. A live
+  // read rather than a log of this sitting: what matters at the desk is what
+  // the order holds now, not which of them you happened to type yourself.
+  const { data: stones = [] } = useQuery({
+    ...orderStonesQuery(order?.id ?? 0),
+    enabled: open && Boolean(order),
+  })
+
+  // A live read, not the row snapshot the caller handed over. The dialog stays
+  // open across several stones, so the progress bar and the next label have to
+  // move as they are added — a snapshot would keep promising the same label.
+  const { data: liveOrder } = useQuery({
+    ...orderQuery(order?.id ?? 0),
+    enabled: open && Boolean(order),
+  })
+  const current = liveOrder ?? order
+
   const form = useForm<FormValues>({
     resolver: zodResolver(addStoneSchema),
     defaultValues: { order: order ? String(order.id) : '', stone_type: '' },
@@ -86,9 +104,11 @@ export function AddStoneDialog({
   // The tier the chosen type belongs to, and the fee it commits the customer
   // to. Read-only: it is a fact about the type, not a second choice.
   const chosenType = useWatch({ control: form.control, name: 'stone_type' })
-  const remaining = order
-    ? Math.max(0, order.stone_count - order.identified_count)
+  const remaining = current
+    ? Math.max(0, current.stone_count - current.identified_count)
     : 0
+  // Nothing further can be filed once every submitted stone is identified.
+  const isFull = Boolean(current) && remaining === 0
   const category = stoneTypes.find(
     (type) => String(type.id) === chosenType
   )?.category_detail
@@ -103,16 +123,19 @@ export function AddStoneDialog({
       addStone(Number(values.order), {
         stone_type: Number(values.stone_type),
       }),
+    // Stays open. An order is several stones and they are identified in one
+    // sitting at the desk, so closing after each one made the user reopen the
+    // dialog, re-find the order and re-read the progress every single time.
+    // It closes on Cancel, on Done, or by clicking away.
     onSuccess: (stone) => {
-      toast.success(`Stone ${stone.label} has been identified`, {
-        // The dialog opens with or without an order in hand, so name the one
-        // the API actually filed the stone under.
-        description: `Recorded against ${stone.order_reference ?? order?.reference_number ?? 'the order'}. It is now ready for the next stage.`,
-      })
+      toast.success(`Stone ${stone.label} has been identified`)
+      // Only the type: the order is fixed for the life of the dialog, and
+      // clearing it would make the next stone unfileable.
+      form.resetField('stone_type')
+
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['stones'] })
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
-      onOpenChange(false)
     },
     onError: (error) => {
       const fields = fieldErrors(error)
@@ -136,33 +159,43 @@ export function AddStoneDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-md'>
+      {/* Capped and scrollable: the dialog now grows as stones are added, and
+          on a laptop a five-stone order would otherwise push the footer off
+          the bottom of the screen. */}
+      <DialogContent className='flex max-h-[90dvh] flex-col overflow-y-auto sm:max-w-md'>
         <DialogHeader className='text-start'>
-          <DialogTitle>Identify stone</DialogTitle>
+          {/* The label leads. It is allocated by the service, not chosen here,
+              so naming it up front is the only way the user learns which stone
+              they are about to create — and it is permanent once written. */}
+          <DialogTitle>
+            {current?.next_stone_label
+              ? `Identify stone ${current.next_stone_label}`
+              : 'Identify stone'}
+          </DialogTitle>
           <DialogDescription>
-            {order
-              ? `${order.reference_number} — the label is allocated automatically.`
+            {current
+              ? `${current.reference_number} — the label is allocated automatically and cannot be changed afterwards.`
               : 'Pick the order the stone came in on, then say what it is. The label is allocated automatically.'}
           </DialogDescription>
         </DialogHeader>
 
         {/* Only with an order in hand: opened from the identification queue
             there is no order yet, and the select below chooses one. */}
-        {order && (
+        {current && (
           <div className='space-y-1.5'>
             <div className='flex items-center justify-between gap-2'>
               <span className='text-sm font-medium'>
                 Identification progress
               </span>
               <span className='text-xs text-muted-foreground tabular-nums'>
-                {order.identified_count} of {order.stone_count} identified
+                {current.identified_count} of {current.stone_count} identified
                 {remaining > 0 && ` · ${remaining} to go`}
               </span>
             </div>
             <Progress
-              value={order.identified_count}
-              max={order.stone_count}
-              label={`Identification progress for ${order.reference_number}`}
+              value={current.identified_count}
+              max={current.stone_count}
+              label={`Identification progress for ${current.reference_number}`}
             />
           </div>
         )}
@@ -207,6 +240,11 @@ export function AddStoneDialog({
                               <span className='shrink-0 text-xs text-muted-foreground tabular-nums'>
                                 {row.identified_count}/{row.stone_count}
                               </span>
+                              {row.next_stone_label && (
+                                <span className='shrink-0 text-xs font-medium'>
+                                  next: {row.next_stone_label}
+                                </span>
+                              )}
                             </span>
                           </SelectItem>
                         ))}
@@ -274,21 +312,58 @@ export function AddStoneDialog({
           </form>
         </Form>
 
+        {current && stones.length > 0 && (
+          <div className='space-y-2'>
+            <h3 className='text-sm font-medium'>
+              Stones on this order ({stones.length})
+            </h3>
+            <ul className='max-h-36 divide-y overflow-y-auto rounded-md border'>
+              {stones.map((stone) => (
+                <li
+                  key={stone.id}
+                  className='flex items-center justify-between gap-2 p-2.5 text-sm'
+                >
+                  <span className='font-medium'>Stone {stone.label}</span>
+                  <span className='truncate text-muted-foreground'>
+                    {stone.stone_type_detail?.name ?? 'Untyped'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* The cap the service enforces, said before the button is pressed
+            rather than as a 400 afterwards. */}
+        {isFull && (
+          <p className='rounded-md border border-dashed p-3 text-center text-sm'>
+            Every stone on this order has been identified.
+          </p>
+        )}
+
         <DialogFooter>
+          {/* "Cancel" is a lie once stones have been written — nothing would be
+              undone by it. It becomes "Done" as soon as the first one lands. */}
           <Button
             variant='outline'
             onClick={() => onOpenChange(false)}
             disabled={mutation.isPending}
           >
-            Cancel
+            {stones.length > 0 ? 'Done' : 'Cancel'}
           </Button>
-          <Button
-            type='submit'
-            form='add-stone-form'
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending ? 'Identifying...' : 'Identify'}
-          </Button>
+          {!isFull && (
+            <Button
+              type='submit'
+              form='add-stone-form'
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending
+                ? 'Identifying...'
+                : current?.next_stone_label
+                  ? `Identify ${current.next_stone_label}`
+                  : 'Identify'}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -71,3 +71,22 @@ export const billPreviewQuery = (orderId: number) =>
       return billPreviewSchema.parse(res.data)
     },
   })
+
+/**
+ * Settle a bill with a fabricated GePG notification. Development only.
+ *
+ * The server answers 404 unless it has both DEBUG and GEPG_SIMULATE on, so this
+ * cannot reach a deployment that must never have it. Omit `amount` to pay the
+ * balance outstanding; pass less to produce a part-paid bill, which nothing
+ * else in the system can do offline.
+ */
+export async function simulateBillPayment(
+  id: number,
+  amount?: string
+): Promise<Bill> {
+  const res = await api.post(
+    `/bills/${id}/simulate-payment`,
+    amount ? { amount } : {}
+  )
+  return billSchema.parse(res.data)
+}

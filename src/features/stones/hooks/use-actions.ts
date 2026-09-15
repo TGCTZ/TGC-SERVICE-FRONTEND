@@ -53,6 +53,7 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
     },
     {
       label: 'Change status',
+      tone: 'advance',
       icon: ArrowRightLeft,
       permission: PERMISSIONS.transitionStone,
       onSelect: () => select('transition'),
@@ -71,7 +72,7 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
       icon: Trash2,
       permission: perm('stones', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
+      tone: 'destructive',
       hidden: isDeleted || isLocked,
       separatorBefore: true,
     },

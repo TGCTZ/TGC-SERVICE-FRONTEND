@@ -23,6 +23,7 @@ export const certificateSchema = z.object({
   stone_label: z.string().nullable().default(null),
   order_reference: z.string().nullable().default(null),
   customer_name: z.string().nullable().default(null),
+  customer_phone: z.string().nullable().default(null),
   report: z.number().nullable().default(null),
   report_number: z.string().nullable().default(null),
 

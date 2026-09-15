@@ -4,6 +4,7 @@ import { getRouteApi } from '@tanstack/react-router'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -73,13 +74,10 @@ export function AuditLogs() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Audit log</h2>
-          <p className='text-muted-foreground'>
-            Every change, sign-in and permission grant recorded by the API.
-            Filter by event to isolate sign-ins or permission changes.
-          </p>
-        </div>
+        <PageHeading
+          title='Audit log'
+          description='Every change, sign-in and permission grant recorded by the API. Filter by event to isolate sign-ins or permission changes.'
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

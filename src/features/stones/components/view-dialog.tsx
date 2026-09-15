@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
 import { perm } from '@/lib/permissions'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,6 +17,7 @@ import { Can } from '@/components/can'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
+import { StatusBadge } from '@/components/status-badge'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { stoneStatusHistoryQuery } from '../data/api'
 import { STONE_STATUS_LABELS, isStoneLocked } from '../data/enums'
@@ -70,7 +70,9 @@ export function StoneViewDialog({
           <DialogTitle className='flex flex-wrap items-center gap-2'>
             {stone.label}
             <StoneStatusBadge status={stone.status} />
-            {stone.deleted_at && <Badge variant='destructive'>Deleted</Badge>}
+            {stone.deleted_at && (
+              <StatusBadge tone='danger'>Deleted</StatusBadge>
+            )}
           </DialogTitle>
           <DialogDescription>
             {stone.order_reference ?? 'Unknown order'}

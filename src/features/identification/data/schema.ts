@@ -40,6 +40,9 @@ export const reportSchema = z.object({
   stone_weight: z.string().nullable().default(null),
   stone_weight_unit: z.string().default('carat'),
   order_reference: z.string().nullable().default(null),
+  /** The customer whose visit this stone came in on. */
+  customer_name: z.string().nullable().default(null),
+  customer_phone: z.string().nullable().default(null),
   report_number: z.string(),
 
   species: z.number().nullable().default(null),

@@ -95,3 +95,18 @@ export function worklistConfigBySlug(slug: string): WorklistConfig | undefined {
 export function allWorklistConfigs(): WorklistConfig[] {
   return worklistConfigs
 }
+
+/**
+ * One queue by slug, for placing it beside the resource it feeds.
+ *
+ * A queue is reachable from two places on purpose. Under *Queues* it sits with
+ * the others, which is how you work through a shift; under its own resource it
+ * answers "what is waiting?" while you are already looking at that screen — and
+ * that second question is the one people arrive with. Both routes hit the same
+ * page, so there is nothing to keep in step.
+ */
+export function worklistConfig(slug: string): WorklistConfig {
+  const config = worklistConfigBySlug(slug)
+  if (!config) throw new Error(`No worklist config for slug "${slug}".`)
+  return config
+}

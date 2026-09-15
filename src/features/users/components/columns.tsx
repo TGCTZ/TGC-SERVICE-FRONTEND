@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
+import { StatusBadge } from '@/components/status-badge'
 import { type User } from '../data/schema'
 import { UsersRowActions } from './row-actions'
 
@@ -81,9 +82,9 @@ export const usersColumns: ColumnDef<User>[] = [
     ),
     cell: ({ row }) =>
       row.original.is_active ? (
-        <Badge variant='outline'>Active</Badge>
+        <StatusBadge tone='success'>Active</StatusBadge>
       ) : (
-        <Badge variant='destructive'>Inactive</Badge>
+        <StatusBadge tone='danger'>Inactive</StatusBadge>
       ),
   },
   {
