@@ -6,7 +6,7 @@ import { type Customer } from '../data/schema'
  * `features/orders/components/customer-picker.tsx`. This screen is where they
  * are found, corrected and audited afterwards.
  */
-type CustomersDialogType = 'view' | 'history' | 'update' | 'delete' | 'restore'
+type CustomersDialogType = 'view' | 'update' | 'delete' | 'restore'
 
 type CustomersContextType = {
   open: CustomersDialogType | null

@@ -139,7 +139,4 @@ export const PERMISSIONS = {
   moduleBilling: 'core.module_billing',
   moduleCertificates: 'core.module_certificates',
   moduleReference: 'core.module_reference',
-  moduleUser: 'core.module_user',
-  moduleSettings: 'core.module_settings',
-  moduleAudit: 'core.module_audit',
 } as const

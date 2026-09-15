@@ -13,9 +13,7 @@ import { type User } from '../data/schema'
 export function useUserActions(user: User | null): RowAction[] {
   const { setOpen, setCurrentRow } = useUsers()
 
-  function select(
-    dialog: 'view' | 'history' | 'update' | 'delete' | 'restore'
-  ) {
+  function select(dialog: 'view' | 'update' | 'delete' | 'restore') {
     setCurrentRow(user)
     setOpen(dialog)
   }

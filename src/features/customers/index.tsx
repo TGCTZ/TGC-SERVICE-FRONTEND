@@ -1,12 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { subjectTypes } from '@/lib/subject-types'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -106,18 +104,6 @@ function CustomersContent() {
           />
         )}
       </Main>
-
-      {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.customers}
-          subjectId={currentRow.id}
-          title={currentRow.full_name}
-          open={open === 'history'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
-          }}
-        />
-      )}
 
       {/* Viewing and editing are separate components: a record is read as a
           definition list, not as a form nobody may type into. */}

@@ -8,7 +8,7 @@ import { type Payment } from '../data/schema'
 export function usePaymentActions(payment: Payment | null): RowAction[] {
   const { setOpen, setCurrentRow } = usePayments()
 
-  function select(dialog: 'view' | 'history') {
+  function select(dialog: 'view') {
     setCurrentRow(payment)
     setOpen(dialog)
   }

@@ -8,22 +8,14 @@ import { type Stone } from '../data/schema'
 /**
  * Every action the API exposes for a stone, in one place.
  *
- * Note the two history entries: "Status history" is the domain ledger the
- * pipeline writes, while "History" is the generic audit log of field changes.
- * They answer different questions and neither replaces the other.
+ * A stone's status trail is not here: it is a section of the stone's details
+ * dialog, and the generic audit log lives on its own screen.
  */
 export function useStoneActions(stone: Stone | null): RowAction[] {
   const { setOpen, setCurrentRow } = useStones()
 
   function select(
-    dialog:
-      | 'view'
-      | 'history'
-      | 'statuses'
-      | 'transition'
-      | 'update'
-      | 'delete'
-      | 'restore'
+    dialog: 'view' | 'transition' | 'update' | 'delete' | 'restore'
   ) {
     setCurrentRow(stone)
     setOpen(dialog)

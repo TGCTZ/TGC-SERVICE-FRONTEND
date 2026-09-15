@@ -1,12 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { subjectTypes } from '@/lib/subject-types'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -14,7 +12,6 @@ import { StoneDeleteDialog } from './components/delete-dialog'
 import { StoneMutateDialog } from './components/mutate-dialog'
 import { StonesProvider, useStones } from './components/provider'
 import { StoneRestoreDialog } from './components/restore-dialog'
-import { StoneStatusHistorySheet } from './components/status-history-sheet'
 import { StonesTable, type StonesQueryState } from './components/table'
 import { StoneTransitionDialog } from './components/transition-dialog'
 import { StoneViewDialog } from './components/view-dialog'
@@ -109,28 +106,6 @@ function StonesContent() {
           />
         )}
       </Main>
-
-      {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.stones}
-          subjectId={currentRow.id}
-          title={currentRow.label}
-          open={open === 'history'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
-          }}
-        />
-      )}
-
-      {currentRow && (
-        <StoneStatusHistorySheet
-          stone={currentRow}
-          open={open === 'statuses'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
-          }}
-        />
-      )}
 
       {/* Viewing and editing are separate components: a record is read as a
           definition list, not as a form nobody may type into. */}

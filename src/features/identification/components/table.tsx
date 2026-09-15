@@ -51,7 +51,10 @@ export function ReportsTable({
         className='h-8 w-full max-w-80'
       />
 
-      {/* Drafts are the working set: a gemmologist wants what is still open. */}
+      {/* Draft and finalized, not the queue. "Awaiting findings" is broader —
+          it includes paid stones with no report started — so it belongs to the
+          queue endpoint and its own sidebar entry, not to a filter over rows
+          that must already exist. */}
       <Select
         value={state.finalized ?? 'all'}
         onValueChange={(value) =>

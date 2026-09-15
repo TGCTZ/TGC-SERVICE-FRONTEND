@@ -57,7 +57,7 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
       data-slot='page-header'
       className={cn(
         'z-50 h-16 border-b border-header-border bg-header text-header-foreground',
-        fixed && 'header-fixed peer/header sticky top-0 w-[inherit]',
+        fixed && 'sticky top-0 w-[inherit]',
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
         className
       )}

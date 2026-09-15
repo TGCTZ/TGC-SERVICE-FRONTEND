@@ -18,10 +18,7 @@ import {
 } from 'lucide-react'
 import { PERMISSIONS, perm } from '@/lib/permissions'
 import { allLookupConfigs } from '@/features/lookups/data/config'
-import {
-  allWorklistConfigs,
-  worklistConfig,
-} from '@/features/worklists/data/config'
+import { worklistConfig } from '@/features/worklists/data/config'
 import { type NavLink, type SidebarData } from '../types'
 
 /**
@@ -49,7 +46,20 @@ import { type NavLink, type SidebarData } from '../types'
  *   gate alongside the matching model permissions, so the per-item `view` check
  *   is a faithful proxy for the gate.
  */
-/** The certification queue, listed under Certificates as well as under Queues. */
+/*
+ * Queues, each listed in the group it belongs to rather than collected in one
+ * "Queues" menu — the sidebar then reads as the pipeline itself, and a queue
+ * sits beside the screen whose work it feeds.
+ *
+ * Read from the worklist configs rather than hard-coded, so a queue's title,
+ * route and permission stay in step with its definition.
+ *
+ * Every queue has an entry: the screens themselves are plain lists now, so the
+ * sidebar is the only place that answers "what is waiting?".
+ */
+const identificationQueue = worklistConfig('identification')
+const findingsQueue = worklistConfig('findings')
+const billingQueue = worklistConfig('billing')
 const certificationQueue = worklistConfig('certification')
 
 export const sidebarData: SidebarData = {
@@ -62,25 +72,10 @@ export const sidebarData: SidebarData = {
           url: '/',
           icon: LayoutDashboard,
         },
-        /* ------------------------------------------------------------ */
-        /* The queues — generated from the worklist configs, so adding   */
-        /* one is a single entry there. Each is gated on what its        */
-        /* endpoint enforces, which for billing and certification is the */
-        /* workflow verb rather than a view permission.                  */
-        /* ------------------------------------------------------------ */
-        {
-          title: 'Queues',
-          icon: ListChecks,
-          items: allWorklistConfigs().map((config) => ({
-            title: config.title,
-            url: `/worklists/${config.slug}` as NavLink['url'],
-            icon: ListChecks,
-            permission: config.permission,
-          })),
-        },
       ],
     },
 
+    /* Reception's half of the pipeline: who came in, and what they left. */
     {
       title: 'Operations',
       items: [
@@ -95,6 +90,22 @@ export const sidebarData: SidebarData = {
           url: '/orders',
           icon: ClipboardList,
           permission: perm('orders', 'view'),
+        },
+      ],
+    },
+
+    /* ---------------------------------------------------------------- */
+    /* The bench. Each screen answers "what is waiting?" through its own  */
+    /* status filter, so the queues are not repeated as separate entries. */
+    /* ---------------------------------------------------------------- */
+    {
+      title: 'Gemmology Lab',
+      items: [
+        {
+          title: identificationQueue.title,
+          url: `/worklists/${identificationQueue.slug}` as NavLink['url'],
+          icon: ListChecks,
+          permission: identificationQueue.permission,
         },
         {
           // Order-shaped: identifying a stone is work done against an order,
@@ -111,6 +122,12 @@ export const sidebarData: SidebarData = {
           permission: perm('stones', 'view'),
         },
         {
+          title: findingsQueue.title,
+          url: `/worklists/${findingsQueue.slug}` as NavLink['url'],
+          icon: ListChecks,
+          permission: findingsQueue.permission,
+        },
+        {
           title: 'Findings',
           url: '/identification-reports',
           icon: FlaskConical,
@@ -119,9 +136,17 @@ export const sidebarData: SidebarData = {
       ],
     },
 
+    /* Billing and Certificates both lead with their queue: the work comes
+       before the record it produces. */
     {
       title: 'Billing',
       items: [
+        {
+          title: billingQueue.title,
+          url: `/worklists/${billingQueue.slug}` as NavLink['url'],
+          icon: ListChecks,
+          permission: billingQueue.permission,
+        },
         {
           title: 'Bills',
           url: '/bills',
@@ -141,20 +166,18 @@ export const sidebarData: SidebarData = {
       title: 'Certificates',
       items: [
         {
-          title: 'Certificates',
-          url: '/certificates',
-          icon: BadgeCheck,
-          permission: perm('certificates', 'view'),
-        },
-        /* The certification queue, repeated here as well as under Queues.
-           The Certificates screen is an archive of what has been issued, so
-           "what is waiting?" has no answer on it — and that is the question
-           people arrive at this group with. Same route either way. */
-        {
           title: certificationQueue.title,
           url: `/worklists/${certificationQueue.slug}` as NavLink['url'],
           icon: ListChecks,
           permission: certificationQueue.permission,
+        },
+        {
+          // An archive of what has been issued, which is why the queue leads:
+          // this screen cannot answer "what is waiting?".
+          title: 'Certificates',
+          url: '/certificates',
+          icon: BadgeCheck,
+          permission: perm('certificates', 'view'),
         },
       ],
     },

@@ -1,13 +1,7 @@
 import { createContext, useContext, useState } from 'react'
 import { type User } from '../data/schema'
 
-type UsersDialogType =
-  | 'view'
-  | 'history'
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'restore'
+type UsersDialogType = 'view' | 'create' | 'update' | 'delete' | 'restore'
 
 type UsersContextType = {
   open: UsersDialogType | null

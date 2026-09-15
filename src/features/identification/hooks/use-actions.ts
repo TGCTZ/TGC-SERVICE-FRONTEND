@@ -17,7 +17,7 @@ export function useReportActions(
   const { setOpen, setCurrentRow } = useReports()
 
   function select(
-    dialog: 'view' | 'history' | 'update' | 'delete' | 'restore' | 'finalize'
+    dialog: 'view' | 'update' | 'delete' | 'restore' | 'finalize'
   ) {
     setCurrentRow(report)
     setOpen(dialog)

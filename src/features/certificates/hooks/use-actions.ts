@@ -22,7 +22,7 @@ export function useCertificateActions(
   const { setOpen, setCurrentRow } = useCertificates()
   const { download } = useDownloadCertificatePdf()
 
-  function select(dialog: 'view' | 'history' | 'revoke') {
+  function select(dialog: 'view' | 'revoke') {
     setCurrentRow(certificate)
     setOpen(dialog)
   }

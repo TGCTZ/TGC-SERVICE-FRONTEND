@@ -72,7 +72,7 @@ export function Dashboard() {
       <Main className='flex flex-1 flex-col gap-6'>
         <div>
           <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
-          <p className='max-w-prose rounded-md border border-primary/30 px-3 py-2 text-sm/relaxed text-muted-foreground'>
+          <p className='max-w-prose rounded-md border border-primary/30 bg-header px-3 py-2 text-sm/relaxed text-muted-foreground'>
             What the lab is holding, and what is waiting on someone.
           </p>
         </div>

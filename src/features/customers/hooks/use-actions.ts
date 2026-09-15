@@ -13,9 +13,7 @@ import { type Customer } from '../data/schema'
 export function useCustomerActions(customer: Customer | null): RowAction[] {
   const { setOpen, setCurrentRow } = useCustomers()
 
-  function select(
-    dialog: 'view' | 'history' | 'update' | 'delete' | 'restore'
-  ) {
+  function select(dialog: 'view' | 'update' | 'delete' | 'restore') {
     setCurrentRow(customer)
     setOpen(dialog)
   }

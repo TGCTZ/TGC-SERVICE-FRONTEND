@@ -7,7 +7,6 @@ import { Eye, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatMoney } from '@/lib/format'
 import { perm, restorePerm } from '@/lib/permissions'
-import { subjectTypes } from '@/lib/subject-types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,7 +26,6 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -43,13 +41,7 @@ import {
 
 const route = getRouteApi('/_authenticated/lookups/$slug/')
 
-type DialogState =
-  | 'view'
-  | 'history'
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'restore'
+type DialogState = 'view' | 'create' | 'update' | 'delete' | 'restore'
 
 /**
  * One screen for every lookup table.
@@ -338,19 +330,6 @@ function LookupsContent({ config }: { config: LookupConfig }) {
           />
         )}
       </Main>
-
-      {currentRow &&
-        subjectTypes[config.resource as keyof typeof subjectTypes] && (
-          <RecordHistorySheet
-            subjectType={
-              subjectTypes[config.resource as keyof typeof subjectTypes]
-            }
-            subjectId={currentRow.id}
-            title={currentRow.name}
-            open={open === 'history'}
-            onOpenChange={(isOpen) => !isOpen && setOpen(null)}
-          />
-        )}
 
       {/* Viewing and editing are separate components: a record is read as a
           definition list, not as a form nobody may type into. */}

@@ -11,33 +11,37 @@ import { orderSchema, type Order } from '@/features/orders/data/schema'
 
 const listSchema = paginatedSchema(orderSchema)
 
-/** Which orders to list, by how far through identification they are. */
-export type IdentificationFilter = 'pending' | 'complete'
-
 type IdentificationParams = ListParams & {
-  identification?: IdentificationFilter
+  /**
+   * An `OrderStage` value.
+   *
+   * The same param the Orders screen filters on, because these are the same
+   * rows with the same Status column - an order's stage is derived from its
+   * stones and its bill, and `orders_at_stage` re-expresses that as SQL.
+   */
+  stage?: string
 }
 
 /**
- * Orders, narrowed by how much of their identification is done.
+ * Orders, narrowed by the stage they have reached.
  *
- * `identification` rides alongside the shared list contract rather than inside
- * `filters`: the API takes it as a bare query param, because "some stones still
- * to type" compares two columns (`Count(stones)` against `stone_count`) and no
- * `filter[field]` lookup can express that.
+ * `stage` rides alongside the shared list contract rather than inside
+ * `filters`: it is not a column. It is derived from the stones and the bill,
+ * and the API re-expresses that derivation as SQL, so no `filter[field]`
+ * lookup can reach it.
  */
 export const identificationOrdersQuery = ({
-  identification,
+  stage,
   ...params
 }: IdentificationParams) =>
   queryOptions({
-    queryKey: ['orders', 'identification', identification, params],
+    queryKey: ['orders', 'identification', stage, params],
     placeholderData: (previous) => previous,
     queryFn: async (): Promise<Paginated<Order>> => {
       const res = await api.get('/orders', {
         params: {
           ...buildListParams(params),
-          ...(identification ? { identification } : {}),
+          ...(stage ? { stage } : {}),
         },
       })
 

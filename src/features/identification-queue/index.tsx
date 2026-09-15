@@ -46,7 +46,7 @@ export function IdentificationQueue() {
     search: search.search ?? '',
     sortBy: search.sortBy,
     sortDir: search.sortDir,
-    identification: search.identification ?? 'pending',
+    stage: search.stage,
   }
 
   const { data, isPending, isError, isFetching } = useQuery(
@@ -56,7 +56,7 @@ export function IdentificationQueue() {
       search: state.search,
       sortBy: state.sortBy,
       sortDir: state.sortDir,
-      identification: state.identification,
+      stage: state.stage,
     })
   )
 
@@ -69,8 +69,7 @@ export function IdentificationQueue() {
         search: next.search !== undefined ? next.search : prev.search,
         sortBy: 'sortBy' in next ? next.sortBy : prev.sortBy,
         sortDir: 'sortDir' in next ? next.sortDir : prev.sortDir,
-        identification:
-          'identification' in next ? next.identification : prev.identification,
+        stage: 'stage' in next ? next.stage : prev.stage,
       }),
       replace: true,
     })

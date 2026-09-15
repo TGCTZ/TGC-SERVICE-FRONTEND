@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { perm } from '@/lib/permissions'
-import { subjectTypes } from '@/lib/subject-types'
 import { Button } from '@/components/ui/button'
 import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
@@ -10,7 +9,6 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -130,18 +128,6 @@ function UsersContent() {
           />
         )}
       </Main>
-
-      {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.users}
-          subjectId={currentRow.id}
-          title={currentRow.full_name || currentRow.email}
-          open={open === 'history'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
-          }}
-        />
-      )}
 
       {/* Viewing and editing are separate components: a record is read as a
           definition list, not as a form nobody may type into. */}

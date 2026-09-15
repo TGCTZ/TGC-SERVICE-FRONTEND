@@ -55,27 +55,3 @@ export const activityLogsQueryOptions = (params: ListParams) =>
     queryFn: () => fetchActivityLogs(params),
     placeholderData: (previous) => previous,
   })
-
-/**
- * Every entry for one record, newest first.
- *
- * Backs the History sheet. `subjectType` is the API's lowercase model name
- * (e.g. `product`), so history cannot collide between two models that happen to
- * share an id.
- */
-export const recordHistoryQueryOptions = (
-  subjectType: string,
-  subjectId: number,
-  enabled: boolean
-) =>
-  queryOptions({
-    queryKey: ['activity-logs', 'record', subjectType, subjectId],
-    queryFn: () =>
-      fetchActivityLogs({
-        perPage: 50,
-        sortBy: 'created_at',
-        sortDir: 'desc',
-        filters: { subject_type: subjectType, subject_id: subjectId },
-      }),
-    enabled,
-  })

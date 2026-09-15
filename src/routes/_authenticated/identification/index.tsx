@@ -10,8 +10,11 @@ const identificationSearchSchema = z.object({
   search: z.string().optional(),
   sortBy: z.string().optional(),
   sortDir: z.enum(['asc', 'desc']).optional(),
-  /** Defaults to `pending` in the screen, so the page opens on the work left. */
-  identification: z.enum(['pending', 'complete']).optional(),
+  /**
+   * An `OrderStage` value. The same filter the Orders screen carries, since
+   * these are the same rows. Kept in the URL so a filtered view is shareable.
+   */
+  stage: z.string().optional(),
 })
 
 export const Route = createFileRoute('/_authenticated/identification/')({

@@ -11,11 +11,14 @@ import {
 } from '@/components/ui/select'
 import { DataTable, type TableQueryState } from '@/components/data-table'
 import { ordersDataColumns } from '@/features/orders/components/columns'
-import { type Order } from '@/features/orders/data/schema'
-import { type IdentificationFilter } from '../data/api'
+import { ORDER_STAGE_LABELS, type Order } from '@/features/orders/data/schema'
+
+/** Radix forbids an empty-string SelectItem value, so "any stage" needs one. */
+const ANY_STAGE = 'all'
 
 export type IdentificationQueryState = TableQueryState & {
-  identification?: IdentificationFilter
+  /** An `OrderStage` value, or undefined for every stage. */
+  stage?: string
 }
 
 type IdentificationTableProps = {
@@ -42,7 +45,7 @@ export function IdentificationTable({
   onStateChange,
   actionColumn,
 }: IdentificationTableProps) {
-  const hasFilters = Boolean(state.search) || state.identification !== 'pending'
+  const hasFilters = Boolean(state.search) || Boolean(state.stage)
 
   const toolbar = (
     <>
@@ -53,23 +56,31 @@ export function IdentificationTable({
         className='h-8 w-full max-w-72'
       />
 
+      {/* Every stage an order can be at - the same filter and the same values
+          the Orders screen uses, because these are the same rows with the same
+          Status column. "Awaiting identification" is the one omission: that is
+          the queue, and it has its own sidebar entry. */}
       <Select
-        value={state.identification ?? 'all'}
+        value={state.stage ?? ANY_STAGE}
         onValueChange={(value) =>
           onStateChange({
-            identification:
-              value === 'all' ? undefined : (value as IdentificationFilter),
+            stage: value === ANY_STAGE ? undefined : value,
             page: 1,
           })
         }
       >
-        <SelectTrigger className='h-8 w-52'>
-          <SelectValue placeholder='Identification' />
+        <SelectTrigger className='h-8 w-56'>
+          <SelectValue placeholder='Status' />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value='pending'>Awaiting identification</SelectItem>
-          <SelectItem value='complete'>Fully identified</SelectItem>
-          <SelectItem value='all'>All orders</SelectItem>
+          <SelectItem value={ANY_STAGE}>All statuses</SelectItem>
+          {Object.entries(ORDER_STAGE_LABELS)
+            .filter(([stage]) => stage !== 'identifying')
+            .map(([stage, label]) => (
+              <SelectItem key={stage} value={stage}>
+                {label}
+              </SelectItem>
+            ))}
         </SelectContent>
       </Select>
 
@@ -78,7 +89,7 @@ export function IdentificationTable({
           variant='ghost'
           className='h-8 px-2 lg:px-3'
           onClick={() =>
-            onStateChange({ search: '', identification: 'pending', page: 1 })
+            onStateChange({ search: '', stage: undefined, page: 1 })
           }
         >
           Reset
@@ -98,7 +109,7 @@ export function IdentificationTable({
       onStateChange={onStateChange}
       isRowDeleted={(order) => Boolean(order.deleted_at)}
       toolbar={toolbar}
-      emptyMessage='Nothing is waiting to be identified.'
+      emptyMessage='No orders found.'
     />
   )
 }

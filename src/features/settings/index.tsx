@@ -53,7 +53,7 @@ export function Settings() {
           <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
             Settings
           </h1>
-          <p className='max-w-prose rounded-md border border-primary/30 px-3 py-2 text-sm/relaxed text-muted-foreground'>
+          <p className='max-w-prose rounded-md border border-primary/30 bg-header px-3 py-2 text-sm/relaxed text-muted-foreground'>
             Manage your account settings and set e-mail preferences.
           </p>
         </div>
