@@ -28,7 +28,7 @@ how the auth guard fetches the current user before rendering.
 
 `import '@/env'` runs first on purpose: a missing `VITE_API_URL` should stop the
 app at startup with a clear message, not surface later as a request to
-`undefined/products`.
+`undefined/customers`.
 
 ## QueryClient defaults
 

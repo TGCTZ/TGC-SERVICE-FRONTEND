@@ -7,16 +7,16 @@ no feature keeps server data in `useState`.
 
 ```mermaid
 flowchart TD
-    COMP["Component<br/>useQuery(productsQueryOptions(params))"] --> CACHE{"cache hit and<br/>still fresh?"}
+    COMP["Component<br/>useQuery(customersQuery(params))"] --> CACHE{"cache hit and<br/>still fresh?"}
 
     CACHE -->|"yes, under staleTime"| SERVE(["return cached data<br/>no request"])
     CACHE -->|"stale"| BOTH["return cached data<br/>and refetch in background"]
     CACHE -->|miss| FETCH["run queryFn"]
 
     BOTH --> FETCH
-    FETCH --> APIFN["fetchProducts(params)<br/><b>features/products/data/api.ts</b>"]
+    FETCH --> APIFN["fetchCustomers(params)<br/><b>features/customers/data/api.ts</b>"]
     APIFN --> BUILD["buildListParams(params)<br/><b>lib/api-query.ts</b>"]
-    BUILD --> AXIOS["api.get('/products', { params })<br/><b>lib/api.ts</b>"]
+    BUILD --> AXIOS["api.get('/customers', { params })<br/><b>lib/api.ts</b>"]
     AXIOS --> INTER["request interceptor<br/>attaches Bearer token"]
     INTER --> BACKEND[("Backend /api/v1")]
 
@@ -56,11 +56,11 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    K1["['products', params]<br/><i>one entry per page + filter combination</i>"]
-    K2["['products', 'detail', id]"]
+    K1["['customers', params]<br/><i>one entry per page + filter combination</i>"]
+    K2["['customers', 'detail', id]"]
     K3["['lookup', resource, key]<br/><i>staleTime 10 minutes</i>"]
 
-    K1 --> INV["invalidateQueries({ queryKey: ['products'] })<br/>after any product write"]
+    K1 --> INV["invalidateQueries({ queryKey: ['customers'] })<br/>after any customer write"]
     K2 --> INV
     K3 --> RARE["rarely invalidated —<br/>lookups barely change"]
 
@@ -71,7 +71,7 @@ flowchart TD
 ```
 
 Because `params` is part of the key, every page and filter combination caches
-separately — paging back to page 1 is instant. The prefix `['products']` covers
+separately — paging back to page 1 is instant. The prefix `['customers']` covers
 both list and detail entries, so a single `invalidateQueries` after a write
 refreshes everything that could have changed.
 
@@ -82,8 +82,8 @@ while the next loads, instead of collapsing to a skeleton on every keystroke.
 
 ```mermaid
 flowchart LR
-    FORM["Any product form"] --> LOOK["lookupQueryOptions(resource, key)"]
-    LOOK --> ONCE["per_page=100, filter[is_active]=1,<br/>sort_by=name"]
+    FORM["Any form with a lookup field"] --> LOOK["lookupQueryOptions(resource, key)"]
+    LOOK --> ONCE["page_size=100, ordering=name"]
     ONCE --> CACHE10["cached for 10 minutes"]
     CACHE10 --> SHARED["shared by every form<br/>and filter dropdown"]
 
@@ -99,7 +99,7 @@ than refetched per dialog.
 
 ```mermaid
 flowchart LR
-    SERVER["Server data<br/><i>products, users, lookups</i>"] --> TQ["TanStack Query"]
+    SERVER["Server data<br/><i>orders, bills, lookups</i>"] --> TQ["TanStack Query"]
     SESSION["Session<br/><i>token, current user</i>"] --> ZU["Zustand — useAuthStore"]
     TABLE["Table state<br/><i>page, search, filters, sort</i>"] --> URLS["URL search params"]
     PREFS["Theme, font, direction"] --> CTX["React Context"]

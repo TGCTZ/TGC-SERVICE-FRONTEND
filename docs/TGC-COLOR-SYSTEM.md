@@ -446,9 +446,14 @@ below is written in pairs.
   --------------------- ----------- ----------- ----------------------------
   `background`          `#F8FAFC`   `#020617`   Application ground
   `foreground`          `#0F172A`   `#F8FAFC`   Text on `background`
-  `surface`             `#FFFFFF`   `#0F172A`   Cards, panels, popovers
-  `surface-foreground`  `#0F172A`   `#F8FAFC`   Text on `surface`
-  `surface-muted`       `#F1F5F9`   `#1E293B`   Secondary surface, hover
+  `card`                `#FFFFFF`   `#0F172A`   Cards and panels
+  `card-foreground`     `#0F172A`   `#F8FAFC`   Text on `card`
+  `popover`             `#FFFFFF`   `#0F172A`   Popovers, menus, dropdowns
+  `popover-foreground`  `#0F172A`   `#F8FAFC`   Text on `popover`
+  `muted`               `#F1F5F9`   `#1E293B`   Secondary surface, hover
+  `secondary`           `#F1F5F9`   `#1E293B`   Quiet button surface
+  `accent`              `#F1F5F9`   `#1E293B`   Hover and highlight surface
+  `input`               `#E2E8F0`   `#334155`   Form control outline
   `muted-foreground`    `#64748B`   `#94A3B8`   Metadata, helper text
   `border`              `#E2E8F0`   `#334155`   Default divider
   `border-strong`       `#CBD5E1`   `#475569`   Input outlines, emphasis
@@ -464,7 +469,7 @@ below is written in pairs.
   `primary-active`      `#00366F`   `#0152A9`   Primary pressed
   `primary-subtle`      `#EFF6FF`   *derived*   Brand tint background
   `institutional`       `#074C70`   `#032637`   Nav, headers, footers
-  `institutional-fg`    `#FFFFFF`   `#F8FAFC`   Text on `institutional`
+  `institutional-foreground`    `#FFFFFF`   `#F8FAFC`   Text on `institutional`
   `gold`                `#E4A41E`   `#F0B832`   Brand accent surface
   `gold-foreground`     `#452A05`   `#452A05`   Text on `gold`
 
@@ -497,9 +502,12 @@ Values marked *derived* are computed from a base and the surface they sit on
 rather than hand-picked per theme:
 
 ``` text
-<role>-subtle = mix(<role> 12%, surface)
-<role>-border = mix(<role> 30%, surface)
+<role>-subtle = mix(<role> 12%, card)
+<role>-border = mix(<role> 30%, card)
 ```
+
+Each semantic role therefore has four members — the solid colour, `-subtle`,
+`-border` and `-text`. Status badges consume the last three together; see §36.
 
 One definition serves both themes, because the surface changes with the theme
 and the tint follows it. Hand-picking a light and a dark value for every
@@ -609,30 +617,56 @@ contrast for the exact typography and context.
 
 # 16. Navigation Colors
 
+Navigation and the page header are one continuous band of **chrome** wrapped
+around the content. They are not the same sheet as the data, and they are the
+only place the brand tint appears as a large surface.
+
 ## Light navigation
 
-Recommended:
-
 ``` text
-Background: #FFFFFF
-Text:       #475569
-Active:     #0152A9
-Active BG:  #EFF6FF
+Background: #EFF6FF   (blue-50)
+Text:       #0F172A   (foreground)
+Active BG:  #B8D5F2   (blue-200)
+Border:     #82B4E5   (blue-300)
 ```
 
-## Dark/institutional navigation
+The tint is carried on the **navigation surface**, never on `background`.
+`background` is not only the page ground — Dialog, Sheet, outline Button and the
+active Tab are all painted with it, so tinting that token colours half the
+component library. Putting the colour on the sidebar lands it where it was
+wanted and nowhere else.
 
-Recommended:
+The active state sits **two steps** darker than the track, not one. Track and
+selection now share a hue, so lightness is the only signal left distinguishing
+them; blue-100 on a blue-50 track was too close to locate the current page at a
+glance. The border sits one step below the active state, so a divider never
+outweighs a selection.
+
+## Dark navigation
 
 ``` text
-Background: #074C70
-Text:       #FFFFFF
-Active:     #FFFFFF
-Active BG:  #075B73
-Accent:     #E4A41E
+Background: #032637   (teal-950)
+Text:       #F8FAFC   (foreground)
+Active BG:  #063A56   (teal-900)
+Border:     #07364D
 ```
+
+Dark mode inverts the relationship: the navigation recedes *below* the content
+rather than sitting above it, so the content card remains the raised surface.
+The institutional teal survives here as the ground.
 
 Do not use Gold as the background of the entire navigation.
+
+## The header, and what else borrows the band
+
+The page header takes the navigation surface rather than the content sheet it
+sits on, and is **aliased** to it rather than given its own hexes — two shades
+of almost-the-same on one continuous band reads as a rendering fault. A screen's
+description box borrows the same surface for the same reason: it is the screen
+explaining itself, so it belongs to the frame rather than to the data.
+
+Repoint the header tokens to their own values only if the two are ever meant to
+differ.
 
 ------------------------------------------------------------------------
 
@@ -1041,22 +1075,43 @@ primary          #0152A9    primary-foreground  #FFFFFF
 primary-hover    #00458F    primary-active      #00366F
 primary-subtle   #EFF6FF
 
-institutional    #074C70    institutional-fg    #FFFFFF
+institutional    #074C70    institutional-foreground  #FFFFFF
+institutional-subtle  #EEF8FB
 gold             #E4A41E    gold-foreground     #452A05
+gold-subtle      #FFFAEB
 
 background       #F8FAFC    foreground          #0F172A
-surface          #FFFFFF    surface-muted       #F1F5F9
-muted-foreground #64748B
+card             #FFFFFF    card-foreground     #0F172A
+popover          #FFFFFF    popover-foreground  #0F172A
+muted            #F1F5F9    muted-foreground    #64748B
+secondary        #F1F5F9    accent              #F1F5F9
 border           #E2E8F0    border-strong       #CBD5E1
-ring             #0152A9
+input            #E2E8F0    ring                #0152A9
+
+sidebar          #EFF6FF    sidebar-accent      #B8D5F2
+sidebar-border   #82B4E5    sidebar-foreground  = foreground
+header           = sidebar   header-border      = sidebar-border
+table-header     #E8EEF6
 
 success          #16A34A    success-text        #15803D
+success-subtle             success-border
 warning          #D97706    warning-text        #B45309
+warning-subtle             warning-border
 danger           #DC2626    danger-text         #B91C1C
+danger-subtle              danger-border
 info             #2563EB    info-text           #1D4ED8
+info-subtle                info-border
+
+radius           0.625rem   radius-sm / -md / -lg / -xl  derived from it
 ```
 
-Note the absence of a token named `accent`. See section 33.
+Tokens with no value are **derived** — see §12.5 for the formula. The four
+`-border` members are not decoration: status badges consume `-subtle`,
+`-border` and `-text` together, so a role missing one of them cannot render a
+badge (§36).
+
+`accent` and `secondary` are framework-owned names with their own meaning; see
+section 33 before assigning to them.
 
 ------------------------------------------------------------------------
 
@@ -1068,18 +1123,23 @@ When implementing TGC colors in code:
 
 ``` text
 primary
-secondary
-accent
 background
-surface
 foreground
+card
+popover
 muted
 border
+sidebar
+header
 success
 warning
 danger
 info
 ```
+
+Note `card` and `popover` rather than a single `surface`: the two are the same
+colour today but are separate roles, because a menu floating over a card has to
+be able to separate itself from it without a theme-wide change.
 
 ### Avoid
 
@@ -1185,7 +1245,7 @@ Secondary Active
 Background
 #F8FAFC
 
-Surface
+Card
 #FFFFFF
 
 Text
@@ -1196,6 +1256,22 @@ Muted Text
 
 Border
 #E2E8F0
+```
+
+## Chrome
+
+``` text
+Sidebar / Header
+#EFF6FF
+
+Active nav item
+#B8D5F2
+
+Chrome border
+#82B4E5
+
+Table header
+#E8EEF6
 ```
 
 ## Semantic
@@ -1295,17 +1371,26 @@ until this table has no blanks.
   Role                   Light       Dark        Note
   ---------------------- ----------- ----------- -------------------------------
   `background`           `#F8FAFC`   `#020617`
-  `surface`              `#FFFFFF`   `#0F172A`   Cards lift *above* the ground
-  `surface-muted`        `#F1F5F9`   `#1E293B`
+  `card`                 `#FFFFFF`   `#0F172A`   Cards lift *above* the ground
+  `popover`              `#FFFFFF`   `#0F172A`
+  `muted`                `#F1F5F9`   `#1E293B`
+  `secondary`            `#F1F5F9`   `#1E293B`
+  `accent`               `#F1F5F9`   `#1E293B`
   `foreground`           `#0F172A`   `#F8FAFC`
   `muted-foreground`     `#64748B`   `#94A3B8`
   `border`               `#E2E8F0`   `#334155`
   `border-strong`        `#CBD5E1`   `#475569`
+  `input`                `#E2E8F0`   `#334155`
   `primary`              `#0152A9`   `#3D8DD4`   Lightens as the ground darkens
   `primary-foreground`   `#FFFFFF`   `#001A36`   **Inverts** with it
   `institutional`        `#074C70`   `#032637`   Darkens; it is already dark
   `gold`                 `#E4A41E`   `#F0B832`
   `ring`                 `#0152A9`   `#3D8DD4`
+  `sidebar`              `#EFF6FF`   `#032637`   Blue chrome; teal in the dark
+  `sidebar-accent`       `#B8D5F2`   `#063A56`   The active page
+  `sidebar-border`       `#82B4E5`   `#07364D`
+  `header`               = `sidebar` = `sidebar` Aliased, not duplicated
+  `table-header`         `#E8EEF6`   `#1E293B`   Its own tone, not `muted`
 
 ### The inversion rule
 
@@ -1324,6 +1409,16 @@ failure. If `primary` gets lighter, `primary-foreground` must get darker.
 Solid fills keep their light-mode values --- `#16A34A`, `#D97706`, `#DC2626`,
 `#2563EB` --- because they are already dark enough to carry white text on any
 ground. Only the `-text` variants change, to the lighter values in section 12.4.
+The `-subtle` and `-border` members need no dark values at all: they are mixed
+against `card`, which has already inverted, so the tint follows the theme by
+itself.
+
+### The chrome inverts its relationship, not just its colour
+
+In light mode the navigation sits *above* the content and the content floats on
+it. In dark mode it recedes *below*, so the content card is still the raised
+surface. That is why `sidebar` does not simply darken to a navy — it becomes the
+institutional teal, and the content lifts off it.
 
 ------------------------------------------------------------------------
 
@@ -1391,7 +1486,7 @@ follow the interface into dark mode.
   Rejected, Failed                    `danger`
   Draft, Archived                     *neutral*
 
-Neutral statuses use `surface-muted` / `border` / `muted-foreground`.
+Neutral statuses use `muted` / `border` / `muted-foreground`.
 
 ------------------------------------------------------------------------
 
@@ -1413,6 +1508,85 @@ A TGC implementation is complete when all of the following hold.
 ```
 
 The last four decay silently after launch. They are worth a lint rule.
+
+------------------------------------------------------------------------
+
+# 38. How This Specification Is Implemented
+
+Sections 1--37 describe the colour system independently of any technology.
+This section describes how it is wired in this codebase, and is the one part
+that changes if the stack does.
+
+## One file
+
+Every token lives in `src/styles/theme.css`. `src/styles/index.css` imports it
+and adds base rules; nothing else defines a colour.
+
+## Defining a token
+
+Declare the complete light palette on **bare `:root`**, then redefine under
+`.dark` only the tokens that actually change:
+
+``` css
+:root {
+  --sidebar: #eff6ff;
+  --sidebar-accent: #b8d5f2;
+}
+
+.dark {
+  --sidebar: #032637;
+  --sidebar-accent: #063a56;
+}
+```
+
+A token whose only definition sits inside `.dark` has no value in light mode,
+and the property silently resolves to nothing. This is the single most common
+way a theme half-works.
+
+Derived tokens (§12.5) need one definition, not two, because the mix resolves
+against a surface that has already changed:
+
+``` css
+--success-subtle: color-mix(in oklab, var(--success) 12%, var(--card));
+--success-border: color-mix(in oklab, var(--success) 30%, var(--card));
+```
+
+Aliases are just `var()`:
+
+``` css
+--header: var(--sidebar);
+```
+
+## Making a token usable
+
+**A token is not a utility class until it is mapped.** Tailwind v4 reads the
+`@theme inline` block at the bottom of `theme.css`, and only names it finds
+there become classes:
+
+``` css
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-success-subtle: var(--success-subtle);
+}
+```
+
+`--color-sidebar` is what makes `bg-sidebar` and `text-sidebar` exist. Define
+`--brand-x` without a matching `--color-brand-x` and `bg-brand-x` compiles to
+nothing at all — no error, no warning, no colour. If a class you expect has no
+effect, check the mapping block first.
+
+The same block defines the radius scale, so `rounded-md` tracks `--radius`.
+
+## Where tokens are consumed
+
+Components never reference a hex value. Two places are worth knowing:
+
+- **Status badges** — `src/components/status-badge.tsx` consumes the
+  `-subtle` / `-border` / `-text` triplet of each semantic role (§36). This is
+  the reason the `-border` members exist.
+- **Scrollbars** — `src/styles/index.css` paints them with `border-strong` on
+  `muted`, so they are visible against every surface in both themes without a
+  bespoke colour.
 
 ------------------------------------------------------------------------
 

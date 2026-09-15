@@ -18,15 +18,15 @@ import { join, dirname, resolve, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-// TestAPI is the bundled backend: its own repo, its own docs, and a `vendor/`
-// full of third-party READMEs whose links are none of our business.
+// Only this app's own docs are checked. Vendored trees carry third-party
+// READMEs whose links are none of our business, and the backend has its own
+// equivalent check over its own tree.
 const SKIP_DIRS = new Set([
   'node_modules',
   'dist',
   '.git',
   'coverage',
   'vendor',
-  'TestAPI',
 ])
 
 /**

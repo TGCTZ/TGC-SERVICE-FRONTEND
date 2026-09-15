@@ -7,7 +7,7 @@ first, before the component renders. Two guards stack.
 
 ```mermaid
 flowchart TD
-    URL(["Browser navigates to<br/>/products"]) --> ROOT["__root.tsx<br/><i>toaster, devtools, error boundary</i>"]
+    URL(["Browser navigates to<br/>/customers"]) --> ROOT["__root.tsx<br/><i>toaster, devtools, error boundary</i>"]
     ROOT --> AUTHROUTE["_authenticated/route.tsx<br/>beforeLoad"]
 
     AUTHROUTE --> HASTOKEN{"auth.accessToken<br/>present?"}
@@ -67,9 +67,9 @@ every refresh.
 ## Declaring a permission on a route
 
 ```
-export const Route = createFileRoute('/_authenticated/products/')({
-  beforeLoad: requirePermission(['products.viewAny']),
-  component: Products,
+export const Route = createFileRoute('/_authenticated/customers/')({
+  beforeLoad: requirePermission([perm('orders', 'view')]),
+  component: Customers,
 })
 ```
 

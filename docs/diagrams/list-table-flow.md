@@ -12,16 +12,16 @@ flowchart TD
     NAV --> URL[("URL<br/>?page=2&search=laptop&sortBy=price")]
 
     URL --> READ["route.useSearch()"]
-    READ --> STATE["ProductsQueryState<br/>page, perPage, search, sortBy,<br/>sortDir, categoryId, statusId, showDeleted"]
+    READ --> STATE["CustomersQueryState<br/>page, perPage, search, sortBy,<br/>sortDir, showDeleted"]
 
-    STATE --> OPTS["productsQueryOptions({...})"]
+    STATE --> OPTS["customersQuery({...})"]
     OPTS --> BUILD["buildListParams()"]
-    BUILD --> PARAMS["page, per_page, search,<br/>sort_by, sort_dir, include,<br/>filter[...], with_trashed"]
-    PARAMS --> GET["api.get('/products')"]
+    BUILD --> PARAMS["page, page_size, search,<br/>ordering, with_trashed"]
+    PARAMS --> GET["api.get('/customers')"]
     GET --> RESP[("paginated response")]
     RESP --> ZOD["listSchema.parse()"]
     ZOD --> NORM["{ items, meta }"]
-    NORM --> TABLE["ProductsTable<br/>data, meta, isFetching"]
+    NORM --> TABLE["CustomersTable<br/>data, meta, isFetching"]
     TABLE --> USER
 
     style USER stroke:#4d90d9,stroke-width:2px
@@ -65,9 +65,9 @@ get subtly wrong, so no feature builds these by hand.
 flowchart TD
     IN["ListParams"] --> P{"which field?"}
 
-    P -->|"page, perPage"| PG["page, per_page"]
+    P -->|"page, perPage"| PG["page, page_size"]
     P -->|search| SR["search<br/><i>trimmed; empty omitted</i>"]
-    P -->|"sortBy, sortDir"| ST["sort_by, sort_dir<br/><i>dir defaults to asc</i>"]
+    P -->|"sortBy, sortDir"| ST["ordering<br/><i>leading - means descending</i>"]
     P -->|include| IC["include — comma joined"]
     P -->|trashed| TR["with_trashed=1 or only_trashed=1"]
     P -->|filters| FV{"value type"}
@@ -90,12 +90,12 @@ the API treat the empty string as a real filter and return nothing.
 
 ```mermaid
 flowchart TD
-    ROW["Table row"] --> HOOK["useProductActions(product)"]
-    HOOK --> NULLCHK{"product is null?"}
+    ROW["Table row"] --> HOOK["useCustomerActions(customer)"]
+    HOOK --> NULLCHK{"customer is null?"}
     NULLCHK -->|yes| EMPTY["return []<br/><i>called before a row is chosen</i>"]
     NULLCHK -->|no| LIST["build the action list"]
 
-    LIST --> DELETED{"product.deleted_at set?"}
+    LIST --> DELETED{"customer.deleted_at set?"}
     DELETED -->|yes| SHOWR["show Restore<br/>hide Edit and Delete"]
     DELETED -->|no| SHOWD["show Edit and Delete<br/>hide Restore"]
 
@@ -115,5 +115,5 @@ view dialog render the same list. Two hand-maintained copies would drift, and
 the drift would be silent — a button available in one place and missing in the
 other.
 
-The hook is called unconditionally with a possibly-null product, because hooks
+The hook is called unconditionally with a possibly-null customer, because hooks
 cannot be conditional. Returning `[]` for null is what makes that safe.

@@ -1,58 +1,64 @@
-# AlphaDashboard
+# TGC Service — Frontend
 
-A reusable React admin dashboard template — an opinionated starting point for
-new frontend projects. Vite, React 19, TypeScript, Tailwind v4 and Radix-based
-UI primitives, with routing, data-fetching, tables, forms, auth, permissions and
-an audit trail already wired together.
+The web client for the Tanzania Gemmological Centre's stone-certification
+system. Reception takes stones in, gemmologists identify and examine them,
+bills are settled through the GePG government payment gateway, and each stone
+leaves with a printed certificate.
+
+This app is a pure API client — it holds no data of its own. The Django API it
+talks to lives in [`../backend`](../backend/README.md).
 
 ## Quickstart
 
-The frontend is an API client with no local data, so **start the backend
-first** — otherwise your first screen is an empty table.
+**Start the backend first**, or your first screen is an empty table.
 
 ```bash
-# 1. The bundled test API (see docs/getting-started.md for prerequisites)
-cd TestAPI && composer install && php artisan migrate --seed && php artisan serve
+# 1. The API, from the repository root
+cd backend && uv run python manage.py runserver
+```
 
+```bash
 # 2. This app, in a second terminal
-cd ..                     # back to the template root
 pnpm install
-cp .env.example .env      # already points at http://localhost:8000/api/v1
+cp .env.example .env   # already points at http://localhost:8000/api/v1
 pnpm dev
 ```
 
-Sign in with **`superadmin@test.com`** / **`1234567890`**. Then try
-**`viewer@test.com`** with the same password — the sidebar visibly shrinks,
+Sign in with an account created by the backend's `seed` command. Signing in as
+a receptionist rather than an administrator visibly shrinks the sidebar,
 because navigation is filtered by the same permissions the API enforces.
 
-Full setup, all five seeded accounts and the common first-run failures:
+Full setup and the common first-run failures:
 **[docs/getting-started.md](./docs/getting-started.md)**.
 
 ## Documentation
 
 | Doc                                            | Covers                                                      |
 | ---------------------------------------------- | ----------------------------------------------------------- |
-| [Getting Started](./docs/getting-started.md)   | Prerequisites, first run, test accounts                     |
+| [Getting Started](./docs/getting-started.md)   | Prerequisites, first run, signing in                        |
 | [Architecture](./docs/architecture.md)         | Folder structure and how the layers fit                     |
 | [Conventions](./docs/conventions.md)           | The patterns every screen follows — read before writing one |
 | [Adding a Feature](./docs/adding-a-feature.md) | Step-by-step walkthrough                                    |
-| [Customizing](./docs/customizing.md)           | The swap points, and what to delete                         |
-| [Testing](./docs/testing.md)                   | Running and writing tests                                   |
+| [Customizing](./docs/customizing.md)           | The swap points for branding, navigation and theme          |
+| [Colour System](./docs/TGC-COLOR-SYSTEM.md)    | The brand palette and every design token                    |
+| [Testing](./docs/testing.md)                   | Verifying a change, running and writing tests               |
 | [Deployment](./docs/deployment.md)             | Building and shipping                                       |
 | [Tech Stack](./docs/tech-stack.md)             | Every library and why                                       |
 
-## What's in the box
+## What the app does
 
-- **Real auth** — bearer tokens, a route guard that rehydrates the user before
-  first render, and single-flight 401 refresh
+- **Orders and stones** — a customer's stones are received as one order, each
+  stone tracked individually through the lab
+- **The lab pipeline** — identification, then billing, then findings, then
+  certification, with a worklist queue standing in front of each stage
+- **Billing through GePG** — control numbers issued by the gateway, payment
+  notifications settled against the bill, partial payments supported
+- **Certificates** — issued per stone, with a PDF and a public verification page
 - **Permission-based access control** — route guards, UI gates and sidebar
   filtering all reading the one list the API enforces
 - **A shared table layer** — server-side paging, sorting, filtering, soft
   deletes and declared row actions, so screens cannot drift apart
-- **An audit trail** — every write recorded, with a per-record history timeline
-  you can drop into any feature
-- **Reference-data screens** — five lookup tables served by one configurable
-  screen
+- **An audit trail** — every write recorded and browsable under Audit Logs
 
 ## Tech stack
 
@@ -65,7 +71,6 @@ Full setup, all five seeded accounts and the common first-run failures:
 | Tables  | TanStack Table                              |
 | State   | Zustand                                     |
 | Forms   | React Hook Form + Zod                       |
-| Charts  | Recharts                                    |
 | Tooling | ESLint, Prettier, knip, Vitest, Playwright  |
 
 ## Scripts
@@ -78,7 +83,7 @@ Full setup, all five seeded accounts and the common first-run failures:
 | `pnpm preview`                                 | Serve the production build locally                      |
 | `pnpm lint`                                    | Run ESLint                                              |
 | `pnpm format`                                  | Format with Prettier                                    |
-| `pnpm format:check`                            | Check formatting — **a CI gate**                        |
+| `pnpm format:check`                            | Check formatting                                        |
 | `pnpm knip`                                    | Find unused files, exports and dependencies             |
 | `pnpm docs:check`                              | Fail if the docs reference a file that no longer exists |
 | `pnpm test:browser:install`                    | **Run once** — installs Chromium for the tests          |
@@ -101,16 +106,18 @@ src/
 ├── context/        Global providers (theme, font, direction, layout, search)
 ├── features/       One folder per feature: index.tsx, components/, data/
 ├── hooks/          Reusable hooks
-├── lib/            api client, authz, format, api-query, subject-types
+├── lib/            api client, authz, permissions, format, api-query
 ├── routes/         File-based routes (map 1:1 to URLs)
 ├── stores/         Zustand stores (auth)
+├── styles/         Tailwind entry and the design tokens (theme.css)
 ├── test-utils/     Helpers shared by tests
 └── env.ts          Validated environment variables
 ```
 
-`src/features/products/` is the reference implementation — a server-paginated
-table with full CRUD, image upload, soft deletes and audit history. Read it,
-then replace it.
+`src/features/customers/` is the clearest feature to read first — a
+server-paginated table with full CRUD, soft deletes and declared row actions,
+and nothing domain-specific in the way. `src/features/orders/` shows the same
+patterns carrying real workflow.
 
 ## Code quality
 
@@ -118,7 +125,10 @@ then replace it.
   files
 - **knip** guards against dead code; only `src/components/ui/**` and generated
   files are ignored
-- **CI** runs lint, format, docs and type checks, then tests and the build
+- **`pnpm docs:check`** fails when a doc references a file that no longer
+  exists. There is no CI pipeline in this repository, so run it — along with
+  `pnpm typecheck`, `pnpm lint` and `pnpm build` — before opening a pull
+  request. [testing.md](./docs/testing.md) has the full list.
 
 > Uses **pnpm** via corepack. Build-script approvals live in
 > `pnpm-workspace.yaml`.

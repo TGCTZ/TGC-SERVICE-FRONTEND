@@ -13,7 +13,7 @@ flowchart LR
         USER["user — id, permissions, roles"]
     end
 
-    TOKEN --> COOKIE[("cookie<br/>alphadashboard_token")]
+    TOKEN --> COOKIE[("cookie<br/>tgc_access_token")]
     USER --> MEMORY["memory only<br/><i>gone on refresh</i>"]
 
     COOKIE --> SURVIVE["survives a page refresh"]
@@ -60,7 +60,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    CALL["api.get('/products')"] --> REQI["request interceptor"]
+    CALL["api.get('/customers')"] --> REQI["request interceptor"]
     REQI --> READ["useAuthStore.getState()<br/>.auth.accessToken"]
     READ --> HAS{"token present?"}
     HAS -->|yes| SET["Authorization: Bearer token"]

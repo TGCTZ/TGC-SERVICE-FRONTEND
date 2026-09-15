@@ -1,10 +1,13 @@
 # Customizing
 
-The complete list of what changes per project — and what to delete.
+The complete list of the settings that change how the app looks, what it is
+called, where it points and what it shows — the places to edit when something
+needs to be different, rather than the places to read when something needs to be
+understood.
 
 > This is the **only** place the swap points are enumerated. Other docs link
-> here rather than repeating the list, because four competing copies is how the
-> previous version of these docs ended up with four different counts.
+> here rather than repeating the list, because competing copies are how a list
+> like this ends up with three different counts.
 
 ## The swap points
 
@@ -50,43 +53,46 @@ the login in `src/features/auth/data/api.ts`, and the refresh seam in
 
 ### 5. Navigation — `src/components/layout/data/sidebar-data.ts`
 
-Five groups: **Overview** (Dashboard + the Queues collapsible), the three lab
-stages — **Reception**, **Billing**, **Identification** — then **Certificates**
-and **Administration** (Users, Logs, and the Reference data collapsible). The
-three middle groups are the project-specific part; replace their contents and
-keep the shape.
+Six groups: **Overview** (Dashboard), **Operations** (Customers, Orders), then
+the lab pipeline — **Gemmology Lab**, **Billing**, **Certificates** — and
+**Administration** (Users, Logs, and the Reference data collapsible).
 
-Queues and Reference data are generated from
-`src/features/worklists/data/config.ts` and `src/features/lookups/data/config.ts`
-— add an entry there, not here.
+Each pipeline group opens with its queue and then the screens where that stage's
+work is done, so the sidebar reads in the order a stone actually moves. The four
+queues come from `src/features/worklists/data/config.ts` and Reference data from
+`src/features/lookups/data/config.ts` — add an entry there, not here.
 
 Every entry carries the `permission` the API enforces. The file's own docblock
 explains the rules in full.
 
 ### 6. Reference data — `src/features/lookups/data/config.ts`
 
-One array drives all five lookup screens. Swap the example catalogue entries
-for your own tables; you do not write components.
+One array drives all ten lookup screens. Adding a reference table is an entry
+here; you do not write components.
 
 Two things bite here, both documented in the file: `resource` doubles as the
 URL segment **and** the permission prefix so it must match the API exactly, and
 `collectionKey` is snake_case where the URL is kebab-case
 (`unit-of-measures` → `unit_of_measures`).
 
-### 7. Audit subjects — `src/lib/subject-types.ts` ⚠ fails silently
+### 7. Theme and colour — `src/styles/theme.css`
 
-Maps the backend class names stored in `activity_logs.subject_type`. One entry
-per model whose history you want to show.
+Every design token, light and dark, in one file: the brand palette, the neutral
+surfaces, the semantic status colours, the sidebar and header chrome, and the
+border radius scale.
 
-**A wrong name does not error.** The history sheet filters on it, finds nothing,
-and renders an empty timeline — indistinguishable from a record nobody has ever
-changed. Verify each entry against a real row rather than trusting the spelling:
+Two rules make edits here behave:
 
-```
-GET /v1/activity-logs?filter[event]=created&per_page=1
-```
+- **Define a colour once, on bare `:root`**, then redefine only what changes
+  under the dark blocks. A token whose only definition sits inside a media query
+  has no value in the other theme.
+- **A role is only usable as a utility class if it is mapped.** Tailwind v4
+  reads the `@theme inline` block at the bottom of the file; a `--brand-x` with
+  no matching `--color-brand-x` entry there cannot be written as `bg-brand-x`,
+  and the class silently does nothing.
 
-and read `subject_type` off the response.
+The full palette, the reasoning behind each role and the light/dark parity table
+are in **[TGC-COLOR-SYSTEM.md](./TGC-COLOR-SYSTEM.md)**.
 
 ### 8. Localisation — `src/lib/format.ts` ⚠ fails silently
 
@@ -102,38 +108,19 @@ but the UI neither offers a picker nor renders anything but `DEFAULT_CURRENCY`.
 Widening that means adding a picker back *and* deciding what a mixed-currency
 total means.
 
-### 9. Permissions — `src/lib/authz.ts`
+### 9. Permissions — `src/lib/permissions.ts` and `src/lib/authz.ts`
 
-Route guards use `requirePermission()`, UI uses
-`<Can permission='…'>` (`src/components/can.tsx`), and the sidebar is filtered
+`permissions.ts` holds the vocabulary — the resource-to-Django-model map and the
+`perm()` builder that turns `perm('orders', 'view')` into `orders.view_order`.
+Adding a resource means adding it there, once.
+
+`authz.ts` holds the checks. Route guards use `requirePermission()`, UI uses
+`<Can permission={…}>` (`src/components/can.tsx`), and the sidebar is filtered
 by `src/components/layout/data/filter-nav.ts`. All three read the same list, so
 they cannot disagree.
 
 Gates are **permissions**, never roles — a role gate drifts the moment someone
 edits that role from the Roles screen.
-
-## What to delete
-
-The template ships an example domain so the machinery has something to operate
-on. Deleting it cleanly is the difference between a starting point and a mess.
-
-**Delete — this is the example domain:**
-
-| Path | What it is |
-| --- | --- |
-| `src/features/products/` | The reference feature. Read it first, then replace it. |
-| `src/features/lookups/` | Keep the folder if you have reference tables; replace `lookup-config.ts`'s entries. |
-| The domain half of `src/lib/subject-types.ts` | Keep `user` and `role`. |
-| `src/features/dashboard/components/` | Demo charts with random data. |
-
-**Keep — this is the machinery:**
-
-`src/components/data-table/`, `src/components/dialog-body.tsx`,
-`src/components/record-history-sheet.tsx`, `src/components/can.tsx`,
-`src/components/user-menu-content.tsx`, `src/lib/` (all of it),
-`src/features/auth/`, `src/features/users/`, `src/features/roles/`,
-`src/features/audit-logs/`, `src/features/system-logs/`,
-`src/features/errors/`, `src/components/layout/`.
 
 **Known incomplete**, so you are not surprised: the Account, Appearance,
 Notifications and Display forms under `src/features/settings/` still call

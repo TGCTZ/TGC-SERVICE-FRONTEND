@@ -53,8 +53,12 @@ Two consequences:
 - [ ] `src/lib/format.ts` — locale, timezone and currency for your users
 - [ ] The rest of [customizing.md](./customizing.md)
 
-## CI
+## Before you ship
 
-`.github/workflows/ci.yml` runs lint, format, docs and type checks, then the
-tests and the build. It does **not** deploy — connect your host to the repo, or
-add a deploy step.
+There is no CI pipeline in this repository, so the pre-flight checks are
+manual — `pnpm typecheck`, `pnpm lint`, `pnpm docs:check`, `pnpm knip` and
+`pnpm build`. The full list, and what to do when the browser tests cannot run,
+is in [testing.md](./testing.md#verifying-a-change).
+
+Deployment is whatever your host does with the built `dist/` — connect it to the
+repository, or run the build and upload.

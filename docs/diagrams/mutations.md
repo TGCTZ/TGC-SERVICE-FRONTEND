@@ -12,19 +12,19 @@ flowchart TD
     ZOD -->|no| FIELDS["errors rendered next to<br/>the offending inputs — no request"]
     ZOD -->|yes| MUT["mutation.mutate(values)"]
 
-    MUT --> FD["toFormData(payload)"]
-    FD --> METHOD{"create or update?"}
-    METHOD -->|create| POST["POST /products"]
-    METHOD -->|update| SPOOF["POST /products/:id<br/>with _method=PUT"]
+    MUT --> ENC["encode(payload)<br/><i>multipart only if a File is present</i>"]
+    ENC --> METHOD{"create or update?"}
+    METHOD -->|create| POST["POST /customers"]
+    METHOD -->|update| PUT["PUT /customers/:id"]
 
     POST --> API[("Backend")]
-    SPOOF --> API
+    PUT --> API
 
     API --> RESULT{"response"}
-    RESULT -->|success| PARSE["productSchema.parse(res.data.product)"]
+    RESULT -->|success| PARSE["customerSchema.parse(res.data)"]
     PARSE --> SUCCESS["onSuccess"]
     SUCCESS --> TOASTOK["toast.success"]
-    SUCCESS --> INV["invalidateQueries(['products'])"]
+    SUCCESS --> INV["invalidateQueries(['customers'])"]
     INV --> REFETCH(["table refetches, dialog closes"])
 
     RESULT -->|error| ERR["onError — see below"]
@@ -82,58 +82,53 @@ global handler ever sees it.
 
 ## Multipart writes
 
+Most writes are plain JSON. Only a write that actually carries a file is
+encoded as multipart — `encode()` in `features/users/data/api.ts` checks for a
+`File` and falls back to the payload untouched:
+
 ```mermaid
 flowchart TD
-    PAYLOAD["ProductPayload"] --> LOOP["for each entry"]
-    LOOP --> KIND{"value type"}
+    PAYLOAD["UserPayload"] --> HASFILE{"avatar is a File?"}
+    HASFILE -->|no| JSONBODY["send as JSON"]
+    HASFILE -->|yes| LOOP["toFormData — for each entry"]
 
+    LOOP --> KIND{"value type"}
     KIND -->|File| FILE["append as-is"]
-    KIND -->|Array| ARR["append key[] per item<br/><i>what PHP expects</i>"]
-    KIND -->|boolean| BOOL["'1' or '0'"]
-    KIND -->|object| JSON["JSON.stringify"]
+    KIND -->|Array| ARR["append the bare key once per item<br/><i>roles, roles — not roles[]</i>"]
+    KIND -->|boolean| BOOL["'true' or 'false'"]
     KIND -->|"null, undefined or empty"| SKIP["skipped —<br/>untouched fields left alone"]
     KIND -->|other| STR["String(value)"]
 
     FILE --> FORM[("FormData")]
     ARR --> FORM
     BOOL --> FORM
-    JSON --> FORM
     STR --> FORM
 
     style PAYLOAD stroke:#4d90d9,stroke-width:2px
+    style HASFILE stroke:#d99a2b,stroke-width:2px
     style KIND stroke:#d99a2b,stroke-width:2px
     style SKIP stroke:#d99a2b,stroke-width:2px
+    style JSONBODY stroke:#3fa860,stroke-width:2px
     style FORM stroke:#3fa860,stroke-width:2px
 ```
 
-Products can carry an image, so every write is multipart rather than JSON.
+Two details are easy to get wrong:
 
-### Method spoofing
-
-```mermaid
-flowchart LR
-    PUT["PUT with multipart body"] --> PHP["PHP does not parse<br/>multipart on PUT"]
-    PHP --> EMPTY["image arrives empty,<br/>silently"]
-
-    SPOOF["POST + _method=PUT"] --> PARSED["body parsed correctly"]
-
-    style PUT stroke:#d9534f,stroke-width:2px
-    style EMPTY stroke:#d9534f,stroke-width:2px
-    style SPOOF stroke:#3fa860,stroke-width:2px
-    style PARSED stroke:#3fa860,stroke-width:2px
-```
-
-This one is worth remembering because it fails quietly: the request succeeds,
-the record updates, and only the file is missing.
+- **Arrays use a repeated bare key.** `roles`, `roles` — not `roles[]`, which
+  would arrive as one field literally named `roles[]` and be ignored.
+- **JSON is the default on purpose.** Multipart flattens every value to a
+  string, so a `null` that should clear a field and a number that should stay a
+  number both arrive as text. The heavier encoding is used only where a file
+  genuinely requires it.
 
 ## Delete and restore
 
 ```mermaid
 flowchart LR
-    DEL["DELETE /products/:id"] --> SOFT["soft delete —<br/>the row survives"]
+    DEL["DELETE /customers/:id"] --> SOFT["soft delete —<br/>the row survives"]
     SOFT --> HIDDEN["hidden from the default list"]
     HIDDEN --> SHOW["visible with showDeleted<br/>(with_trashed=1)"]
-    SHOW --> RESTORE["PATCH /products/:id/restore"]
+    SHOW --> RESTORE["POST /customers/:id/restore"]
     RESTORE --> BACK["back in the live list"]
 
     style DEL stroke:#d9534f,stroke-width:2px
