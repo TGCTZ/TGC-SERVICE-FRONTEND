@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { usersQueryOptions } from '@/features/users/data/api'
 import { finalizeReport } from '../data/api'
+import { listLabels, missingForFinalize } from '../data/finalize-rules'
 import { type IdentificationReport } from '../data/schema'
 
 /** Radix forbids an empty-string SelectItem value, so "nobody" needs one. */
@@ -82,6 +83,11 @@ export function FinalizeReportDialog({
     (user) => user.is_active && user.id !== currentUser?.id
   )
 
+  // The service refuses an incomplete report, so the refusal is shown here
+  // rather than spent on a round trip - and it names what is missing while the
+  // gemmologist is still in front of the report they can fix.
+  const missing = missingForFinalize(currentRow)
+
   const mutation = useMutation({
     mutationFn: () =>
       finalizeReport(currentRow.id, {
@@ -117,6 +123,14 @@ export function FinalizeReportDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {missing.length > 0 && (
+          <p className='rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive'>
+            Record the {listLabels(missing)} before finalizing. A certificate
+            quotes {missing.length === 1 ? 'it' : 'them'}, so the report cannot
+            be signed off without {missing.length === 1 ? 'it' : 'them'}.
+          </p>
+        )}
+
         <div className='space-y-2'>
           <Label htmlFor='verified-by'>Second gemmologist</Label>
           <Select value={verifiedBy} onValueChange={setVerifiedBy}>
@@ -149,7 +163,7 @@ export function FinalizeReportDialog({
           </Button>
           <Button
             onClick={() => mutation.mutate()}
-            disabled={mutation.isPending}
+            disabled={mutation.isPending || missing.length > 0}
           >
             {mutation.isPending ? 'Finalizing...' : 'Finalize'}
           </Button>

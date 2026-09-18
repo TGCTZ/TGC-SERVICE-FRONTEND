@@ -36,12 +36,20 @@ export type WorklistConfig = {
   permission: string
   /** Shown when the queue is empty — the good outcome, so say so plainly. */
   emptyMessage: string
+  /**
+   * Placeholder for the queue's search box.
+   *
+   * Names the fields the endpoint actually searches, which differ by row kind:
+   * an order is found by its reference or its customer, a stone also by its
+   * label and type. A queue with no placeholder gets no search box.
+   */
+  searchPlaceholder?: string
 }
 
 const worklistConfigs: WorklistConfig[] = [
   {
     slug: 'identification',
-    title: 'Awaiting identification',
+    title: 'Identification queue',
     description:
       "Orders with stones still to be typed. A stone's type is what prices it, so nothing here can be billed yet.",
     endpoint: '/orders/worklist',
@@ -51,6 +59,7 @@ const worklistConfigs: WorklistConfig[] = [
     // because the only reason to open this queue is to work it.
     permission: perm('stones', 'add'),
     emptyMessage: 'Every order is fully identified.',
+    searchPlaceholder: 'Search reference, customer or phone...',
   },
   {
     slug: 'billing',
@@ -62,10 +71,11 @@ const worklistConfigs: WorklistConfig[] = [
     actionLabel: 'Generate bill',
     permission: PERMISSIONS.generateBill,
     emptyMessage: 'Nothing is waiting to be billed.',
+    searchPlaceholder: 'Search reference, customer or phone...',
   },
   {
     slug: 'findings',
-    title: 'Awaiting findings',
+    title: 'Findings queue',
     description:
       'Paid stones on the bench, whose findings has not been finalized yet.',
     endpoint: '/identification-reports/worklist',
@@ -73,6 +83,7 @@ const worklistConfigs: WorklistConfig[] = [
     actionLabel: 'Record findings',
     permission: perm('identification-reports', 'add'),
     emptyMessage: 'No stones are waiting for findings.',
+    searchPlaceholder: 'Search label, reference, type or customer...',
   },
   {
     slug: 'certification',
@@ -84,6 +95,7 @@ const worklistConfigs: WorklistConfig[] = [
     actionLabel: 'Issue certificate',
     permission: PERMISSIONS.issueCertificate,
     emptyMessage: 'Nothing is waiting to be certified.',
+    searchPlaceholder: 'Search label, reference, type or customer...',
   },
 ]
 

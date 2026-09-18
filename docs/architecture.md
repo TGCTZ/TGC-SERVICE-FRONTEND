@@ -188,8 +188,8 @@ through the lab; the outer two are the same in any admin app:
 ```
 Overview        Dashboard                              ← what staff open first
 Operations      Customers · Orders                     ← ─┐
-Gemmology Lab   Awaiting identification · Identification │
-                Stones · Awaiting findings · Findings   │ the stone's journey,
+Gemmology Lab   Identification queue · Identification  │
+                Stones · Findings queue · Findings      │ the stone's journey,
 Billing         Ready to bill · Bills · Payments        │ in the order it happens
 Certificates    Ready to certify · Certificates       ← ─┘
 Administration  Users · Logs · Reference data           ← same in every project

@@ -10,7 +10,7 @@
  * @param blob - The file's bytes, with the content type the server sent.
  * @param filename - What the saved file should be called.
  * @example
- * saveBlob(await fetchCertificatePdf(id), 'CERT-2026-0004.pdf')
+ * saveBlob(await fetchCertificatePdf(id), 'CERT-2026-2027-0004.pdf')
  */
 export function saveBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob)

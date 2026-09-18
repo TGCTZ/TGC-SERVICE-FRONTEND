@@ -53,6 +53,7 @@ import {
   TREATMENTS,
   type EnumOption,
 } from '../data/enums'
+import { FINALIZE_REQUIRED_NAMES } from '../data/finalize-rules'
 import { type IdentificationReport } from '../data/schema'
 import { InstrumentsPanel } from './instruments-panel'
 import { StonePhotoPanel } from './stone-photo-panel'
@@ -139,6 +140,12 @@ export function ReportMutateDialog({
     ...findingsWorklistQuery(),
     enabled: open && !isEdit,
   })
+
+  // The queue deliberately includes stones whose draft is still open, since
+  // those are still work in progress - but a stone carries at most one report,
+  // so offering one here would post a create the server rejects as a duplicate.
+  // Those stones are reached by editing their draft instead.
+  const selectable = worklist.filter((stone) => !stone.report_detail)
 
   // A finalized report is locked by the service — `is_finalized` is one-way —
   // so the form stays locked even for someone who may otherwise edit.
@@ -294,11 +301,11 @@ export function ReportMutateDialog({
                           >
                             <FormControl>
                               <SelectTrigger className='w-full'>
-                                <SelectValue placeholder='Select a stone awaiting findings' />
+                                <SelectValue placeholder='Select a stone with no findings yet' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {worklist.map((stone) => (
+                              {selectable.map((stone) => (
                                 <SelectItem
                                   key={stone.id}
                                   value={String(stone.id)}
@@ -387,7 +394,7 @@ export function ReportMutateDialog({
                         name='weight'
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Weight</FormLabel>
+                            <FieldLabel name='weight' label='Weight' />
                             <FormControl>
                               <Input
                                 type='number'
@@ -488,7 +495,12 @@ export function ReportMutateDialog({
                 <Separator />
 
                 <section className='space-y-4'>
-                  <h3 className='text-sm font-medium'>Conclusion</h3>
+                  <h3 className='text-sm font-medium'>
+                    Conclusion
+                    <span className='ms-1 text-xs font-normal text-muted-foreground'>
+                      (needed to finalize)
+                    </span>
+                  </h3>
                   <FormField
                     control={form.control}
                     name='conclusion'
@@ -567,6 +579,31 @@ type FieldProps = {
 }
 
 /** A select whose blank choice means "not recorded", which is always allowed. */
+/**
+ * A field's label, marked when the field is one finalize insists on.
+ *
+ * The form itself stays permissive - a sitting at the bench must be saveable
+ * half-done - so this is not a validation message but a note about what is
+ * still ahead: these four are what a certificate quotes. Showing it here means
+ * the requirement is met while the stone is in hand rather than discovered
+ * later at the sign-off gate.
+ */
+function FieldLabel({ name, label }: { name: string; label: string }) {
+  return (
+    <FormLabel>
+      {label}
+      {FINALIZE_REQUIRED_NAMES.has(name) && (
+        <span
+          className='ms-1 text-xs font-normal text-muted-foreground'
+          title='Needed before this report can be finalized'
+        >
+          (needed to finalize)
+        </span>
+      )}
+    </FormLabel>
+  )
+}
+
 function OptionField({
   control,
   name,
@@ -579,7 +616,7 @@ function OptionField({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FieldLabel name={name} label={label} />
           <Select
             value={field.value ? String(field.value) : NONE}
             onValueChange={(value) =>
@@ -619,7 +656,7 @@ function TextField({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FieldLabel name={name} label={label} />
           <FormControl>
             <Input
               placeholder={placeholder}

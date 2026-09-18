@@ -72,17 +72,23 @@ export async function createRole(payload: RolePayload): Promise<Role> {
 }
 
 /**
- * Update a role.
+ * Update a role, one field at a time.
  *
  * `permissions` is a writable field on the role, so the matrix saves through
  * this one call — there is no separate sync endpoint. Sending the array
  * replaces the role's whole permission set.
+ *
+ * **PATCH, not PUT.** Both callers send a partial payload — the matrix sends
+ * only `permissions`, renaming sends only `name` — and a PUT is a full replace,
+ * so the API rightly rejects it for the fields that are missing. Sending the
+ * whole role back just to change one field would also mean the matrix
+ * overwrites a name it never showed the user.
  */
 export async function updateRole(
   id: number,
   payload: RolePayload
 ): Promise<Role> {
-  const res = await api.put(`/roles/${id}`, payload)
+  const res = await api.patch(`/roles/${id}`, payload)
   return roleSchema.parse(res.data)
 }
 

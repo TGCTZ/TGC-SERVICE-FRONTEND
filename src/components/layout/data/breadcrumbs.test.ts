@@ -36,7 +36,7 @@ describe('resolveBreadcrumbs', () => {
       'Home',
       'Overview',
       'Queues',
-      'Awaiting findings',
+      'Findings queue',
     ])
   })
 

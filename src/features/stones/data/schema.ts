@@ -10,6 +10,21 @@ const stoneTypeSchema = z
   .loose()
 
 /**
+ * The slice of an identification report a stone's row carries.
+ *
+ * Enough to tell the three states of a stone apart — no report, a draft, a
+ * finalized one — without a second request. The findings queue turns on exactly
+ * this: `Stone.report` is a one-to-one on the server, so offering "Record
+ * findings" on a stone that already has a draft would post a create and be
+ * rejected as a duplicate.
+ */
+const stoneReportSchema = z.object({
+  id: z.number(),
+  report_number: z.string(),
+  is_finalized: z.boolean(),
+})
+
+/**
  * A stone as returned by the API.
  *
  * `label`, `status` and `order` are read-only: the label is allocated by the
@@ -35,6 +50,8 @@ export const stoneSchema = z.object({
   /** Absolute URL of the bench photograph, or null. Printed on the certificate. */
   photo: z.string().nullable().default(null),
   status: z.string(),
+  /** The stone's report, or null when no findings have been recorded yet. */
+  report_detail: stoneReportSchema.nullable().default(null),
 
   created_at: z.string().nullable().default(null),
   updated_at: z.string().nullable().default(null),

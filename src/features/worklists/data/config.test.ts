@@ -69,4 +69,21 @@ describe('worklist configs', () => {
       expect(config.emptyMessage).not.toBe('')
     }
   })
+
+  it('gives every queue a search box naming what it searches', () => {
+    // The endpoints search the row's own model, so the placeholder differs by
+    // row kind - an order is found by its reference or customer, a stone also
+    // by its label and type. A queue with no placeholder renders no box, so a
+    // missing one is a silently unsearchable queue.
+    for (const config of allWorklistConfigs()) {
+      expect(config.searchPlaceholder, config.slug).toBeTruthy()
+    }
+
+    expect(worklistConfigBySlug('billing')?.searchPlaceholder).toContain(
+      'reference'
+    )
+    expect(worklistConfigBySlug('findings')?.searchPlaceholder).toContain(
+      'label'
+    )
+  })
 })

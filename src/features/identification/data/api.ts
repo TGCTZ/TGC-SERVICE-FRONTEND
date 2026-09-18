@@ -34,6 +34,23 @@ export const reportsQuery = (params: ListParams) =>
     placeholderData: (previous) => previous,
   })
 
+/**
+ * One report by id.
+ *
+ * The findings queue's rows carry only enough of a report to decide which
+ * action to offer, so opening Edit or Finalize from a queue row fetches the
+ * rest. Shares its key shape with the list so a mutation invalidating
+ * `['identification-reports']` refreshes both.
+ */
+export const reportQuery = (id: number) =>
+  queryOptions({
+    queryKey: ['identification-reports', 'detail', id],
+    queryFn: async (): Promise<IdentificationReport> => {
+      const res = await api.get(`/identification-reports/${id}`)
+      return reportSchema.parse(res.data)
+    },
+  })
+
 export type ReportPayload = Record<string, unknown>
 
 /**
