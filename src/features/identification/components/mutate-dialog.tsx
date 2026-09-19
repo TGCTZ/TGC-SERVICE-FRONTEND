@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { AxiosError } from 'axios'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import {
   useMutation,
   useQueries,
@@ -127,7 +127,36 @@ export function ReportMutateDialog({
   currentRow,
   initialStone,
 }: ReportMutateDialogProps) {
-  const isEdit = Boolean(currentRow)
+  /**
+   * The report the server returned from a create, kept so the dialog can carry
+   * on as if it had been opened for editing.
+   *
+   * Instruments post to `{report}/instruments-used/`, so they have nowhere to
+   * go until the report exists. Closing on create forced the gemmologist to
+   * reopen the row just to record what they had measured; holding the dialog
+   * open keeps one sitting at the bench as one sitting in the UI.
+   */
+  const [createdRow, setCreatedRow] = useState<IdentificationReport | null>(
+    null
+  )
+
+  // Forget the created report when the dialog closes. Without this, opening
+  // "Record findings" a second time would still be holding the first report:
+  // the parent keys this component on `create` for every create, so it is not
+  // remounted between them.
+  //
+  // Adjusted during render rather than in an effect - React's own guidance for
+  // resetting state when a prop changes, and it avoids the cascading extra
+  // render an effect would cost.
+  const [wasOpen, setWasOpen] = useState(open)
+  if (wasOpen !== open) {
+    setWasOpen(open)
+    if (!open) setCreatedRow(null)
+  }
+
+  /** The report this dialog is working on, however it got one. */
+  const row = currentRow ?? createdRow
+  const isEdit = Boolean(row)
   const queryClient = useQueryClient()
 
   // One hook for all five reference lists; a hook cannot run inside `.map()`.
@@ -149,40 +178,46 @@ export function ReportMutateDialog({
 
   // A finalized report is locked by the service — `is_finalized` is one-way —
   // so the form stays locked even for someone who may otherwise edit.
-  const isLocked = Boolean(currentRow?.is_finalized)
+  const isLocked = Boolean(row?.is_finalized)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(reportFormSchema),
     defaultValues: { stone: '', is_polished: false },
   })
 
+  /**
+   * The stone the photograph panel writes to, watched rather than read once.
+   *
+   * Watching is what lets the panel appear the moment someone picks a stone
+   * while creating, instead of waiting for a report that the photograph never
+   * needed - it is the stone that carries the image.
+   */
+  const watchedStone = useWatch({ control: form.control, name: 'stone' })
+  const selectedStone = watchedStone ? Number(watchedStone) : null
+
   useEffect(() => {
     if (!open) return
 
     form.reset({
-      stone: currentRow
-        ? String(currentRow.stone)
-        : initialStone
-          ? String(initialStone)
-          : '',
-      species: currentRow?.species ? String(currentRow.species) : '',
-      variety: currentRow?.variety ? String(currentRow.variety) : '',
-      color: currentRow?.color ? String(currentRow.color) : '',
-      origin: currentRow?.origin ? String(currentRow.origin) : '',
-      shape_cut: currentRow?.shape_cut ? String(currentRow.shape_cut) : '',
-      nature_type: currentRow?.nature_type ?? '',
-      transparency: currentRow?.transparency ?? '',
-      treatment: currentRow?.treatment ?? '',
-      optic_character: currentRow?.optic_character ?? '',
-      dimensions: currentRow?.dimensions ?? '',
-      refractive_index: currentRow?.refractive_index ?? '',
-      specific_gravity: currentRow?.specific_gravity ?? '',
-      weight: currentRow?.stone_weight ?? '',
-      weight_unit: currentRow?.stone_weight_unit ?? 'carat',
-      is_polished: currentRow?.is_polished ?? false,
-      conclusion: currentRow?.conclusion ?? '',
+      stone: row ? String(row.stone) : initialStone ? String(initialStone) : '',
+      species: row?.species ? String(row.species) : '',
+      variety: row?.variety ? String(row.variety) : '',
+      color: row?.color ? String(row.color) : '',
+      origin: row?.origin ? String(row.origin) : '',
+      shape_cut: row?.shape_cut ? String(row.shape_cut) : '',
+      nature_type: row?.nature_type ?? '',
+      transparency: row?.transparency ?? '',
+      treatment: row?.treatment ?? '',
+      optic_character: row?.optic_character ?? '',
+      dimensions: row?.dimensions ?? '',
+      refractive_index: row?.refractive_index ?? '',
+      specific_gravity: row?.specific_gravity ?? '',
+      weight: row?.stone_weight ?? '',
+      weight_unit: row?.stone_weight_unit ?? 'carat',
+      is_polished: row?.is_polished ?? false,
+      conclusion: row?.conclusion ?? '',
     })
-  }, [open, currentRow, initialStone, form])
+  }, [open, row, initialStone, form])
 
   const mutation = useMutation({
     mutationFn: (values: FormValues) => {
@@ -218,17 +253,27 @@ export function ReportMutateDialog({
       // between stones — but the request must still carry it.
       const stone = Number(values.stone)
 
-      return currentRow
-        ? updateReport(currentRow.id, { ...payload, stone })
+      return row
+        ? updateReport(row.id, { ...payload, stone })
         : createReport({ ...payload, stone })
     },
     onSuccess: (report) => {
-      toast.success(
-        isEdit ? 'Findings saved' : `Opened ${report.report_number}`
-      )
       queryClient.invalidateQueries({ queryKey: ['identification-reports'] })
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
-      onOpenChange(false)
+
+      if (isEdit) {
+        toast.success('Findings saved')
+        onOpenChange(false)
+        return
+      }
+
+      // Deliberately left open. The report now exists, so adopting it turns
+      // this into an edit and the instruments panel below becomes usable -
+      // which is the whole reason a create closed too early before.
+      setCreatedRow(report)
+      toast.success(
+        `Opened ${report.report_number} - add the photograph and instruments below`
+      )
     },
     onError: (error) => {
       const fields = fieldErrors(error)
@@ -258,14 +303,14 @@ export function ReportMutateDialog({
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-3xl'>
         <DialogHeader className='text-start'>
           <DialogTitle className='flex items-center gap-2'>
-            {isEdit ? `Edit ${currentRow?.report_number}` : 'Record findings'}
-            {currentRow?.is_finalized && (
+            {isEdit ? `Edit ${row?.report_number}` : 'Record findings'}
+            {row?.is_finalized && (
               <StatusBadge tone='success'>Finalized</StatusBadge>
             )}
           </DialogTitle>
           <DialogDescription>
-            {currentRow
-              ? `Stone ${currentRow.stone_label} · ${currentRow.order_reference}`
+            {row
+              ? `Stone ${row.stone_label} · ${row.order_reference}`
               : 'Only paid stones without finished findings can be opened.'}
           </DialogDescription>
         </DialogHeader>
@@ -291,7 +336,7 @@ export function ReportMutateDialog({
                           <FormControl>
                             <Input
                               readOnly
-                              value={`${currentRow?.stone_label ?? ''} · ${currentRow?.order_reference ?? ''}`}
+                              value={`${row?.stone_label ?? ''} · ${row?.order_reference ?? ''}`}
                             />
                           </FormControl>
                         ) : (
@@ -395,7 +440,9 @@ export function ReportMutateDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FieldLabel name='weight' label='Weight' />
-                            <FormControl>
+                            <FormControl
+                              {...unansweredProps('weight', field.value)}
+                            >
                               <Input
                                 type='number'
                                 step='0.001'
@@ -507,7 +554,9 @@ export function ReportMutateDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className='sr-only'>Conclusion</FormLabel>
-                        <FormControl>
+                        <FormControl
+                          {...unansweredProps('conclusion', field.value)}
+                        >
                           <Textarea
                             rows={4}
                             placeholder='What the stone is, in the words the certificate will carry.'
@@ -526,24 +575,28 @@ export function ReportMutateDialog({
 
           {/* The photograph and the instruments both save immediately through
             their own endpoints, so these panels sit outside the report form
-            rather than inside it. The photograph writes to the stone, not the
-            report. */}
-          {currentRow && (
+            rather than inside it.
+
+            They are gated separately because they depend on different things.
+            The photograph writes to the *stone*, so it needs only a chosen
+            stone and can be taken before any report exists. The instruments
+            post to the report's own sub-resource, so they need a saved report
+            - which is why a create adopts what the server returns rather than
+            closing. */}
+          {selectedStone && (
             <>
               <Separator className='my-6' />
               <div className='px-1'>
-                <StonePhotoPanel
-                  stoneId={currentRow.stone}
-                  readOnly={isLocked}
-                />
+                <StonePhotoPanel stoneId={selectedStone} readOnly={isLocked} />
               </div>
+            </>
+          )}
 
+          {row && (
+            <>
               <Separator className='my-6' />
               <div className='px-1'>
-                <InstrumentsPanel
-                  reportId={currentRow.id}
-                  readOnly={isLocked}
-                />
+                <InstrumentsPanel reportId={row.id} readOnly={isLocked} />
               </div>
             </>
           )}
@@ -555,7 +608,9 @@ export function ReportMutateDialog({
             onClick={() => onOpenChange(false)}
             disabled={mutation.isPending}
           >
-            Cancel
+            {/* Once a report exists the work is already saved, so offering to
+              "Cancel" would misdescribe what this button does. */}
+            {row ? 'Close' : 'Cancel'}
           </Button>
           <Button
             type='submit'
@@ -588,6 +643,33 @@ type FieldProps = {
  * the requirement is met while the stone is in hand rather than discovered
  * later at the sign-off gate.
  */
+/**
+ * `aria-invalid` for an unanswered field, or nothing at all.
+ *
+ * Spread rather than passed as a value, because `FormControl` sets
+ * `aria-invalid={!!error}` and then spreads its own props over it - so passing
+ * an explicit `undefined` would *clear* a genuine validation error's red state
+ * on a field that has been answered. Omitting the key entirely lets the real
+ * error show through.
+ */
+function unansweredProps(name: string, value: unknown) {
+  return needsAnswer(name, value) ? { 'aria-invalid': true as const } : {}
+}
+
+/**
+ * Whether a field finalize insists on is still unanswered.
+ *
+ * Drives the red outline. Note what it is *not*: the form saves happily
+ * without any of these, so this is not "you entered something wrong" - it is
+ * "this one is still outstanding". Tying it to emptiness rather than to a
+ * submit attempt means the mark clears the moment the finding is recorded,
+ * which is the feedback a gemmologist working down the form actually wants.
+ */
+function needsAnswer(name: string, value: unknown): boolean {
+  if (!FINALIZE_REQUIRED_NAMES.has(name)) return false
+  return !String(value ?? '').trim()
+}
+
 function FieldLabel({ name, label }: { name: string; label: string }) {
   return (
     <FormLabel>
@@ -623,7 +705,7 @@ function OptionField({
               field.onChange(value === NONE ? '' : value)
             }
           >
-            <FormControl>
+            <FormControl {...unansweredProps(name, field.value)}>
               <SelectTrigger className='w-full'>
                 <SelectValue placeholder='Not recorded' />
               </SelectTrigger>
@@ -657,7 +739,7 @@ function TextField({
       render={({ field }) => (
         <FormItem>
           <FieldLabel name={name} label={label} />
-          <FormControl>
+          <FormControl {...unansweredProps(name, field.value)}>
             <Input
               placeholder={placeholder}
               {...field}
