@@ -18,7 +18,7 @@ function report(overrides: Record<string, unknown> = {}) {
   return reportSchema.parse({
     id: 1,
     stone: 1,
-    report_number: 'TGC-2026-2027-0001',
+    report_number: 'TGC-2627-0001',
     is_finalized: false,
     species: 3,
     color: 4,

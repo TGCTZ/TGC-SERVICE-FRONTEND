@@ -34,7 +34,7 @@ import { OrderStonesPanel } from './stones-panel'
 
 /**
  * `reference_number` is absent on purpose: the service allocates
- * `ORD-YYYY-YYYY-NNNN` on create, so offering the field would invite an edit the
+ * `ORD-<yy><yy>-NNNN` on create, so offering the field would invite an edit the
  * API discards.
  *
  * `mode` decides which half of the customer block applies. A flat shape rather
