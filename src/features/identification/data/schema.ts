@@ -3,6 +3,19 @@ import { z } from 'zod'
 /** A reference row expanded alongside its id. */
 const relatedSchema = z.object({ id: z.number(), name: z.string() }).loose()
 
+/**
+ * Someone who may be named as the second gemmologist.
+ *
+ * Deliberately not a `User`: the endpoint behind it returns only a name and an
+ * id, because the bench holds no permission to read the user list.
+ */
+export const gemmologistCandidateSchema = z.object({
+  id: z.number(),
+  label: z.string(),
+})
+
+export type GemmologistCandidate = z.infer<typeof gemmologistCandidateSchema>
+
 /** One instrument used during a report, with its reading. */
 export const instrumentUsedSchema = z.object({
   id: z.number(),

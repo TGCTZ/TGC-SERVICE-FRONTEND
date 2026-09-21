@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/auth-store'
 import { serverMessageOr } from '@/lib/handle-server-error'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,8 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { usersQueryOptions } from '@/features/users/data/api'
-import { finalizeReport } from '../data/api'
+import { finalizeReport, gemmologistCandidatesQuery } from '../data/api'
 import { listLabels, missingForFinalize } from '../data/finalize-rules'
 import { type IdentificationReport } from '../data/schema'
 
@@ -53,7 +51,6 @@ export function FinalizeReportDialog({
   currentRow,
 }: FinalizeDialogProps) {
   const queryClient = useQueryClient()
-  const currentUser = useAuthStore((state) => state.auth.user)
   const [verifiedBy, setVerifiedBy] = useState<string>(NONE)
 
   // Reset per opening. The dialog is not remounted between reports, so a choice
@@ -72,16 +69,15 @@ export function FinalizeReportDialog({
     setVerifiedBy(NONE)
   }
 
-  const { data } = useQuery({
-    ...usersQueryOptions({ page: 1, perPage: 100, search: '' }),
-    enabled: open,
-  })
-
-  // The first gemmologist cannot also be the second — the API refuses it, and
-  // offering the choice only to have it rejected wastes the user's time.
-  const candidates = (data?.items ?? []).filter(
-    (user) => user.is_active && user.id !== currentUser?.id
-  )
+  // The endpoint already encodes who is eligible — active, on the bench, and
+  // not the caller — so there is nothing left to filter here. Previously this
+  // read `/users`, which the gemmologist role cannot see: the 403 fell through
+  // an `?? []` and the dropdown came up empty with nothing said.
+  const {
+    data: candidates = [],
+    isPending,
+    isError,
+  } = useQuery({ ...gemmologistCandidatesQuery(), enabled: open })
 
   // The service refuses an incomplete report, so the refusal is shown here
   // rather than spent on a round trip - and it names what is missing while the
@@ -139,13 +135,24 @@ export function FinalizeReportDialog({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={NONE}>No second gemmologist</SelectItem>
-              {candidates.map((user) => (
-                <SelectItem key={user.id} value={String(user.id)}>
-                  {user.full_name || user.username}
+              {candidates.map((candidate) => (
+                <SelectItem key={candidate.id} value={String(candidate.id)}>
+                  {candidate.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {isError && (
+            <p className='text-xs text-destructive'>
+              The list of gemmologists could not be loaded. You can still
+              finalize with a single name.
+            </p>
+          )}
+          {!isError && !isPending && candidates.length === 0 && (
+            <p className='text-xs text-muted-foreground'>
+              No other gemmologist is available to countersign.
+            </p>
+          )}
           <p className='text-xs text-muted-foreground'>
             {verifiedBy === NONE
               ? 'The certificate will name only you. It states that at least two gemmologists examined the stone.'

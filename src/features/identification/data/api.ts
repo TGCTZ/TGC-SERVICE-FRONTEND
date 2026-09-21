@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import {
@@ -9,8 +10,10 @@ import {
 } from '@/lib/api-query'
 import { stoneSchema, type Stone } from '@/features/stones/data/schema'
 import {
+  gemmologistCandidateSchema,
   instrumentUsedSchema,
   reportSchema,
+  type GemmologistCandidate,
   type IdentificationReport,
   type InstrumentUsed,
 } from './schema'
@@ -118,6 +121,26 @@ export const findingsWorklistQuery = () =>
         params: { page_size: 100 },
       })
       return paginatedSchema(stoneSchema).parse(res.data).results
+    },
+  })
+
+/**
+ * Who may be named as the second gemmologist on this report.
+ *
+ * A dedicated endpoint rather than the user list: the rule is "active members
+ * of the gemmologist role, excluding the caller", and it is the server's to
+ * enforce because the certificate claims two qualified gemmologists saw the
+ * stone. It also keeps the dialog working for the bench, which holds no
+ * permission to read `/users` at all.
+ */
+export const gemmologistCandidatesQuery = () =>
+  queryOptions({
+    queryKey: ['gemmologist-candidates'],
+    queryFn: async (): Promise<GemmologistCandidate[]> => {
+      const res = await api.get(
+        '/identification-reports/gemmologist-candidates'
+      )
+      return z.array(gemmologistCandidateSchema).parse(res.data)
     },
   })
 
