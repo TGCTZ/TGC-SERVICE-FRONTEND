@@ -87,7 +87,7 @@ const worklistConfigs: WorklistConfig[] = [
   },
   {
     slug: 'certification',
-    title: 'Ready to certify',
+    title: 'Certification queue',
     description:
       'Stones with a finalized findings and a settled bill, not yet certified.',
     endpoint: '/certificates/worklist',
