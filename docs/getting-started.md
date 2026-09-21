@@ -65,7 +65,7 @@ paths like `api.get('/orders')`.
 
 ## 3. Sign in
 
-`seed` creates one account per role, as `<role>@tgc.com`. It prints the shared
+`seed` creates one account per role, as `<role>@example.com`. It prints the shared
 password when it finishes.
 
 Pick the account that matches what you want to look at — the sidebar and the
@@ -74,13 +74,13 @@ permissions the API enforces:
 
 | Account | What it demonstrates |
 | --- | --- |
-| `superadmin@tgc.com` | Everything. The only account that can edit the protected `superadmin` role. |
-| `administrator@tgc.com` | Everything except the protections on `superadmin`. |
-| `receptionist@tgc.com` | Takes orders in. Can register customers and create orders, but cannot type a stone or record findings — the Gemmology Lab actions are absent, not disabled. |
-| `gemmologist@tgc.com` | The bench. Identification, findings and certification, with no billing. |
-| `accountant@tgc.com` | Billing and payments, read-only on the lab. |
+| `superadmin@example.com` | Everything. The only account that can edit the protected `superadmin` role. |
+| `manager@example.com` | Everything except the protections on `superadmin`. |
+| `receptionist@example.com` | Takes orders in. Can register customers and create orders, but cannot type a stone or record findings — the Gemmology Lab actions are absent, not disabled. |
+| `gemmologist@example.com` | The bench. Identification, findings and certification, with no billing. |
+| `accountant@example.com` | Billing and payments, read-only on the lab. |
 
-**Sign in as `receptionist@tgc.com` once.** It is the fastest way to see that
+**Sign in as `receptionist@example.com` once.** It is the fastest way to see that
 the permission model is real rather than decorative, and it is the check to
 repeat whenever you add a gated screen.
 

@@ -305,7 +305,7 @@ read:
 ```
 
 Reading the log needs `core.view_activitylog`, granted only to `superadmin` and
-`administrator`. There are no write endpoints — the log is append-only.
+`manager`. There are no write endpoints — the log is append-only.
 
 Record history is deliberately **not** duplicated onto individual rows. One
 screen that can answer "what happened to this record" alongside "what happened

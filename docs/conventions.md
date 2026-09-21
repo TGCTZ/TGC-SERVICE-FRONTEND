@@ -462,6 +462,6 @@ A bare `src/lib/api.ts` is acceptable only because it is *the* HTTP client.
 - [ ] Dates and money go through `lib/format.ts`
 - [ ] Statuses render through `createStatusBadge`, never a hand-rolled pill
 - [ ] At most one `tone: 'advance'` action per row — the workflow verb
-- [ ] Checked as `receptionist@tgc.com` — the menu should lose what that role
+- [ ] Checked as `receptionist@example.com` — the menu should lose what that role
       cannot do
 - [ ] Filenames carry nothing the folder already says (§12)

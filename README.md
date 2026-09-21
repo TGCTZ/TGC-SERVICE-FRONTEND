@@ -25,7 +25,7 @@ pnpm dev
 ```
 
 Sign in with an account created by the backend's `seed` command. Signing in as
-a receptionist rather than an administrator visibly shrinks the sidebar,
+a receptionist rather than a manager visibly shrinks the sidebar,
 because navigation is filtered by the same permissions the API enforces.
 
 Full setup and the common first-run failures:
