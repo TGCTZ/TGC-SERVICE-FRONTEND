@@ -106,7 +106,7 @@ export function SimulatePaymentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <dl className='grid grid-cols-3 gap-2 rounded-md border p-3 text-sm'>
+        <dl className='grid grid-cols-1 gap-2 rounded-md border p-3 text-sm sm:grid-cols-3'>
           <div>
             <dt className='text-xs text-muted-foreground'>Total</dt>
             <dd className='tabular-nums'>

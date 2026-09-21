@@ -53,11 +53,17 @@ function DialogOverlay({
 /**
  * The dialog panel. Renders its own close button in the corner.
  *
- * Laid out as a grid and **not height-capped by default**. For any dialog
- * whose content can grow — a form, a long record — add
- * `flex max-h-[90dvh] flex-col overflow-hidden` here and put the middle
- * region in a `<DialogBody>`, or the panel grows past the viewport and its
- * footer becomes unreachable.
+ * **Height-capped at `85dvh` by default, and scrolls its own overflow.**
+ * The panel is centred with `translate-y-[-50%]`, so one that outgrows the
+ * viewport loses its top *and* bottom off-screen at once and its footer
+ * becomes unreachable — with no page scroll to recover them. The cap is on
+ * the primitive rather than left to each dialog because that failure only
+ * shows up on a short viewport (a phone, or a laptop with the keyboard
+ * open), which is exactly where it is least likely to be tested.
+ *
+ * For a dialog with a pinned header and footer around a scrolling middle,
+ * still add `flex flex-col overflow-hidden` here and wrap the middle region
+ * in a `<DialogBody>`; the cap below is the floor, not a replacement.
  *
  * @see `src/components/dialog-body.tsx` for why `dvh`, and the
  * `min-h-0` / `ScrollArea` traps that come with this layout
@@ -76,7 +82,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot='dialog-content'
         className={cn(
-          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg',
+          'fixed top-[50%] left-[50%] z-50 grid max-h-[85dvh] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-lg border bg-background p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg',
           className
         )}
         {...props}

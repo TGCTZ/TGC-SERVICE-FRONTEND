@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-table'
 import { type Meta } from '@/lib/api-query'
 import { cn } from '@/lib/utils'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -18,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { DataTableCardList } from './card-list'
 import { DataTablePagination } from './pagination'
 import { DataTableViewOptions } from './view-options'
 
@@ -58,6 +60,10 @@ type DataTableProps<T> = {
  * Extracted because eight screens need identical behaviour - notably the
  * row-click affordance, which is easy to implement subtly differently (or to
  * forget to guard) if each table hand-rolls it.
+ *
+ * Below `md` it renders `<DataTableCardList>` instead of a table - the same
+ * rows and the same cell renderers, stacked into labelled cards. See that
+ * file for why sideways scrolling is not an adequate mobile answer.
  */
 export function DataTable<T extends { id: number }>({
   columns,
@@ -73,6 +79,10 @@ export function DataTable<T extends { id: number }>({
   showSerialNumber = true,
 }: DataTableProps<T>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const isMobile = useIsMobile()
+
+  /** First row's serial number, derived from the server's pagination. */
+  const offset = meta ? (meta.current_page - 1) * meta.per_page : 0
 
   /**
    * The serial number is injected here rather than declared per feature.
@@ -83,8 +93,6 @@ export function DataTable<T extends { id: number }>({
    */
   const allColumns = useMemo<ColumnDef<T>[]>(() => {
     if (!showSerialNumber) return columns
-
-    const offset = meta ? (meta.current_page - 1) * meta.per_page : 0
 
     const serialColumn: ColumnDef<T> = {
       id: 'sn',
@@ -100,7 +108,7 @@ export function DataTable<T extends { id: number }>({
     }
 
     return [serialColumn, ...columns]
-  }, [columns, meta, showSerialNumber])
+  }, [columns, offset, showSerialNumber])
 
   const sorting: SortingState = state.sortBy
     ? [{ id: state.sortBy, desc: state.sortDir === 'desc' }]
@@ -167,72 +175,129 @@ export function DataTable<T extends { id: number }>({
         </div>
       </div>
 
-      <div className='overflow-hidden rounded-md border'>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} colSpan={header.colSpan}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isFetching && data.length === 0 ? (
-              Array.from({ length: 8 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell colSpan={allColumns.length}>
-                    <Skeleton className='h-8 w-full' />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className={cn(
-                    onRowClick && 'cursor-pointer',
-                    // Deleted rows read as a warning, not as "loading". A tint
-                    // plus a start-edge marker survives both themes, where a
-                    // plain opacity drop just looks like a rendering glitch.
-                    isRowDeleted?.(row.original) &&
-                      'border-s-2 border-s-destructive bg-destructive/5 text-muted-foreground hover:bg-destructive/10'
-                  )}
-                  onClick={(event) => handleRowClick(event, row.original)}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+      {isFetching && data.length === 0 ? (
+        <TableSkeleton isMobile={isMobile} columnCount={allColumns.length} />
+      ) : isMobile ? (
+        // The card view has no header row to anchor an empty message under,
+        // so mobile states it on its own. Desktop keeps it inside the table,
+        // where the column headers still give it context.
+        table.getRowModel().rows.length ? (
+          <DataTableCardList
+            rows={table.getRowModel().rows}
+            offset={offset}
+            onRowClick={onRowClick}
+            isRowDeleted={isRowDeleted}
+          />
+        ) : (
+          <div className='rounded-md border p-8 text-center text-sm text-muted-foreground'>
+            {emptyMessage}
+          </div>
+        )
+      ) : (
+        <div className='overflow-hidden rounded-md border'>
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id} colSpan={header.colSpan}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={allColumns.length}
-                  className='h-24 text-center'
-                >
-                  {emptyMessage}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {!table.getRowModel().rows.length ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={allColumns.length}
+                    className='h-24 text-center'
+                  >
+                    {emptyMessage}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    className={cn(
+                      onRowClick && 'cursor-pointer',
+                      // Deleted rows read as a warning, not as "loading". A tint
+                      // plus a start-edge marker survives both themes, where a
+                      // plain opacity drop just looks like a rendering glitch.
+                      isRowDeleted?.(row.original) &&
+                        'border-s-2 border-s-destructive bg-destructive/5 text-muted-foreground hover:bg-destructive/10'
+                    )}
+                    onClick={(event) => handleRowClick(event, row.original)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <DataTablePagination table={table} />
+    </div>
+  )
+}
+
+/**
+ * The loading placeholder, shaped like whichever view is about to replace it.
+ *
+ * A row of full-width bars would imply a table on a phone and then be replaced
+ * by cards, so the skeleton mirrors the card stack below `md` instead.
+ */
+function TableSkeleton({
+  isMobile,
+  columnCount,
+}: {
+  isMobile: boolean
+  columnCount: number
+}) {
+  if (isMobile) {
+    return (
+      <div className='space-y-3'>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className='space-y-3 rounded-md border p-4'>
+            <Skeleton className='h-3 w-8' />
+            <Skeleton className='h-4 w-full' />
+            <Skeleton className='h-4 w-4/5' />
+            <Skeleton className='h-4 w-3/5' />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className='overflow-hidden rounded-md border'>
+      <Table>
+        <TableBody>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <TableRow key={i}>
+              <TableCell colSpan={columnCount}>
+                <Skeleton className='h-8 w-full' />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   )
 }

@@ -18,11 +18,18 @@ type AuditLogDetailDialogProps = {
   onOpenChange: (open: boolean) => void
 }
 
+/**
+ * One label/value row of the record.
+ *
+ * Stacks below `sm`, where a third of the dialog is too narrow to hold a
+ * label: the panel is viewport-width until `sm:max-w-md` takes over, so this
+ * breakpoint tracks the panel's own width exactly.
+ */
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
-    <div className='grid grid-cols-3 gap-2 py-1.5 text-sm'>
+    <div className='grid gap-x-2 py-1.5 text-sm sm:grid-cols-3'>
       <dt className='text-muted-foreground'>{label}</dt>
-      <dd className='col-span-2 break-all'>{value ?? '—'}</dd>
+      <dd className='break-all sm:col-span-2'>{value ?? '—'}</dd>
     </div>
   )
 }

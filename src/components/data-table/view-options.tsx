@@ -9,6 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
+import { columnLabel } from './column-label'
 
 type DataTableViewOptionsProps<TData> = {
   table: Table<TData>
@@ -24,9 +25,8 @@ type DataTableViewOptionsProps<TData> = {
  * `enableHiding: false` — display columns like SN and actions are structural
  * and should not be toggleable.
  *
- * **Labels are the raw `column.id`, merely capitalised.** A column id of
- * `created_at` shows as "Created_at". Until this reads a `meta.label`, pick
- * column ids that read acceptably to a user.
+ * Labels come from `columnLabel()`, so a column can override an unreadable id
+ * with `meta.label` and `created_at` renders as "Created at".
  *
  * @param props.table - The TanStack Table instance
  */
@@ -58,11 +58,10 @@ export function DataTableViewOptions<TData>({
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
-                className='capitalize'
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {column.id}
+                {columnLabel(column)}
               </DropdownMenuCheckboxItem>
             )
           })}
