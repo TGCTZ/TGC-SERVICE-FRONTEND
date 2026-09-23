@@ -146,7 +146,6 @@ export function ReportViewDialog({
             <DefinitionList
               items={[
                 { label: 'Weight', value: formatStoneWeight(report) },
-                { label: 'Dimensions', value: report.dimensions },
                 { label: 'Refractive index', value: report.refractive_index },
                 { label: 'Specific gravity', value: report.specific_gravity },
                 {
@@ -160,8 +159,8 @@ export function ReportViewDialog({
 
           <Separator />
 
-          {/* Each instrument is a sub-resource written at the bench as the
-              reading is taken; here they are simply what the report rests on. */}
+          {/* Each instrument is a sub-resource ticked at the bench; here they
+              are simply what the report rests on. */}
           <div className='space-y-3'>
             <h3 className='text-sm font-medium'>Instruments used</h3>
 
@@ -178,9 +177,6 @@ export function ReportViewDialog({
                   >
                     <span className='text-sm font-medium'>
                       {used.instrument_detail?.name ?? 'Instrument'}
-                    </span>
-                    <span className='text-sm text-muted-foreground'>
-                      {used.reading || 'No reading'}
                     </span>
                   </li>
                 ))}

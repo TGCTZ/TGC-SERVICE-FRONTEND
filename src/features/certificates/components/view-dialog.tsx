@@ -1,3 +1,4 @@
+import { Square, SquareCheck } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
 import {
   Dialog,
@@ -102,7 +103,6 @@ export function CertificateViewDialog({
                   label: 'Specific gravity',
                   value: certificate.specific_gravity_snapshot,
                 },
-                { label: 'Dimensions', value: certificate.dimensions_snapshot },
                 { label: 'Gemmologist 1', value: certificate.gemmologist },
                 { label: 'Gemmologist 2', value: certificate.gemmologist_two },
                 {
@@ -124,20 +124,30 @@ export function CertificateViewDialog({
 
           <div className='space-y-3'>
             <h3 className='text-sm font-medium'>Instruments used</h3>
-            {certificate.instruments_snapshot.length === 0 ? (
+            {certificate.instrument_checklist.length === 0 ? (
               <p className='rounded-md border border-dashed p-4 text-sm text-muted-foreground'>
                 No instruments recorded.
               </p>
             ) : (
               <ul className='divide-y rounded-md border'>
-                {certificate.instruments_snapshot.map((used) => (
+                {certificate.instrument_checklist.map((instrument) => (
                   <li
-                    key={used.name}
-                    className='flex flex-wrap items-center justify-between gap-2 p-3'
+                    key={instrument.name}
+                    className='flex items-center gap-2 p-3'
                   >
-                    <span className='text-sm font-medium'>{used.name}</span>
-                    <span className='text-sm text-muted-foreground'>
-                      {used.reading || 'No reading'}
+                    {instrument.used ? (
+                      <SquareCheck className='size-4 text-primary' />
+                    ) : (
+                      <Square className='size-4 text-muted-foreground' />
+                    )}
+                    <span
+                      className={
+                        instrument.used
+                          ? 'text-sm font-medium'
+                          : 'text-sm text-muted-foreground'
+                      }
+                    >
+                      {instrument.name}
                     </span>
                   </li>
                 ))}

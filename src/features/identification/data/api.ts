@@ -163,13 +163,11 @@ export const reportInstrumentsQuery = (reportId: number) =>
 
 export async function addInstrumentUsed(
   reportId: number,
-  instrument: number,
-  reading: string
+  instrument: number
 ): Promise<InstrumentUsed> {
   const res = await api.post('/instruments-used', {
     report: reportId,
     instrument,
-    reading,
   })
   return instrumentUsedSchema.parse(res.data)
 }

@@ -40,7 +40,8 @@ export const certificateSchema = z.object({
    *
    * Every one is a plain string on the wire, including specific gravity — a
    * decimal crosses as text to keep its precision. `instruments_snapshot` is a
-   * JSON list of {name, reading}, not a relation.
+   * JSON list of {name, used}, not a relation. Certificates from
+   * before the checklist list only the instruments used, with no `used` key.
    */
   species_snapshot: z.string().nullable().default(''),
   variety_snapshot: z.string().nullable().default(''),
@@ -49,7 +50,6 @@ export const certificateSchema = z.object({
   optic_character_snapshot: z.string().nullable().default(''),
   treatment_snapshot: z.string().nullable().default(''),
   nature_type_snapshot: z.string().nullable().default(''),
-  dimensions_snapshot: z.string().nullable().default(''),
   refractive_index_snapshot: z.string().nullable().default(''),
   specific_gravity_snapshot: z.string().nullable().default(''),
   comments_snapshot: z.string().nullable().default(''),
@@ -57,9 +57,13 @@ export const certificateSchema = z.object({
     .array(
       z.object({
         name: z.string().default(''),
-        reading: z.string().default(''),
+        used: z.boolean().default(true),
       })
     )
+    .default([]),
+  /** The lab's full instrument list with this certificate's ticks, as the PDF prints it. */
+  instrument_checklist: z
+    .array(z.object({ name: z.string(), used: z.boolean() }))
     .default([]),
   report_number_snapshot: z.string().nullable().default(''),
   /** Absolute URL of the photograph as it was at issue, or null. */

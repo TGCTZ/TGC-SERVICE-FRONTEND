@@ -1,19 +1,9 @@
-import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { serverMessageOr } from '@/lib/handle-server-error'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Switch } from '@/components/ui/switch'
 import { lookupOptionsQuery } from '@/features/lookups/data/api'
 import {
   addInstrumentUsed,
@@ -28,155 +18,111 @@ type InstrumentsPanelProps = {
 }
 
 /**
- * The instruments a report's readings came from.
+ * A checklist of every instrument, switched on for the ones used.
  *
- * A sub-resource, not a field: `instruments_used` is read-only on the report
- * serializer and each row is written through `/instruments-used/`. So this
- * panel saves immediately rather than joining the report form's submit — a
- * reading is recorded at the bench as it is taken.
+ * A sub-resource, not a field: switching on creates an `/instruments-used/`
+ * row and switching off deletes it, immediately rather than on the report
+ * form's submit. No reading is recorded — only whether it was used.
  *
- * The API applies the finalize lock here too, refusing writes once the report
- * is locked; `readOnly` mirrors that so the controls disappear rather than
- * failing.
+ * The API applies the finalize lock here too; `readOnly` mirrors that so the
+ * switches are disabled rather than failing.
  */
 export function InstrumentsPanel({
   reportId,
   readOnly = false,
 }: InstrumentsPanelProps) {
   const queryClient = useQueryClient()
-  const [instrument, setInstrument] = useState('')
-  const [reading, setReading] = useState('')
 
-  const { data: instruments = [] } = useQuery(lookupOptionsQuery('instruments'))
-  const {
-    data: rows,
-    isPending,
-    isError,
-  } = useQuery(reportInstrumentsQuery(reportId))
+  const options = useQuery(lookupOptionsQuery('instruments'))
+  const rows = useQuery(reportInstrumentsQuery(reportId))
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ['instruments-used', reportId] })
     queryClient.invalidateQueries({ queryKey: ['identification-reports'] })
   }
 
-  const addMutation = useMutation({
-    mutationFn: () => addInstrumentUsed(reportId, Number(instrument), reading),
-    onSuccess: () => {
-      setInstrument('')
-      setReading('')
-      invalidate()
+  const toggle = useMutation({
+    mutationFn: ({ instrument, on }: { instrument: number; on: boolean }) => {
+      if (on) return addInstrumentUsed(reportId, instrument)
+      const row = rows.data?.find((r) => r.instrument === instrument)
+      return row ? removeInstrumentUsed(row.id) : Promise.resolve()
     },
+    onSettled: invalidate,
     onError: (error) =>
       toast.error(
         serverMessageOr(
           error,
-          'Could not add the instrument. Please try again.'
+          'Could not update the instrument. Please try again.'
         )
       ),
   })
 
-  const removeMutation = useMutation({
-    mutationFn: (id: number) => removeInstrumentUsed(id),
-    onSuccess: invalidate,
-    onError: (error) =>
-      toast.error(
-        serverMessageOr(error, 'Could not remove it. Please try again.')
-      ),
-  })
+  const usedIds = new Set(rows.data?.map((r) => r.instrument))
+  // A retired instrument drops out of the lookup but must stay visible on a
+  // report that used it.
+  const instruments = [
+    ...(options.data ?? []),
+    ...(rows.data ?? [])
+      .filter((r) => !options.data?.some((o) => o.id === r.instrument))
+      .map((r) => ({
+        id: r.instrument,
+        name: r.instrument_detail?.name ?? `Instrument ${r.instrument}`,
+      })),
+  ]
 
   return (
     <div className='space-y-3'>
       <h3 className='text-sm font-medium'>Instruments used</h3>
 
-      {isPending && <Skeleton className='h-16 w-full' />}
+      {(options.isPending || rows.isPending) && (
+        <Skeleton className='h-16 w-full' />
+      )}
 
-      {isError && (
+      {(options.isError || rows.isError) && (
         <p className='text-sm text-destructive'>
           Could not load the instruments.
         </p>
       )}
 
-      {!isPending && !isError && rows?.length === 0 && (
+      {options.isSuccess && rows.isSuccess && instruments.length === 0 && (
         <p className='rounded-md border border-dashed p-4 text-sm text-muted-foreground'>
-          No readings recorded.
+          No instruments are set up.
         </p>
       )}
 
-      {rows && rows.length > 0 && (
+      {options.isSuccess && rows.isSuccess && instruments.length > 0 && (
         <ul className='divide-y rounded-md border'>
-          {rows.map((row) => (
-            <li
-              key={row.id}
-              className='flex items-center justify-between gap-2 p-3'
-            >
-              <div>
-                <div className='font-medium'>
-                  {row.instrument_detail?.name ??
-                    `Instrument ${row.instrument}`}
-                </div>
-                <div className='text-xs text-muted-foreground'>
-                  {row.reading || 'No reading noted'}
-                </div>
-              </div>
-
-              {!readOnly && (
-                <Button
-                  type='button'
-                  variant='ghost'
-                  size='icon'
-                  aria-label={`Remove ${row.instrument_detail?.name ?? 'instrument'}`}
-                  disabled={removeMutation.isPending}
-                  onClick={() => removeMutation.mutate(row.id)}
+          {instruments.map((instrument) => {
+            const id = `instrument-${instrument.id}`
+            const pending =
+              toggle.isPending && toggle.variables?.instrument === instrument.id
+            return (
+              <li
+                key={instrument.id}
+                className='flex items-center justify-between gap-2 px-3'
+              >
+                {/* The label fills the row, so a click anywhere on it flips the
+                    switch it points at. */}
+                <Label
+                  htmlFor={id}
+                  className='flex-1 cursor-pointer py-3 font-medium'
                 >
-                  <Trash2 className='size-4 text-destructive' />
-                </Button>
-              )}
-            </li>
-          ))}
+                  {instrument.name}
+                </Label>
+                <Switch
+                  id={id}
+                  checked={
+                    pending ? toggle.variables!.on : usedIds.has(instrument.id)
+                  }
+                  disabled={readOnly || pending}
+                  onCheckedChange={(on) =>
+                    toggle.mutate({ instrument: instrument.id, on })
+                  }
+                />
+              </li>
+            )
+          })}
         </ul>
-      )}
-
-      {!readOnly && (
-        <div className='grid grid-cols-[1fr_1fr_auto] items-end gap-2'>
-          <div className='space-y-1'>
-            <Label htmlFor='instrument-select' className='text-xs'>
-              Instrument
-            </Label>
-            <Select value={instrument} onValueChange={setInstrument}>
-              <SelectTrigger id='instrument-select' className='w-full'>
-                <SelectValue placeholder='Select' />
-              </SelectTrigger>
-              <SelectContent>
-                {instruments.map((option) => (
-                  <SelectItem key={option.id} value={String(option.id)}>
-                    {option.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className='space-y-1'>
-            <Label htmlFor='instrument-reading' className='text-xs'>
-              Reading
-            </Label>
-            <Input
-              id='instrument-reading'
-              value={reading}
-              onChange={(e) => setReading(e.target.value)}
-            />
-          </div>
-
-          <Button
-            type='button'
-            variant='outline'
-            disabled={!instrument || addMutation.isPending}
-            onClick={() => addMutation.mutate()}
-          >
-            <Plus className='me-1 size-4' />
-            Add
-          </Button>
-        </div>
       )}
     </div>
   )

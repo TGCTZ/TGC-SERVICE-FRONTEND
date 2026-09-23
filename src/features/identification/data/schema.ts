@@ -16,13 +16,12 @@ export const gemmologistCandidateSchema = z.object({
 
 export type GemmologistCandidate = z.infer<typeof gemmologistCandidateSchema>
 
-/** One instrument used during a report, with its reading. */
+/** One instrument used during a report. */
 export const instrumentUsedSchema = z.object({
   id: z.number(),
   report: z.number(),
   instrument: z.number(),
   instrument_detail: relatedSchema.nullable().default(null),
-  reading: z.string().default(''),
 })
 
 export type InstrumentUsed = z.infer<typeof instrumentUsedSchema>
@@ -74,7 +73,6 @@ export const reportSchema = z.object({
   treatment: z.string().default(''),
   optic_character: z.string().default(''),
 
-  dimensions: z.string().default(''),
   refractive_index: z.string().default(''),
   // A decimal, so it crosses the wire as a string.
   specific_gravity: z.string().nullable().default(null),

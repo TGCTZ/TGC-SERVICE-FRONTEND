@@ -92,7 +92,6 @@ const reportFormSchema = z.object({
   treatment: z.string().optional(),
   optic_character: z.string().optional(),
 
-  dimensions: z.string().optional(),
   refractive_index: z.string().optional(),
   specific_gravity: z.string().optional(),
   weight: z.string().optional(),
@@ -209,7 +208,6 @@ export function ReportMutateDialog({
       transparency: row?.transparency ?? '',
       treatment: row?.treatment ?? '',
       optic_character: row?.optic_character ?? '',
-      dimensions: row?.dimensions ?? '',
       refractive_index: row?.refractive_index ?? '',
       specific_gravity: row?.specific_gravity ?? '',
       weight: row?.stone_weight ?? '',
@@ -235,7 +233,6 @@ export function ReportMutateDialog({
         treatment: values.treatment ?? '',
         optic_character: values.optic_character ?? '',
 
-        dimensions: values.dimensions ?? '',
         refractive_index: values.refractive_index ?? '',
         specific_gravity: values.specific_gravity?.trim()
           ? values.specific_gravity.trim()
@@ -488,12 +485,6 @@ export function ReportMutateDialog({
                       />
                     </div>
 
-                    <TextField
-                      control={form.control}
-                      name='dimensions'
-                      label='Dimensions'
-                      placeholder='e.g. 8.2 × 6.1 × 4.0 mm'
-                    />
                     <TextField
                       control={form.control}
                       name='refractive_index'

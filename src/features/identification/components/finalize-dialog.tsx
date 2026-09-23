@@ -113,9 +113,8 @@ export function FinalizeReportDialog({
         <DialogHeader className='text-start'>
           <DialogTitle>Finalize {currentRow.report_number}</DialogTitle>
           <DialogDescription>
-            The findings and their instrument readings are locked afterwards,
-            and the stone becomes eligible for certification. This cannot be
-            undone.
+            The findings and the instruments used are locked afterwards, and the
+            stone becomes eligible for certification. This cannot be undone.
           </DialogDescription>
         </DialogHeader>
 
