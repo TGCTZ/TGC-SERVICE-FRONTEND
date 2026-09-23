@@ -24,3 +24,34 @@ export function useDownloadCertificatePdf() {
 
   return { download: mutation.mutate, isDownloading: mutation.isPending }
 }
+
+/**
+ * Print a certificate's PDF without showing it first.
+ *
+ * Loads the PDF into a hidden iframe and calls the embedded viewer's print.
+ * The frame is removed a minute later rather than on `afterprint`, which the
+ * PDF viewer's frame does not reliably fire across browsers.
+ */
+export function usePrintCertificatePdf() {
+  const mutation = useMutation({
+    mutationFn: async (certificate: Certificate) => {
+      const blob = await fetchCertificatePdf(certificate.id)
+      const url = URL.createObjectURL(
+        new Blob([blob], { type: 'application/pdf' })
+      )
+      const frame = document.createElement('iframe')
+      frame.style.cssText =
+        'position:fixed;width:0;height:0;border:0;visibility:hidden'
+      frame.src = url
+      frame.onload = () => frame.contentWindow?.print()
+      document.body.appendChild(frame)
+      setTimeout(() => {
+        frame.remove()
+        URL.revokeObjectURL(url)
+      }, 60_000)
+    },
+    onError: () => toast.error('Could not print the certificate.'),
+  })
+
+  return { print: mutation.mutate, isPrinting: mutation.isPending }
+}

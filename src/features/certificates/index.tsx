@@ -13,6 +13,7 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { IssueCertificateDialog } from './components/issue-dialog'
+import { CertificatePreviewDialog } from './components/preview-dialog'
 import { CertificatesProvider, useCertificates } from './components/provider'
 import { RevokeCertificateDialog } from './components/revoke-dialog'
 import {
@@ -141,6 +142,19 @@ function CertificatesContent() {
           }}
           certificate={currentRow}
           actions={actions}
+        />
+      )}
+
+      {currentRow && (
+        <CertificatePreviewDialog
+          open={open === 'preview'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          certificate={currentRow}
         />
       )}
 

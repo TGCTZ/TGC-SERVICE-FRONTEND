@@ -1,7 +1,4 @@
-import { Download } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
-import { perm } from '@/lib/permissions'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -11,14 +8,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
-import { Can } from '@/components/can'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { WEIGHT_UNIT_SYMBOLS } from '@/features/stones/data/enums'
 import { type Certificate } from '../data/schema'
-import { useDownloadCertificatePdf } from '../hooks/use-download-pdf'
 import { CertificateStatusBadge } from './status-badge'
 
 type CertificateViewDialogProps = {
@@ -29,7 +24,7 @@ type CertificateViewDialogProps = {
 }
 
 /**
- * Everything on one certificate, and the button that gets it out of the system.
+ * Everything on one certificate; the footer carries its actions.
  *
  * The four snapshot fields are shown as the document\'s own words rather than
  * joined to the live records — that is what a certificate is.
@@ -40,8 +35,6 @@ export function CertificateViewDialog({
   certificate,
   actions = [],
 }: CertificateViewDialogProps) {
-  const { download, isDownloading } = useDownloadCertificatePdf()
-  const isRevoked = certificate.status === 'revoked'
   // The unit is snapshotted alongside the number: a weight without its unit
   // states nothing, and reading the stone's live unit could rewrite the
   // document after the fact.
@@ -149,33 +142,6 @@ export function CertificateViewDialog({
                   </li>
                 ))}
               </ul>
-            )}
-          </div>
-
-          <Separator />
-
-          <div className='space-y-2'>
-            <h3 className='text-sm font-medium'>The document</h3>
-            <Can permission={perm('certificates', 'view')}>
-              <Button
-                type='button'
-                size='lg'
-                className='w-full sm:w-auto'
-                disabled={isDownloading}
-                onClick={() => download(certificate)}
-              >
-                <Download className='me-1 size-4' />
-                {isDownloading ? 'Preparing...' : 'Download PDF'}
-              </Button>
-            </Can>
-            <p className='text-xs text-muted-foreground'>
-              The PDF is the certificate. Print it from your PDF reader — what
-              you download is what the customer receives.
-            </p>
-            {isRevoked && (
-              <p className='text-xs text-muted-foreground'>
-                Revoked certificates download with a REVOKED watermark.
-              </p>
             )}
           </div>
 
