@@ -56,10 +56,10 @@ export function IdentificationTable({
         className='h-8 w-full max-w-72'
       />
 
-      {/* Every stage an order can be at - the same filter and the same values
-          the Orders screen uses, because these are the same rows with the same
-          Status column. "Awaiting identification" is the one omission: that is
-          the queue, and it has its own sidebar entry. */}
+      {/* The same filter and values the Orders screen uses, because these are
+          the same rows with the same Status column - minus "No stones yet" and
+          "Awaiting identification". Both mean stones still to type, which is
+          the identification queue's work, and this page never lists them. */}
       <Select
         value={state.stage ?? ANY_STAGE}
         onValueChange={(value) =>
@@ -75,7 +75,7 @@ export function IdentificationTable({
         <SelectContent>
           <SelectItem value={ANY_STAGE}>All statuses</SelectItem>
           {Object.entries(ORDER_STAGE_LABELS)
-            .filter(([stage]) => stage !== 'identifying')
+            .filter(([stage]) => stage !== 'identifying' && stage !== 'empty')
             .map(([stage, label]) => (
               <SelectItem key={stage} value={stage}>
                 {label}

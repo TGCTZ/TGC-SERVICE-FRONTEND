@@ -14,7 +14,7 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { AddStoneDialog } from '@/features/orders/components/add-stone-dialog'
-import { isFullyIdentified, type Order } from '@/features/orders/data/schema'
+import { isBilled, type Order } from '@/features/orders/data/schema'
 import {
   IdentificationTable,
   type IdentificationQueryState,
@@ -24,16 +24,15 @@ import { identificationOrdersQuery } from './data/api'
 const route = getRouteApi('/_authenticated/identification/')
 
 /**
- * The bench's intake screen: which orders still have stones to type.
+ * Finished identification: orders whose every stone has been typed.
  *
- * Order-shaped rather than stone-shaped on purpose — identifying a stone is
- * work done *against an order*, and what the gemmologist needs to see is how
- * many of each order's stones are still untyped. The stones themselves live on
- * `/stones`.
+ * The other half of the identification queue. The queue holds the work still
+ * to do - orders with stones left to type - and a row leaves it the moment it
+ * is finished, so it cannot show what has been done. This page is where that
+ * lives, for review and for correcting a type before the order is billed.
  *
- * Opens filtered to the work outstanding; switching to "Fully identified" is
- * how you review what has already been done, which a pure queue cannot show
- * because a row leaves it the moment it is finished.
+ * Order-shaped rather than stone-shaped on purpose — identification is work
+ * done *against an order*. The stones themselves live on `/stones`.
  */
 export function IdentificationQueue() {
   const search = route.useSearch()
@@ -78,19 +77,26 @@ export function IdentificationQueue() {
   /**
    * The row's one action, rather than the full menu.
    *
-   * Hidden once the order is full: the API refuses a stone past `stone_count`,
-   * and a button that can only fail is worse than no button.
+   * Every row here is fully identified, so the identify dialog is only for
+   * retyping a stone - hence Edit, gated on the change permission. Gone once
+   * the order is billed: the bill was priced from these types, the API refuses
+   * a retype, and a button that can only fail is worse than no button.
    */
   const actionColumn: ColumnDef<Order> = {
     id: 'identify',
     cell: ({ row }) => {
-      if (isFullyIdentified(row.original)) return null
+      const order = row.original
+      if (isBilled(order)) return null
 
       return (
         <div className='flex justify-end'>
-          <Can permission={perm('stones', 'add')}>
-            <Button size='sm' onClick={() => setIdentifying(row.original)}>
-              Identify stone
+          <Can permission={perm('stones', 'change')}>
+            <Button
+              size='sm'
+              variant='outline'
+              onClick={() => setIdentifying(order)}
+            >
+              Edit identification
             </Button>
           </Can>
         </div>
@@ -110,7 +116,7 @@ export function IdentificationQueue() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='Identification'
-          description="Orders with stones still to be typed. A stone's type is what prices it, so nothing here can be billed until it is done."
+          description='Orders whose stones have all been identified. A type can still be corrected until the order is billed; orders with stones left to type are in the identification queue.'
         />
 
         {isError ? (

@@ -42,10 +42,21 @@ export function InstrumentsPanel({
   }
 
   const toggle = useMutation({
-    mutationFn: ({ instrument, on }: { instrument: number; on: boolean }) => {
-      if (on) return addInstrumentUsed(reportId, instrument)
+    // Resolves to nothing on either branch: the created row is not used here,
+    // because `onSettled` refetches the list rather than patching it in.
+    mutationFn: async ({
+      instrument,
+      on,
+    }: {
+      instrument: number
+      on: boolean
+    }) => {
+      if (on) {
+        await addInstrumentUsed(reportId, instrument)
+        return
+      }
       const row = rows.data?.find((r) => r.instrument === instrument)
-      return row ? removeInstrumentUsed(row.id) : Promise.resolve()
+      if (row) await removeInstrumentUsed(row.id)
     },
     onSettled: invalidate,
     onError: (error) =>

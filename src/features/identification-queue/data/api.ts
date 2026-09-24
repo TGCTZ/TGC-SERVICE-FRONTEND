@@ -23,7 +23,13 @@ type IdentificationParams = ListParams & {
 }
 
 /**
- * Orders, narrowed by the stage they have reached.
+ * Fully identified orders, narrowed by the stage they have reached.
+ *
+ * `identification=complete` is sent on every request, stage or no stage.
+ * Orders with stones still to type belong in the identification queue, and a
+ * hold or cancellation outranks identification in the stage derivation - so
+ * `stage=on_hold` alone would bring half-typed orders back. The API ANDs the
+ * two filters rather than letting the stage win.
  *
  * `stage` rides alongside the shared list contract rather than inside
  * `filters`: it is not a column. It is derived from the stones and the bill,
@@ -41,6 +47,7 @@ export const identificationOrdersQuery = ({
       const res = await api.get('/orders', {
         params: {
           ...buildListParams(params),
+          identification: 'complete',
           ...(stage ? { stage } : {}),
         },
       })

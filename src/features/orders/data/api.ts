@@ -67,17 +67,6 @@ export const orderQuery = (id: number) =>
     },
   })
 
-export const identifiableOrdersQuery = () =>
-  queryOptions({
-    queryKey: ['worklist', 'identification', 'options'],
-    queryFn: async () => {
-      const res = await api.get('/orders/worklist', {
-        params: { page_size: 100, ordering: 'received_date' },
-      })
-      return paginatedSchema(orderSchema).parse(res.data).results
-    },
-  })
-
 export type OrderPayload = Record<string, unknown>
 
 export async function createOrder(payload: OrderPayload): Promise<Order> {
