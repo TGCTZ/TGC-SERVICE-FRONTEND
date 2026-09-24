@@ -23,7 +23,7 @@ export const ordersDataColumns: ColumnDef<Order>[] = [
       <DataTableColumnHeader column={column} title='Order' />
     ),
     // The customer sits under the reference rather than in a column of their
-    // own: an order is identified by both together — "ORD-2026-0012, Christopher
+    // own: an order is identified by both together — "ORD-2627-00012, Christopher
     // Miller" is how anyone at the desk refers to it — and splitting them across
     // two columns made the eye travel for half the identity.
     cell: ({ row }) => {
