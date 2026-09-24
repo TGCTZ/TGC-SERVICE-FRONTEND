@@ -72,8 +72,8 @@ here; you do not write components.
 
 Two things bite here, both documented in the file: `resource` doubles as the
 URL segment **and** the permission prefix so it must match the API exactly, and
-`collectionKey` is snake_case where the URL is kebab-case
-(`unit-of-measures` → `unit_of_measures`).
+`extraFields` holds at most two - the table renders Name, up to two extras, then
+Active, and a fifth column pushes the row actions off a laptop screen.
 
 ### 7. Theme and colour — `src/styles/theme.css`
 

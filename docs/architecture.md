@@ -191,7 +191,7 @@ Operations      Customers · Orders                     ← ─┐
 Gemmology Lab   Identification queue · Identification  │
                 Stones · Findings queue · Findings      │ the stone's journey,
 Billing         Ready to bill · Bills · Payments        │ in the order it happens
-Certificates    Ready to certify · Certificates       ← ─┘
+Certificates    Certification queue · Certificates    ← ─┘
 Administration  Users · Logs · Reference data           ← same in every project
 ```
 
@@ -304,7 +304,7 @@ read:
           date, with a per-entry diff (field · before · after)
 ```
 
-Reading the log needs `core.view_activitylog`, granted only to `superadmin` and
+Reading the log needs `auditlog.view_logentry`, granted only to `superadmin` and
 `manager`. There are no write endpoints — the log is append-only.
 
 Record history is deliberately **not** duplicated onto individual rows. One
@@ -318,7 +318,7 @@ The sidebar groups two views under **Logs**:
 
 | View | Source |
 | --- | --- |
-| Audit Logs | The API's activity log — filter by event to isolate sign-ins (`login`, `login_failed`) or privilege changes (`roles_synced`, `permissions_synced`) |
+| Audit Logs | The API's record of writes — filter by event (`created`, `updated`, `deleted`, `accessed`). Sign-ins, failed passwords and role syncs are not audit entries; they are written to the system log |
 | System Logs | A separate read-only API over the server's own log files, with bounded reads and credential redaction |
 
 ## How routing works

@@ -92,11 +92,11 @@ step is a different screen and a different role's job:
 | Step | Screen |
 | --- | --- |
 | 1. Register a customer and take in their stones | **Orders → Create order** |
-| 2. Type each stone, which is what prices it | **Gemmology Lab → Identification** |
+| 2. Type each stone, which is what prices it | **Gemmology Lab → Identification queue** |
 | 3. Raise the bill and get a control number | **Billing → Ready to bill** |
 | 4. Settle it | **Bills → Simulate payment** (development only) |
 | 5. Record what the bench found | **Gemmology Lab → Findings** |
-| 6. Issue the certificate and download the PDF | **Certificates → Ready to certify** |
+| 6. Issue the certificate and download the PDF | **Certificates → Certification queue** |
 
 Each stage has a worklist queue standing in front of it, so nobody has to
 remember what is waiting.
