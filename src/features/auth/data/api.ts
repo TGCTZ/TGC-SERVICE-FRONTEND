@@ -21,6 +21,8 @@ export const authUserSchema = z
     is_active: z.boolean().default(true),
     roles: z.array(z.string()).default([]),
     permissions: z.array(z.string()).default([]),
+    must_change_password: z.boolean().default(false),
+    must_complete_profile: z.boolean().default(false),
   })
   .loose()
 
@@ -111,3 +113,42 @@ export const meQueryOptions = queryOptions({
   staleTime: 5 * 60 * 1000,
   retry: false,
 })
+
+export type FirstLoginPassword = { password: string; password_confirm: string }
+
+/**
+ * First login, step one: replace the temporary password.
+ *
+ * The API ends every older session - including this one - and answers with a
+ * fresh token pair, which must be stored or the next refresh signs the user out
+ * in the middle of their first login.
+ */
+export async function setFirstPassword(
+  payload: FirstLoginPassword
+): Promise<AuthUser> {
+  const res = await api.post('/auth/first-login/password', payload)
+  const parsed = loginResponseSchema.parse(res.data)
+
+  const { auth } = useAuthStore.getState()
+  auth.setTokens(parsed.access, parsed.refresh)
+  auth.setUser(parsed.user as AuthUser)
+  return parsed.user as AuthUser
+}
+
+export type FirstLoginProfile = {
+  first_name: string
+  middle_name?: string
+  last_name: string
+  phone_number: string
+  gender: number
+}
+
+/** First login, step two: the profile the system needs. Opens the app. */
+export async function completeFirstProfile(
+  payload: FirstLoginProfile
+): Promise<AuthUser> {
+  const res = await api.post('/auth/first-login/profile', payload)
+  const user = authUserSchema.parse(res.data) as AuthUser
+  useAuthStore.getState().auth.setUser(user)
+  return user
+}

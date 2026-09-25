@@ -41,12 +41,7 @@ import { Can } from '@/components/can'
 import { DialogBody } from '@/components/dialog-body'
 import { PasswordInput } from '@/components/password-input'
 import { rolesQuery } from '@/features/roles/data/api'
-import {
-  createUser,
-  gendersQuery,
-  updateUser,
-  userStatusesQuery,
-} from '../data/api'
+import { gendersQuery, updateUser, userStatusesQuery } from '../data/api'
 import { type User } from '../data/schema'
 
 const NONE = 'none'
@@ -153,9 +148,9 @@ export function UserMutateDialog({
         delete (payload as Record<string, unknown>).password_confirmation
       }
 
-      return currentRow
-        ? updateUser(currentRow.id, payload)
-        : createUser(payload)
+      // Creating has its own dialog (create-dialog.tsx); this one only edits.
+      if (!currentRow) throw new Error('The edit dialog needs a user.')
+      return updateUser(currentRow.id, payload)
     },
     onSuccess: (user) => {
       toast.success(

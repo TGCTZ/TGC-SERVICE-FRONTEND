@@ -17,6 +17,8 @@ const sampleUser = {
   is_active: true,
   roles: ['admin'],
   permissions: ['catalog.view_product'],
+  must_change_password: false,
+  must_complete_profile: false,
 }
 
 describe('useAuthStore', () => {

@@ -12,9 +12,11 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
+import { UserCreateDialog } from './components/create-dialog'
 import { UserDeleteDialog } from './components/delete-dialog'
 import { UserMutateDialog } from './components/mutate-dialog'
 import { UsersProvider, useUsers } from './components/provider'
+import { UserResetPasswordDialog } from './components/reset-password-dialog'
 import { UserRestoreDialog } from './components/restore-dialog'
 import { UsersTable, type UsersQueryState } from './components/table'
 import { UserViewDialog } from './components/view-dialog'
@@ -147,17 +149,42 @@ function UsersContent() {
         />
       )}
 
-      <UserMutateDialog
-        key={currentRow ? `user-${currentRow.id}` : 'create'}
-        open={open === 'create' || open === 'update'}
+      {/* Creating takes only an email and a role, so it has its own dialog;
+          the full form is for editing an existing account. */}
+      <UserCreateDialog
+        open={open === 'create'}
         onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setOpen(null)
-            setCurrentRow(null)
-          }
+          if (!isOpen) setOpen(null)
         }}
-        currentRow={open === 'create' ? null : currentRow}
       />
+
+      {currentRow && (
+        <UserMutateDialog
+          key={`user-${currentRow.id}`}
+          open={open === 'update'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          currentRow={currentRow}
+        />
+      )}
+
+      {currentRow && (
+        <UserResetPasswordDialog
+          key={`user-reset-${currentRow.id}`}
+          open={open === 'reset-password'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          currentRow={currentRow}
+        />
+      )}
 
       {currentRow && (
         <UserRestoreDialog

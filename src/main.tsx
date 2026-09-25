@@ -67,8 +67,14 @@ const queryClient: QueryClient = new QueryClient({
             router.navigate({ to: '/500' })
           }
         }
-        if (error.response?.status === 403) {
-          // router.navigate("/forbidden", { replace: true });
+        // The API holds a new account to its first login; if a request slips
+        // through before the route guard sends them there, send them now.
+        if (
+          error.response?.status === 403 &&
+          (error.response.data as { code?: string } | undefined)?.code ===
+            'first_login_required'
+        ) {
+          router.navigate({ to: '/first-login', replace: true })
         }
       }
     },

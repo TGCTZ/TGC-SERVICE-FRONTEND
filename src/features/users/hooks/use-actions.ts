@@ -1,4 +1,5 @@
-import { Eye, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { Eye, KeyRound, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import { perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useUsers } from '../components/provider'
@@ -12,8 +13,11 @@ import { type User } from '../data/schema'
  */
 export function useUserActions(user: User | null): RowAction[] {
   const { setOpen, setCurrentRow } = useUsers()
+  const me = useAuthStore((state) => state.auth.user)
 
-  function select(dialog: 'view' | 'update' | 'delete' | 'restore') {
+  function select(
+    dialog: 'view' | 'update' | 'delete' | 'restore' | 'reset-password'
+  ) {
     setCurrentRow(user)
     setOpen(dialog)
   }
@@ -42,6 +46,14 @@ export function useUserActions(user: User | null): RowAction[] {
       permission: perm('users', 'change'),
       onSelect: () => select('update'),
       hidden: isDeleted || readOnly,
+    },
+    {
+      // Your own password is changed from Settings, where you prove the old one.
+      label: 'Reset password',
+      icon: KeyRound,
+      permission: perm('users', 'change'),
+      onSelect: () => select('reset-password'),
+      hidden: isDeleted || readOnly || user.id === me?.id,
     },
     {
       label: 'Restore',

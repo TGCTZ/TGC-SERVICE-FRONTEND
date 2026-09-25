@@ -48,6 +48,8 @@ function signIn(
     avatar: null,
     is_active: true,
     roles: ['admin'],
+    must_change_password: false,
+    must_complete_profile: false,
     permissions,
   })
 }

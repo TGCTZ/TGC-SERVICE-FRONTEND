@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import {
@@ -75,9 +76,33 @@ function encode(payload: UserPayload): UserPayload | FormData {
   return payload.avatar instanceof File ? toFormData(payload) : payload
 }
 
-export async function createUser(payload: UserPayload): Promise<User> {
-  const res = await api.post('/users', encode(payload))
-  return userSchema.parse(res.data)
+/** What creating or resetting an account answers with: the account, and - once only - its temporary password. */
+const withTemporaryPasswordSchema = userSchema.extend({
+  temporary_password: z.string(),
+})
+export type UserWithTemporaryPassword = z.infer<
+  typeof withTemporaryPasswordSchema
+>
+
+/**
+ * Create an account from an email and a role. The API fills in the rest and
+ * emails the credentials; the temporary password comes back here so it can be
+ * shown to whoever created the account, and is not retrievable afterwards.
+ */
+export async function createUser(payload: {
+  email: string
+  role: string
+}): Promise<UserWithTemporaryPassword> {
+  const res = await api.post('/users', payload)
+  return withTemporaryPasswordSchema.parse(res.data)
+}
+
+/** Issue a new temporary password, email it, and get it back once. */
+export async function resetUserPassword(
+  id: number
+): Promise<UserWithTemporaryPassword> {
+  const res = await api.post(`/users/${id}/reset-password`)
+  return withTemporaryPasswordSchema.parse(res.data)
 }
 
 export async function updateUser(
