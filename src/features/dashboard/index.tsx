@@ -1,64 +1,59 @@
-import { useQueries } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { ArrowRight } from 'lucide-react'
-import { PERMISSIONS, perm } from '@/lib/permissions'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Can } from '@/components/can'
+import { useMemo } from 'react'
+import { getRouteApi } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/auth-store'
+import { PERMISSIONS } from '@/lib/permissions'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
-import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { STONE_STATUS_LABELS } from '@/features/stones/data/enums'
-import { allWorklistConfigs } from '@/features/worklists/data/config'
-import { countQuery } from './data/api'
+import { ManagementStatistics } from './components/management/management-statistics'
+import { OperationsBoard } from './components/operations-board'
+import { periodFromSearch } from './data/analytics'
+
+const route = getRouteApi('/_authenticated/')
+
+type DashboardTab = 'operations' | 'management'
+
+const DESCRIPTIONS: Record<DashboardTab, string> = {
+  operations: 'What the lab is holding, and what is waiting on someone.',
+  management:
+    'How the lab is doing over time: volume, money, speed, and the market behind the work.',
+}
 
 /**
- * Stone statuses worth a tile.
+ * The lab's dashboard.
  *
- * The pipeline's four live states. The other five are either unimplemented
- * handover stages or exceptions rare enough that a queue is the better place
- * to notice them.
- */
-const TRACKED_STATUSES = ['received', 'billed', 'paid', 'certified'] as const
-
-/**
- * The lab's status board.
- *
- * Every number is a `count` off a list endpoint the app already calls, so
- * there is no reporting endpoint to keep in step — and each queue tile links
- * to the queue itself, because a number nobody can act on is decoration.
+ * Operations is the status board every role sees. Management adds the
+ * statistics for whoever holds `analytics.view_statistics`; without it there
+ * are no tabs at all, just the board as before. The tab and the period live
+ * in the URL, so a view can be shared and survives a reload.
  */
 export function Dashboard() {
-  const queues = allWorklistConfigs()
-
-  const queueCounts = useQueries({
-    queries: queues.map((config) => countQuery(config.endpoint)),
-  })
-
-  const statusCounts = useQueries({
-    queries: TRACKED_STATUSES.map((status) =>
-      countQuery('/stones', { 'filter[status]': status })
-    ),
-  })
-
-  const [orders, customers, certificates, unprocessed] = useQueries({
-    queries: [
-      countQuery('/orders'),
-      countQuery('/customers'),
-      countQuery('/certificates', { 'filter[status]': 'issued' }),
-      countQuery('/payments', { 'filter[is_processed]': 0 }),
-    ],
-  })
+  const search = route.useSearch()
+  const navigate = route.useNavigate()
+  const canSeeStatistics = useAuthStore(
+    (state) =>
+      state.auth.user?.permissions.includes(PERMISSIONS.viewStatistics) ?? false
+  )
+  // A shared ?tab=management link must not show an empty tab to someone
+  // without the permission.
+  const tab: DashboardTab = canSeeStatistics
+    ? (search.tab ?? 'operations')
+    : 'operations'
+  // Keyed on the URL values, so presets resolve against today once per change
+  // rather than minting new dates - and new query keys - on every render.
+  const period = useMemo(
+    () =>
+      periodFromSearch({
+        range: search.range,
+        from: search.from,
+        to: search.to,
+      }),
+    [search.range, search.from, search.to]
+  )
 
   return (
     <>
@@ -73,151 +68,58 @@ export function Dashboard() {
         <div>
           <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
           <p className='max-w-prose rounded-md border border-primary/30 bg-header px-3 py-2 text-sm/relaxed text-muted-foreground'>
-            What the lab is holding, and what is waiting on someone.
+            {DESCRIPTIONS[tab]}
           </p>
         </div>
 
-        <section className='space-y-3'>
-          <h2 className='text-sm font-medium text-muted-foreground'>
-            Waiting on someone
-          </h2>
-          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-            {queues.map((config, index) => (
-              <Can key={config.slug} permission={config.permission}>
-                <Link
-                  to='/worklists/$slug'
-                  params={{ slug: config.slug }}
-                  className='block'
-                >
-                  <Card className='h-full transition-colors hover:border-primary'>
-                    <CardHeader className='pb-2'>
-                      <CardTitle className='text-sm font-medium'>
-                        {config.title}
-                      </CardTitle>
-                      <CardDescription className='flex items-center gap-1 text-xs'>
-                        {config.actionLabel}
-                        <ArrowRight className='size-3' />
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Counter query={queueCounts[index]} />
-                    </CardContent>
-                  </Card>
-                </Link>
-              </Can>
-            ))}
-          </div>
-        </section>
-
-        <Can permission={perm('stones', 'view')}>
-          <section className='space-y-3'>
-            <h2 className='text-sm font-medium text-muted-foreground'>
-              Stones in the lab
-            </h2>
-            <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-              {TRACKED_STATUSES.map((status, index) => (
-                <Card key={status}>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='text-sm font-medium'>
-                      {STONE_STATUS_LABELS[status]}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Counter query={statusCounts[index]} />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-        </Can>
-
-        <section className='space-y-3'>
-          <h2 className='text-sm font-medium text-muted-foreground'>Totals</h2>
-          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-            <Can permission={perm('orders', 'view')}>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='text-sm font-medium'>Orders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Counter query={orders} />
-                </CardContent>
-              </Card>
-            </Can>
-
-            <Can permission={perm('customers', 'view')}>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Customers
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Counter query={customers} />
-                </CardContent>
-              </Card>
-            </Can>
-
-            <Can permission={perm('certificates', 'view')}>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Certificates standing
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Counter query={certificates} />
-                </CardContent>
-              </Card>
-            </Can>
-
-            {/* Money that arrived but has not reached its bill: the one number
-              here that is a problem rather than a fact. */}
-            <Can permission={perm('payments', 'view')}>
-              <Link
-                to='/payments'
-                search={{ processed: '0' }}
-                className='block'
-              >
-                <Card className='h-full transition-colors hover:border-primary'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='text-sm font-medium'>
-                      Unprocessed payments
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='flex items-center gap-2'>
-                    <Counter query={unprocessed} />
-                    {(unprocessed.data ?? 0) > 0 && (
-                      <StatusBadge tone='danger'>Needs attention</StatusBadge>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
-            </Can>
-          </div>
-        </section>
-
-        <Can permission={PERMISSIONS.viewActivityLogs}>
-          <p className='text-xs text-muted-foreground'>
-            Every change behind these numbers is recorded — see Audit logs.
-          </p>
-        </Can>
+        {canSeeStatistics ? (
+          <Tabs
+            value={tab}
+            onValueChange={(next) =>
+              navigate({
+                search: (prev) => ({ ...prev, tab: next as DashboardTab }),
+                replace: true,
+              })
+            }
+            className='gap-6'
+          >
+            <TabsList>
+              <TabsTrigger value='operations'>Operations</TabsTrigger>
+              <TabsTrigger value='management'>Management</TabsTrigger>
+            </TabsList>
+            <TabsContent value='operations'>
+              <OperationsBoard />
+            </TabsContent>
+            <TabsContent value='management'>
+              <ManagementStatistics
+                period={period}
+                onPeriodChange={(choice) =>
+                  navigate({
+                    // A preset and a custom range are exclusive in the URL.
+                    search: (prev) => ({
+                      ...prev,
+                      ...('preset' in choice
+                        ? {
+                            range: choice.preset,
+                            from: undefined,
+                            to: undefined,
+                          }
+                        : {
+                            range: undefined,
+                            from: choice.from,
+                            to: choice.to,
+                          }),
+                    }),
+                    replace: true,
+                  })
+                }
+              />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <OperationsBoard />
+        )}
       </Main>
     </>
   )
-}
-
-/** One number, or a placeholder while it loads or if it cannot be read. */
-function Counter({
-  query,
-}: {
-  query: { data?: number; isPending: boolean; isError: boolean }
-}) {
-  if (query.isPending) return <Skeleton className='h-8 w-16' />
-
-  if (query.isError) {
-    return <span className='text-2xl font-bold text-muted-foreground'>—</span>
-  }
-
-  return <span className='text-2xl font-bold tabular-nums'>{query.data}</span>
 }
