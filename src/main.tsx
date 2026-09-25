@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { AxiosError } from 'axios'
 import {
+  MutationCache,
   QueryCache,
   QueryClient,
   QueryClientProvider,
@@ -20,7 +21,7 @@ import { routeTree } from './routeTree.gen'
 // Styles
 import './styles/index.css'
 
-const queryClient = new QueryClient({
+const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
@@ -70,6 +71,15 @@ const queryClient = new QueryClient({
           // router.navigate("/forbidden", { replace: true });
         }
       }
+    },
+  }),
+  // Counters (`countQuery`) back the sidebar's queue badges and the dashboard,
+  // and almost every write moves some queue. Refreshing them centrally beats
+  // teaching each dialog which counts its action affects. Only counters on
+  // screen refetch, so this is a handful of one-row requests at most.
+  mutationCache: new MutationCache({
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['count'] })
     },
   }),
 })

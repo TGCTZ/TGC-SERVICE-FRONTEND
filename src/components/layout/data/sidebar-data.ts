@@ -17,6 +17,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import { PERMISSIONS, perm } from '@/lib/permissions'
+import { countQuery } from '@/features/dashboard/data/api'
 import { allLookupConfigs } from '@/features/lookups/data/config'
 import { worklistConfig } from '@/features/worklists/data/config'
 import { type NavLink, type SidebarData } from '../types'
@@ -106,6 +107,7 @@ export const sidebarData: SidebarData = {
           url: `/worklists/${identificationQueue.slug}` as NavLink['url'],
           icon: ListChecks,
           permission: identificationQueue.permission,
+          count: countQuery(identificationQueue.endpoint),
         },
         {
           // Order-shaped: identifying a stone is work done against an order,
@@ -126,6 +128,7 @@ export const sidebarData: SidebarData = {
           url: `/worklists/${findingsQueue.slug}` as NavLink['url'],
           icon: ListChecks,
           permission: findingsQueue.permission,
+          count: countQuery(findingsQueue.endpoint),
         },
         {
           title: 'Findings',
@@ -146,6 +149,7 @@ export const sidebarData: SidebarData = {
           url: `/worklists/${billingQueue.slug}` as NavLink['url'],
           icon: ListChecks,
           permission: billingQueue.permission,
+          count: countQuery(billingQueue.endpoint),
         },
         {
           title: 'Bills',
@@ -170,6 +174,7 @@ export const sidebarData: SidebarData = {
           url: `/worklists/${certificationQueue.slug}` as NavLink['url'],
           icon: ListChecks,
           permission: certificationQueue.permission,
+          count: countQuery(certificationQueue.endpoint),
         },
         {
           // An archive of what has been issued, which is why the queue leads:

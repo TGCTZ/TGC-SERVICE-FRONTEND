@@ -1,4 +1,8 @@
 import { type LinkProps } from '@tanstack/react-router'
+import { type countQuery } from '@/features/dashboard/data/api'
+
+/** A query resolving to the number an entry shows, e.g. a queue's length. */
+type NavCount = ReturnType<typeof countQuery>
 
 type BaseNavItem = {
   title: string
@@ -10,6 +14,12 @@ type BaseNavItem = {
    * list the API enforces, so the sidebar never offers a page that would 403.
    */
   permission?: string | string[]
+  /**
+   * A live count shown beside the title — used for the queues, so the sidebar
+   * says how much work is waiting without opening each one. Rendered on links
+   * only; a collapsible parent is not a page, so it has nothing to count.
+   */
+  count?: NavCount
 }
 
 type NavLink = BaseNavItem & {
@@ -45,4 +55,11 @@ type SidebarData = {
  *
  * @see `./data/sidebar-data.ts` for the three-tier structure and its rationale
  */
-export type { SidebarData, NavGroup, NavItem, NavCollapsible, NavLink }
+export type {
+  SidebarData,
+  NavGroup,
+  NavItem,
+  NavCollapsible,
+  NavLink,
+  NavCount,
+}

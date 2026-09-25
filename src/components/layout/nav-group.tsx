@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link, useLocation } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
 import { getCookie, setCookie } from '@/lib/cookies'
@@ -29,6 +30,7 @@ import {
 } from '../ui/dropdown-menu'
 import {
   type NavCollapsible,
+  type NavCount,
   type NavItem,
   type NavLink,
   type NavGroup as NavGroupProps,
@@ -194,6 +196,37 @@ function NavBadge({ children }: { children: ReactNode }) {
   return <Badge className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
 }
 
+/**
+ * A live count on an entry — how many items wait in a queue.
+ *
+ * Distinct from `NavBadge`, which is static text from the sidebar data. Its own
+ * component so the query hook only exists on entries that declare a count.
+ * An empty queue shows nothing: zero is the good outcome, not news. In icon
+ * mode there is no room for a number, so it shrinks to a dot on the icon.
+ */
+function CountBadge({ query }: { query: NavCount }) {
+  const { data: count = 0 } = useQuery({
+    ...query,
+    // Other desks drain and fill queues without this user doing anything, so
+    // the number is polled, not only refreshed on this user's own writes.
+    refetchInterval: 30_000,
+  })
+  if (!count) return null
+
+  return (
+    <>
+      <Badge className='ms-auto rounded-full px-1.5 py-0 text-xs tabular-nums group-data-[collapsible=icon]:hidden'>
+        {count > 99 ? '99+' : count}
+        <span className='sr-only'> waiting</span>
+      </Badge>
+      <span
+        aria-hidden
+        className='absolute end-1 top-1 hidden size-2 rounded-full bg-primary group-data-[collapsible=icon]:block'
+      />
+    </>
+  )
+}
+
 function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
   const { setOpenMobile } = useSidebar()
   const isActive = checkIsActive(href, item)
@@ -206,6 +239,7 @@ function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
           {item.icon && <item.icon />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
+          {item.count && <CountBadge query={item.count} />}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -278,6 +312,7 @@ function SidebarMenuSubLink({
           {item.icon && <item.icon />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
+          {item.count && <CountBadge query={item.count} />}
         </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>

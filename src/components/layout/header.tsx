@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { NotificationBell } from '@/features/notifications/components/notification-bell'
 import { BackButton } from './back-button'
 import { Breadcrumbs } from './breadcrumbs'
 
@@ -33,6 +34,10 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
  * also what stops content reading through a `fixed` header — it replaces the
  * translucent blur wash this used to grow on scroll, which could never fully
  * hide what passed under it. The shadow past 10px stays, as the lift cue.
+ *
+ * The notification bell leads the right cluster on every page, like the left
+ * cluster, rather than being passed in as a child: an inbox that some screens
+ * forgot to include would miss the handoffs it exists to announce.
  *
  * @param props.fixed - Stick to the top of the scroll container
  * @param props.children - The page's controls, laid out at the end of the bar
@@ -69,6 +74,7 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
         <BackButton />
         <Breadcrumbs className='min-w-0 flex-1' />
         <div className='ms-auto flex shrink-0 items-center gap-3 sm:gap-4'>
+          <NotificationBell />
           {children}
         </div>
       </div>

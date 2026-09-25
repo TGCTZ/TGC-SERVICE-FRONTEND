@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { SkipToMain } from '@/components/skip-to-main'
 import { GeneralError } from '@/features/errors/general-error'
+import { useNotificationWatcher } from '@/features/notifications/hooks/use-notification-watcher'
 
 type AuthenticatedLayoutProps = {
   children?: React.ReactNode
@@ -26,6 +27,9 @@ type AuthenticatedLayoutProps = {
  *   page clears the error. Without that key the user stays stuck on
  *   "Something went wrong" until a full reload.
  *
+ * The notification watcher is mounted here, once, because this shell outlives
+ * every page: it is what remembers the last unread count between polls.
+ *
  * `@container/content` is declared here, which is what lets `DataTablePagination`
  * and `Main` respond to their own width rather than the viewport's.
  *
@@ -35,6 +39,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const defaultOpen = getCookie('sidebar_state') !== 'false'
   // Reset the error boundary on navigation so leaving a broken page clears it.
   const pathname = useLocation({ select: (location) => location.pathname })
+  useNotificationWatcher()
   return (
     <SearchProvider>
       <LayoutProvider>
