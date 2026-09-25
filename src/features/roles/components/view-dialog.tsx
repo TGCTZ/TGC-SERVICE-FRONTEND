@@ -99,12 +99,18 @@ export function RoleViewDialog({
         <DialogHeader className='text-start'>
           <DialogTitle className='flex flex-wrap items-center gap-2'>
             <span className='capitalize'>{role.name}</span>
-            {role.is_protected && <Badge variant='secondary'>Protected</Badge>}
+            {!role.can_manage && (
+              <Badge variant='secondary'>
+                {role.is_protected ? 'Protected' : 'Your level'}
+              </Badge>
+            )}
           </DialogTitle>
           <DialogDescription>
             {role.is_protected
               ? 'This role is protected: it always holds every permission and cannot be re-scoped.'
-              : 'What this role may do, and who holds it.'}
+              : !role.can_manage
+                ? 'What this role may do, and who holds it. Only a role ranked above it can change it.'
+                : 'What this role may do, and who holds it.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -116,7 +122,11 @@ export function RoleViewDialog({
               { label: 'Permissions granted', value: granted.size },
               {
                 label: 'Re-scopable',
-                value: role.is_protected ? 'No — protected role' : 'Yes',
+                value: role.is_protected
+                  ? 'No — protected role'
+                  : role.can_manage
+                    ? 'Yes'
+                    : 'No — it is at your own level',
               },
             ]}
           />
@@ -185,10 +195,10 @@ export function RoleViewDialog({
           <ViewFooterActions
             actions={actions}
             primary={
-              // A protected role refuses re-scoping at the API, so the button
-              // is withdrawn rather than offered and then refused.
+              // The API refuses to re-scope a role the requester cannot manage,
+              // so the button is withdrawn rather than offered and then refused.
               onRequestEdit &&
-              !role.is_protected && (
+              role.can_manage && (
                 <Can permission={perm('roles', 'change')}>
                   <Button onClick={onRequestEdit}>
                     <Pencil className='me-1 size-4' />

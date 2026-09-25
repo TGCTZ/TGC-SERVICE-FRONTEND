@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
 import { perm } from '@/lib/permissions'
+import { cn } from '@/lib/utils'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -106,7 +107,7 @@ export function UserMutateDialog({
   const { data: statuses = [] } = useQuery(userStatusesQuery())
   const { data: genders = [] } = useQuery(gendersQuery())
   const { data: rolesPage } = useQuery(rolesQuery({ perPage: 100 }))
-  const roles = rolesPage?.items ?? []
+  const allRoles = rolesPage?.items ?? []
 
   const form = useForm<FormValues>({
     resolver: zodResolver(buildSchema(isEdit)),
@@ -184,6 +185,13 @@ export function UserMutateDialog({
   })
 
   const selectedRoles = form.watch('roles') ?? []
+  // Only roles the requester outranks can be handed out. One they cannot assign
+  // but this account already holds - a manager's own role, when editing
+  // themselves - stays listed, checked and locked, rather than vanishing as if
+  // it had been removed.
+  const roles = allRoles.filter(
+    (role) => role.can_assign || selectedRoles.includes(role.name)
+  )
 
   function toggleRole(name: string, checked: boolean) {
     const next = checked
@@ -375,10 +383,21 @@ export function UserMutateDialog({
                         return (
                           <label
                             key={role.id}
-                            className='flex cursor-pointer items-center gap-2'
+                            className={cn(
+                              'flex items-center gap-2',
+                              role.can_assign
+                                ? 'cursor-pointer'
+                                : 'cursor-not-allowed opacity-60'
+                            )}
+                            title={
+                              role.can_assign
+                                ? undefined
+                                : 'Only a role ranked above this one can assign or remove it'
+                            }
                           >
                             <Checkbox
                               checked={checked}
+                              disabled={!role.can_assign}
                               onCheckedChange={(value) =>
                                 toggleRole(role.name, Boolean(value))
                               }

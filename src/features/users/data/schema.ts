@@ -27,6 +27,11 @@ export const userSchema = z.object({
   middle_name: z.string().nullable().default(null),
   last_name: z.string(),
   full_name: z.string(),
+  /**
+   * Whether the requester may edit or delete this account: their own, or one
+   * ranked below their highest role. Fails closed.
+   */
+  can_manage: z.boolean().default(false),
   username: z.string(),
   email: z.string(),
   phone_number: z.string().nullable().default(null),

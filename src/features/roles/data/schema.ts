@@ -12,6 +12,13 @@ export const roleSchema = z.object({
   name: z.string(),
   /** Protected roles (superadmin) cannot be renamed, deleted or re-permissioned. */
   is_protected: z.boolean().default(false),
+  /**
+   * Whether the requester may rename, re-permission or delete this role: it is
+   * not protected and ranks below their own highest role. Fails closed.
+   */
+  can_manage: z.boolean().default(false),
+  /** Whether the requester may give this role to someone or take it away. */
+  can_assign: z.boolean().default(false),
   permissions: z.array(z.string()).default([]),
   user_count: z.number().default(0),
 })

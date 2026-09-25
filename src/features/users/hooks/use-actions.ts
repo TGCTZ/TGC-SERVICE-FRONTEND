@@ -22,6 +22,9 @@ export function useUserActions(user: User | null): RowAction[] {
   if (!user) return []
 
   const isDeleted = Boolean(user.deleted_at)
+  // Accounts ranked at or above the requester's own are read-only to them;
+  // the API refuses the edit and the delete, so neither is offered.
+  const readOnly = !user.can_manage
 
   // Every action the API exposes for a user. Role assignment lives inside the
   // edit dialog, which is where the API accepts it (PUT users/{id}/roles is
@@ -38,7 +41,7 @@ export function useUserActions(user: User | null): RowAction[] {
       icon: Pencil,
       permission: perm('users', 'change'),
       onSelect: () => select('update'),
-      hidden: isDeleted,
+      hidden: isDeleted || readOnly,
     },
     {
       label: 'Restore',
@@ -54,7 +57,7 @@ export function useUserActions(user: User | null): RowAction[] {
       permission: perm('users', 'delete'),
       onSelect: () => select('delete'),
       tone: 'destructive',
-      hidden: isDeleted,
+      hidden: isDeleted || readOnly,
       separatorBefore: true,
     },
   ]

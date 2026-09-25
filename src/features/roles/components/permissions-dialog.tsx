@@ -155,9 +155,10 @@ export function RolePermissionsDialog({
     })
   }
 
-  // A protected role always holds everything and the API rejects changes to
-  // it, so the matrix stays locked even for someone who may otherwise edit.
-  const locked = role.is_protected
+  // A protected role always holds everything, and a role at or above the
+  // requester's own is theirs to read but not to change; the API refuses both,
+  // so the matrix stays locked even for someone who may otherwise edit roles.
+  const locked = !role.can_manage
 
   const isLoading = loadingGroups || loadingRole
 
@@ -174,7 +175,9 @@ export function RolePermissionsDialog({
           <DialogDescription>
             {role.is_protected
               ? 'This role is protected and always holds every permission.'
-              : 'Choose what this role may do. Changes apply to every user holding it.'}
+              : locked
+                ? 'Only a role ranked above this one can change its permissions.'
+                : 'Choose what this role may do. Changes apply to every user holding it.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -275,7 +278,7 @@ export function RolePermissionsDialog({
           </Button>
           <Button
             onClick={() => mutation.mutate()}
-            disabled={mutation.isPending || role.is_protected}
+            disabled={mutation.isPending || locked}
           >
             {mutation.isPending ? 'Saving...' : 'Save permissions'}
           </Button>

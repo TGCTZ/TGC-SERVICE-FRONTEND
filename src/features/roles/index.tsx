@@ -108,7 +108,8 @@ export function Roles() {
   /**
    * Every action the API exposes for a role. Roles live in spatie's tables,
    * which have no soft deletes, so there is no Restore. Rename and Delete are
-   * withheld from protected roles because the API rejects both with a 400.
+   * withheld from roles the requester cannot manage - protected ones, and any
+   * ranked at or above their own - because the API would refuse both.
    */
   function rowActions(role: Role): RowAction[] {
     return [
@@ -132,7 +133,7 @@ export function Roles() {
           setRenameFor(role)
           setRenameValue(role.name)
         },
-        hidden: role.is_protected,
+        hidden: !role.can_manage,
       },
       {
         label: 'Delete',
@@ -140,7 +141,7 @@ export function Roles() {
         permission: perm('roles', 'delete'),
         onSelect: () => setDeleteFor(role),
         tone: 'destructive',
-        hidden: role.is_protected,
+        hidden: !role.can_manage,
         separatorBefore: true,
       },
     ]
@@ -225,14 +226,18 @@ export function Roles() {
                           <span className='font-medium capitalize'>
                             {role.name}
                           </span>
-                          {role.is_protected && (
+                          {!role.can_manage && (
                             <Badge
                               variant='outline'
                               className='gap-1 text-muted-foreground'
-                              title='Protected: always holds every permission'
+                              title={
+                                role.is_protected
+                                  ? 'Protected: always holds every permission'
+                                  : 'Roles at your own level are managed by the level above'
+                              }
                             >
                               <Lock className='size-3' />
-                              Protected
+                              {role.is_protected ? 'Protected' : 'Your level'}
                             </Badge>
                           )}
                         </div>
