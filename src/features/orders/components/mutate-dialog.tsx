@@ -18,7 +18,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -248,7 +247,8 @@ export function OrderMutateDialog({
             <form
               id='order-form'
               onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
-              className='px-1'
+              // Bottom padding keeps the last fields off the footer buttons.
+              className='px-1 pb-4'
             >
               <fieldset className='space-y-4'>
                 {/* Reassigning an existing order picks somebody already on
@@ -279,9 +279,6 @@ export function OrderMutateDialog({
                         <FormControl>
                           <Input type='number' min='1' step='1' {...field} />
                         </FormControl>
-                        <FormDescription>
-                          Caps how many can be identified.
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -294,7 +291,8 @@ export function OrderMutateDialog({
           {/* Only on an existing order: a stone needs an order to hang off. */}
           {currentRow && (
             <>
-              <Separator className='my-4' />
+              {/* The form's bottom padding already spaces it from above. */}
+              <Separator className='mb-4' />
               <div className='px-1'>
                 <OrderStonesPanel
                   order={currentRow}
