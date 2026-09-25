@@ -9,6 +9,7 @@ import {
   UserPlus,
   X,
 } from 'lucide-react'
+import { regionLabel } from '@/lib/regions'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { RegionSelect } from '@/components/region-select'
 import { customerSearchQuery } from '@/features/customers/data/api'
 import { type Customer } from '@/features/customers/data/schema'
 
@@ -122,7 +124,7 @@ export function CustomerPicker({ allowCreate = true }: CustomerPickerProps) {
                   <div className='truncate text-xs text-muted-foreground'>
                     {picked.phone}
                     {picked.company_name ? ` · ${picked.company_name}` : ''}
-                    {picked.region ? ` · ${picked.region}` : ''}
+                    {picked.region ? ` · ${regionLabel(picked.region)}` : ''}
                   </div>
                 )}
               </div>
@@ -262,7 +264,9 @@ function ExistingCustomerSearch({
                   </span>
                   <span className='block truncate text-xs text-muted-foreground'>
                     {customer.phone}
-                    {customer.region ? ` · ${customer.region}` : ''}
+                    {customer.region
+                      ? ` · ${regionLabel(customer.region)}`
+                      : ''}
                   </span>
                 </span>
               </button>
@@ -352,7 +356,7 @@ function NewCustomerFields({
         <TextField name='phone' label='Phone' required />
         <TextField name='email' label='Email' />
         <TextField name='company_name' label='Company' />
-        <TextField name='region' label='Region' />
+        <RegionField name='region' />
         <TextField name='id_number' label='ID number' />
         <div className='sm:col-span-2'>
           <TextField name='address' label='Address' />
@@ -369,6 +373,31 @@ function NewCustomerFields({
  * these fields required, because they are only required when `mode` is `new`
  * and that is enforced in a `superRefine` the marker logic cannot read.
  */
+/** The region, picked from the list rather than typed. */
+function RegionField({ name }: { name: string }) {
+  const form = useFormContext()
+
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Region</FormLabel>
+          <FormControl>
+            <RegionSelect
+              value={field.value ?? ''}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+}
+
 function TextField({
   name,
   label,

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
+import { isRegion } from '@/lib/regions'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,6 +27,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { DialogBody } from '@/components/dialog-body'
+import { RegionSelect } from '@/components/region-select'
 import { createCustomer, updateCustomer } from '../data/api'
 import { type Customer } from '../data/schema'
 
@@ -42,7 +44,14 @@ const customerFormSchema = z.object({
   phone: z.string().min(1, 'Phone is required.'),
   email: z.union([z.literal(''), z.email('Enter a valid email.')]).optional(),
   company_name: z.string().optional(),
-  region: z.string().optional(),
+  // Free text from before regions were a list stays in the field, visible, until
+  // someone picks the region it meant - or clears it.
+  region: z
+    .string()
+    .optional()
+    .refine((value) => !value || isRegion(value), {
+      message: 'Pick a region from the list, or clear it.',
+    }),
   id_number: z.string().optional(),
   address: z.string().optional(),
 })
@@ -173,10 +182,22 @@ export function CustomerMutateDialog({
                   name='company_name'
                   label='Company'
                 />
-                <TextField
+                <FormField
                   control={form.control}
                   name='region'
-                  label='Region'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Region</FormLabel>
+                      <FormControl>
+                        <RegionSelect
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
                 <TextField
                   control={form.control}

@@ -1,4 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { regionLabel } from '@/lib/regions'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import { StatusBadge } from '@/components/status-badge'
@@ -52,7 +53,7 @@ export const customersColumns: ColumnDef<Customer>[] = [
     accessorKey: 'region',
     header: () => <span>Region</span>,
     enableSorting: false,
-    cell: ({ row }) => orDash(row.original.region),
+    cell: ({ row }) => orDash(regionLabel(row.original.region)),
   },
   {
     id: 'actions',

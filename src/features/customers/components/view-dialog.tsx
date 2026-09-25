@@ -1,6 +1,7 @@
 import { Pencil } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
 import { perm } from '@/lib/permissions'
+import { regionLabel } from '@/lib/regions'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -67,7 +68,7 @@ export function CustomerViewDialog({
                 { label: 'Phone', value: customer.phone },
                 { label: 'Email', value: customer.email },
                 { label: 'Company', value: customer.company_name },
-                { label: 'Region', value: customer.region },
+                { label: 'Region', value: regionLabel(customer.region) },
                 { label: 'Address', value: customer.address, wide: true },
               ]}
             />
