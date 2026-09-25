@@ -74,6 +74,9 @@ describe('PERMISSIONS', () => {
       PERMISSIONS.moduleIdentification,
       PERMISSIONS.moduleCertificates,
       PERMISSIONS.moduleReference,
+      PERMISSIONS.moduleUser,
+      PERMISSIONS.moduleSettings,
+      PERMISSIONS.moduleAudit,
     ]) {
       expect(gate).toMatch(/^core\.module_[a-z]+$/)
     }

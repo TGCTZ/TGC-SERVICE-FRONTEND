@@ -36,6 +36,13 @@ type NavItem = NavCollapsible | NavLink
 
 type NavGroup = {
   title: string
+  /**
+   * Module gate(s) for the whole section, e.g. `core.module_billing`. The user
+   * needs at least one; omit to leave the section ungated. Checked on top of
+   * each item's own `permission`, never instead of it: a gated group still
+   * shows only the items the user can reach, and still vanishes when none are.
+   */
+  permission?: string | string[]
   items: NavItem[]
 }
 
@@ -50,7 +57,7 @@ type SidebarData = {
  * - `NavCollapsible` — a parent with `items`; the two are mutually exclusive,
  *   enforced by the `never` fields, so a typo gives a type error rather than
  *   an entry that silently renders as neither
- * - `NavGroup` — a titled, foldable section
+ * - `NavGroup` — a titled, foldable section, optionally behind a module gate
  * - `SidebarData` — the whole tree
  *
  * @see `./data/sidebar-data.ts` for the three-tier structure and its rationale

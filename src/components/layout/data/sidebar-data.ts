@@ -42,10 +42,11 @@ import { type NavLink, type SidebarData } from '../types'
  *   once all its children are hidden, and drops a group once it is empty — so a
  *   heading only appears for someone who has something under it. That is why a
  *   receptionist sees no Certificates group without any extra wiring.
- * - Gate on the item, not the group: `NavGroup` carries no `permission` and
- *   `filterNavGroups` would not read one. The API grants every role its module
- *   gate alongside the matching model permissions, so the per-item `view` check
- *   is a faithful proxy for the gate.
+ * - Each section also sits behind its module gate (`core.module_*`), checked on
+ *   top of the items, never instead of them: the gate lets an admin hide a whole
+ *   section from a role on the Roles screen, and the item permissions still
+ *   decide what shows inside it. Administration holds three modules, so its
+ *   gates sit on its three collapsibles, and the group goes once all three do.
  */
 /*
  * Queues, each listed in the group it belongs to rather than collected in one
@@ -79,6 +80,7 @@ export const sidebarData: SidebarData = {
     /* Reception's half of the pipeline: who came in, and what they left. */
     {
       title: 'Operations',
+      permission: PERMISSIONS.moduleOrders,
       items: [
         {
           title: 'Customers',
@@ -101,6 +103,7 @@ export const sidebarData: SidebarData = {
     /* ---------------------------------------------------------------- */
     {
       title: 'Gemmology Lab',
+      permission: PERMISSIONS.moduleIdentification,
       items: [
         {
           title: identificationQueue.title,
@@ -143,6 +146,7 @@ export const sidebarData: SidebarData = {
        before the record it produces. */
     {
       title: 'Billing',
+      permission: PERMISSIONS.moduleBilling,
       items: [
         {
           title: billingQueue.title,
@@ -168,6 +172,7 @@ export const sidebarData: SidebarData = {
 
     {
       title: 'Certificates',
+      permission: PERMISSIONS.moduleCertificates,
       items: [
         {
           title: certificationQueue.title,
@@ -195,10 +200,11 @@ export const sidebarData: SidebarData = {
       title: 'Administration',
       items: [
         {
-          // Collapsible parent: no `permission` of its own — filterNavGroups
-          // drops it automatically once every child is filtered out.
+          // A collapsible's `permission` is its module gate; filterNavGroups
+          // also drops it once every child is filtered out.
           title: 'Users',
           icon: Users,
+          permission: PERMISSIONS.moduleUser,
           items: [
             {
               title: 'All Users',
@@ -217,6 +223,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Logs',
           icon: ScrollText,
+          permission: PERMISSIONS.moduleAudit,
           items: [
             {
               title: 'Audit Logs',
@@ -240,6 +247,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Reference data',
           icon: Boxes,
+          permission: PERMISSIONS.moduleReference,
           items: allLookupConfigs().map((config) => ({
             title: config.title,
             url: `/lookups/${config.slug}` as NavLink['url'],
