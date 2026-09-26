@@ -54,8 +54,16 @@ Full setup and the common first-run failures:
 - **Billing through GePG** — control numbers issued by the gateway, payment
   notifications settled against the bill, partial payments supported
 - **Certificates** — issued per stone, with a PDF and a public verification page
+- **A dashboard in two parts** — a live status board of queues and counts for
+  everyone, and management statistics (volume, revenue, turnaround, market mix)
+  over any period for those allowed to see them
+- **Staff-created accounts** — no sign-up; an administrator creates an account
+  from an email and a role, and the new user sets a password and completes their
+  profile on first sign-in
 - **Permission-based access control** — route guards, UI gates and sidebar
-  filtering all reading the one list the API enforces
+  filtering all reading the one list the API enforces, with a role hierarchy so
+  nobody manages a role at or above their own
+- **In-app notifications** — each handoff announced to the desk it waits on
 - **A shared table layer** — server-side paging, sorting, filtering, soft
   deletes and declared row actions, so screens cannot drift apart
 - **An audit trail** — every write recorded and browsable under Audit Logs

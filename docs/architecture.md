@@ -183,7 +183,7 @@ feature, with the least domain detail in the way. See
 ## Navigation structure
 
 `sidebar-data.ts` holds six groups. The middle four follow the stone's journey
-through the lab; the outer two are the same in any admin app:
+through the lab; the outer two are the dashboard and administration:
 
 ```
 Overview        Dashboard                              ← what staff open first
@@ -192,7 +192,7 @@ Gemmology Lab   Identification queue · Identification  │
                 Stones · Findings queue · Findings      │ the stone's journey,
 Billing         Ready to bill · Bills · Payments        │ in the order it happens
 Certificates    Certification queue · Certificates    ← ─┘
-Administration  Users · Logs · Reference data           ← same in every project
+Administration  Users · Logs · Reference data           ← maintained, not worked
 ```
 
 Each pipeline group opens with its **queue** — the list of work waiting to enter
@@ -214,11 +214,12 @@ Two invariants make the structure hold itself together:
   children are hidden, and drops a group once it is empty — so a heading only
   appears for someone who has something under it. A receptionist sees a
   genuinely smaller sidebar, not a full one with dead links.
-- Gate on the **item**, never the group: `NavGroup` carries no `permission`
-  field and `filterNavGroups` would not read one. The `core.module_*` gates the
-  API seeds exist to switch whole areas off, but the sidebar deliberately does
-  not read them — a group disappears because every item under it is
-  unreachable, which is one rule rather than two that can disagree.
+- A group can also carry a **module gate** (`core.module_*`) as its
+  `permission`; Administration's three collapsibles each carry their own.
+  `filterNavGroups` checks the gate first and the items after, never instead:
+  an admin can hide a whole area from a role on the Roles screen without
+  stripping the model permissions its pages need. The gates are presentation
+  only - the API never checks them - so a hidden page still opens from a link.
 
 The sidebar is one of the per-project swap points listed in
 [customizing.md](./customizing.md).
@@ -293,6 +294,28 @@ adding the picker back *and* deciding what a mixed-currency total means.
 Keyboard hints go through `src/components/kbd.tsx`, which resolves the platform
 once and renders `Ctrl` rather than `⌘` off Apple hardware.
 
+## The dashboard
+
+`features/dashboard/` has two tabs. **Operations** is the live status board: every
+tile is a `count` read from an existing list endpoint (`countQuery`), so it needs
+no reporting API. **Management** - shown only with `analytics.view_statistics` -
+reads the backend's `/analytics/*` endpoints.
+
+- **One period filter scopes the whole tab.** `PeriodPicker` offers presets
+  (rolling windows, calendar periods, the July-June financial year) and a custom
+  range. The tab and period live in the URL (`?tab=`, `?range=` or `?from=&to=`),
+  resolved by `periodFromSearch()`; a preset is stored by name so a shared link
+  keeps meaning "last 30 days".
+- **Every chart sits in a `ChartCard`**, which adds loading, error and empty
+  states and a table view - so no value is readable only by hovering or by
+  colour.
+- **Two series colours at most**, TGC blue and gold, validated for colour-blind
+  separation in both themes; dark mode uses a deeper gold (`chart-palette.ts`).
+- **Numbers are written out in full** (`TZS 1,250,000`, never `1.3M`) - the
+  figures go into reports and are reconciled against the books. Formatting
+  lives in `data/format.ts`.
+- **Money is never added across currencies**; each currency gets its own block.
+
 ## The audit trail
 
 Every write the API performs is recorded, and **Audit Logs** is where it is
@@ -340,6 +363,7 @@ flowchart TD
     auth --> bills["/bills → bills"]
     auth --> certs["/certificates → certificates"]
     auth --> settings["/settings/* → settings"]
+    pub --> first["/first-login → first login"]
 ```
 
 Key conventions:
@@ -350,6 +374,11 @@ Key conventions:
   without adding a URL segment.
 - A route file is intentionally thin — it validates search params and points at a
   feature component. All real UI lives in `features/`.
+- **First login.** A user whose `must_change_password` or
+  `must_complete_profile` is set is sent to `/first-login` by the
+  `_authenticated` guard, and by the global query error handler if the API
+  answers `first_login_required`. That page shows whichever step is due. The API
+  enforces the same rule - see *Accounts and first login* in the backend's docs.
 
 ## How data flows (fetching)
 
@@ -458,6 +487,20 @@ Roles screen.
 
 Hiding UI is usability, **not security** — the API enforces every one of these
 independently.
+
+#### The role hierarchy on screen
+
+Roles are ranked - superadmin, admin, manager, then the stations - and each user
+manages only what ranks below them. The API applies this, and tells the screens:
+
+- roles and accounts ranked **above** the requester are not returned at all, so
+  a manager never sees that `admin` exists;
+- each role carries `can_manage` (may rename, re-permission, delete) and
+  `can_assign` (may give or take away); each user carries `can_manage`.
+
+The Roles and Users screens hide or lock actions from those flags rather than
+working the ranks out themselves, so the rules live in one place (the backend's
+`apps/users/services/roles.py`).
 
 ## State: where does it live?
 

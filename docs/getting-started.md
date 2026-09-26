@@ -74,8 +74,9 @@ permissions the API enforces:
 
 | Account | What it demonstrates |
 | --- | --- |
-| `superadmin@example.com` | Everything. The only account that can edit the protected `superadmin` role. |
-| `manager@example.com` | Everything except the protections on `superadmin`. |
+| `superadmin@example.com` | Everything, including the only account that can create, edit or assign admins. Its own role is protected even from itself. |
+| `admin@example.com` | Every permission, one rank down: manages managers and the stations, but never sees that superadmin exists. |
+| `manager@example.com` | Runs the lab and its staff: manages the station roles and their accounts, sees the Management statistics. Cannot see admins, or edit the manager role. |
 | `receptionist@example.com` | Takes orders in. Can register customers and create orders, but cannot type a stone or record findings — the Gemmology Lab actions are absent, not disabled. |
 | `gemmologist@example.com` | The bench. Identification, findings and certification, with no billing. |
 | `accountant@example.com` | Billing and payments, read-only on the lab. |
@@ -83,6 +84,11 @@ permissions the API enforces:
 **Sign in as `receptionist@example.com` once.** It is the fastest way to see that
 the permission model is real rather than decorative, and it is the check to
 repeat whenever you add a gated screen.
+
+These demo accounts skip first login. An account created from **Users → Add user**
+does not: its owner signs in with the emailed temporary password and must set a
+password and complete their profile first. In development the email is printed
+to the API's console, and the creator sees the password on screen.
 
 ## 4. Walk an order through
 

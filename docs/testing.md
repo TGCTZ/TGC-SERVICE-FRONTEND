@@ -10,6 +10,14 @@ pnpm test                   # headless
 **Install the browser first.** Tests run in a real Chromium via Vitest's
 browser mode, not jsdom, so a fresh clone that goes straight to `pnpm test`
 fails with a Playwright error that reads like a broken test suite.
+`test:browser:install` also installs Chromium's system libraries, so it asks for
+`sudo`; on WSL the usual symptom of skipping that is "Target page, context or
+browser has been closed".
+
+Where Chromium cannot run, tests of plain functions still can, without a
+browser: `pnpm vitest run --browser.enabled=false src/lib src/features/dashboard/data`.
+Anything that touches the DOM or cookies fails that way - it is a stopgap, not
+a substitute.
 
 | Command | Use |
 | --- | --- |
@@ -58,12 +66,14 @@ Seventeen test files:
 | --- | --- |
 | Utilities | `src/lib/cookies.test.ts`, `src/lib/utils.test.ts`, `src/lib/handle-server-error.test.ts` |
 | Permissions | `src/lib/permissions.test.ts` |
-| Navigation | `src/components/layout/data/breadcrumbs.test.ts` |
+| Navigation | `src/components/layout/data/breadcrumbs.test.ts`, `src/components/layout/data/filter-nav.test.ts` |
+| Dashboard | `src/features/dashboard/data/analytics.test.ts` (periods, number formatting) |
+| Regions | `src/lib/regions.test.ts` |
 | Hooks | `src/hooks/use-table-url-state.test.ts` |
 | State | `src/stores/auth-store.test.ts` |
 | Components | `src/components/config-drawer.test.tsx`, `src/components/confirm-dialog.test.tsx`, `src/components/password-input.test.tsx`, `src/components/sign-out-dialog.test.tsx` |
 | Context | `src/context/search-provider.test.tsx` |
-| Auth forms | `src/features/auth/sign-in/components/form.test.tsx`, `src/features/auth/sign-up/components/form.test.tsx` |
+| Auth forms | `src/features/auth/sign-in/components/form.test.tsx` |
 | Domain data | `src/features/stones/data/enums.test.ts`, `src/features/worklists/data/config.test.ts` |
 | Feature dialogs | `src/features/lookups/components/mutate-dialog.test.tsx` |
 

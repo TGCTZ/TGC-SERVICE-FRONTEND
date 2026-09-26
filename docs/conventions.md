@@ -367,6 +367,15 @@ docblock — a summary is what hover is missing, the parameter list is not.
 wrong.** `DialogContent` carries a layout contract, `SidebarProvider` persists
 to a cookie, `Table` wraps itself in a scroll container. Those need the why.
 
+### State today's reason, not the history
+
+"Opaque, so content never reads through a fixed header" - not "replaces the
+blur this used to grow on scroll". Git records what changed; a comment that
+tells the story of a fix goes stale once nobody remembers the story. Keep a
+docblock to the contract and the why; design rationale longer than about ten
+lines belongs in `docs/`, linked from the code. No leftovers from the starter
+template or other frameworks.
+
 ### Link, do not restate
 
 When the reasoning already lives somewhere, point at it. `dialog-body.tsx`
@@ -465,3 +474,4 @@ A bare `src/lib/api.ts` is acceptable only because it is *the* HTTP client.
 - [ ] Checked as `receptionist@example.com` — the menu should lose what that role
       cannot do
 - [ ] Filenames carry nothing the folder already says (§12)
+- [ ] Docs describing this area updated in the same change

@@ -33,11 +33,11 @@ remain consistent.
 
 The TGC visual identity is built around three principal colors:
 
-  Role        Name       HEX         RGB
-  ----------- ---------- ----------- ----------------
-  Primary     TGC Blue   `#0152A9`   `1, 82, 169`
-  Secondary   TGC Teal   `#074C70`   `7, 76, 112`
-  Accent      TGC Gold   `#E4A41E`   `228, 164, 30`
+| Role | Name | HEX | RGB |
+| --- | --- | --- | --- |
+| Primary | TGC Blue | `#0152A9` | `1, 82, 169` |
+| Secondary | TGC Teal | `#074C70` | `7, 76, 112` |
+| Accent | TGC Gold | `#E4A41E` | `228, 164, 30` |
 
 ### Brand hierarchy
 
@@ -109,19 +109,19 @@ Blue should identify important elements, not overwhelm the interface.
 
 The scale provides lighter and darker variants for different situations.
 
-  Token            HEX         Primary purpose
-  ---------------- ----------- --------------------------
-  `tgc-blue-50`    `#EFF6FF`   Very light background
-  `tgc-blue-100`   `#DCEBFA`   Light surface
-  `tgc-blue-200`   `#B8D5F2`   Soft border / divider
-  `tgc-blue-300`   `#82B4E5`   Light decorative element
-  `tgc-blue-400`   `#3D8DD4`   Secondary emphasis
-  `tgc-blue-500`   `#0A6ED1`   Bright brand blue
-  `tgc-blue-600`   `#0152A9`   **TGC Primary**
-  `tgc-blue-700`   `#00458F`   Hover / active
-  `tgc-blue-800`   `#00366F`   Strong emphasis
-  `tgc-blue-900`   `#00254D`   Very dark blue
-  `tgc-blue-950`   `#001A36`   Deepest blue
+| Token | HEX | Primary purpose |
+| --- | --- | --- |
+| `tgc-blue-50` | `#EFF6FF` | Very light background |
+| `tgc-blue-100` | `#DCEBFA` | Light surface |
+| `tgc-blue-200` | `#B8D5F2` | Soft border / divider |
+| `tgc-blue-300` | `#82B4E5` | Light decorative element |
+| `tgc-blue-400` | `#3D8DD4` | Secondary emphasis |
+| `tgc-blue-500` | `#0A6ED1` | Bright brand blue |
+| `tgc-blue-600` | `#0152A9` | **TGC Primary** |
+| `tgc-blue-700` | `#00458F` | Hover / active |
+| `tgc-blue-800` | `#00366F` | Strong emphasis |
+| `tgc-blue-900` | `#00254D` | Very dark blue |
+| `tgc-blue-950` | `#001A36` | Deepest blue |
 
 ### Default selection
 
@@ -169,19 +169,19 @@ TGC Teal works particularly well with white text.
 
 # 6. TGC Teal Scale
 
-  Token            HEX         Primary purpose
-  ---------------- ----------- -------------------------
-  `tgc-teal-50`    `#EEF8FB`   Very light background
-  `tgc-teal-100`   `#D7EEF4`   Light surface
-  `tgc-teal-200`   `#AEDDE8`   Soft border
-  `tgc-teal-300`   `#7BC4D4`   Decorative/light accent
-  `tgc-teal-400`   `#45A6BD`   Supporting emphasis
-  `tgc-teal-500`   `#1689A5`   Medium teal
-  `tgc-teal-600`   `#08718E`   Strong teal
-  `tgc-teal-700`   `#075B73`   Dark teal
-  `tgc-teal-800`   `#074C70`   **TGC Secondary**
-  `tgc-teal-900`   `#063A56`   Very dark teal
-  `tgc-teal-950`   `#032637`   Deepest teal
+| Token | HEX | Primary purpose |
+| --- | --- | --- |
+| `tgc-teal-50` | `#EEF8FB` | Very light background |
+| `tgc-teal-100` | `#D7EEF4` | Light surface |
+| `tgc-teal-200` | `#AEDDE8` | Soft border |
+| `tgc-teal-300` | `#7BC4D4` | Decorative/light accent |
+| `tgc-teal-400` | `#45A6BD` | Supporting emphasis |
+| `tgc-teal-500` | `#1689A5` | Medium teal |
+| `tgc-teal-600` | `#08718E` | Strong teal |
+| `tgc-teal-700` | `#075B73` | Dark teal |
+| `tgc-teal-800` | `#074C70` | **TGC Secondary** |
+| `tgc-teal-900` | `#063A56` | Very dark teal |
+| `tgc-teal-950` | `#032637` | Deepest teal |
 
 ### Default selection
 
@@ -242,19 +242,19 @@ Small Gold accents
 
 # 8. TGC Gold Scale
 
-  Token            HEX         Primary purpose
-  ---------------- ----------- -----------------------
-  `tgc-gold-50`    `#FFFAEB`   Very light background
-  `tgc-gold-100`   `#FFF1C7`   Light surface
-  `tgc-gold-200`   `#FFE28A`   Soft highlight
-  `tgc-gold-300`   `#F8CE55`   Decorative
-  `tgc-gold-400`   `#F0B832`   Bright accent
-  `tgc-gold-500`   `#E4A41E`   **TGC Gold**
-  `tgc-gold-600`   `#C98A0C`   Strong accent
-  `tgc-gold-700`   `#A56D08`   Dark accent
-  `tgc-gold-800`   `#86570B`   Very dark accent
-  `tgc-gold-900`   `#70460D`   Deep gold
-  `tgc-gold-950`   `#452A05`   Deepest gold
+| Token | HEX | Primary purpose |
+| --- | --- | --- |
+| `tgc-gold-50` | `#FFFAEB` | Very light background |
+| `tgc-gold-100` | `#FFF1C7` | Light surface |
+| `tgc-gold-200` | `#FFE28A` | Soft highlight |
+| `tgc-gold-300` | `#F8CE55` | Decorative |
+| `tgc-gold-400` | `#F0B832` | Bright accent |
+| `tgc-gold-500` | `#E4A41E` | **TGC Gold** |
+| `tgc-gold-600` | `#C98A0C` | Strong accent |
+| `tgc-gold-700` | `#A56D08` | Dark accent |
+| `tgc-gold-800` | `#86570B` | Very dark accent |
+| `tgc-gold-900` | `#70460D` | Deep gold |
+| `tgc-gold-950` | `#452A05` | Deepest gold |
 
 ### Default selection
 
@@ -287,19 +287,19 @@ Do not use brand colors where a neutral is more appropriate.
 
 # 10. TGC Neutral Scale
 
-  Token               HEX         Recommended use
-  ------------------- ----------- --------------------------
-  `tgc-neutral-50`    `#F8FAFC`   Application background
-  `tgc-neutral-100`   `#F1F5F9`   Subtle surface
-  `tgc-neutral-200`   `#E2E8F0`   Default border
-  `tgc-neutral-300`   `#CBD5E1`   Strong border
-  `tgc-neutral-400`   `#94A3B8`   Placeholder / disabled
-  `tgc-neutral-500`   `#64748B`   Muted text
-  `tgc-neutral-600`   `#475569`   Secondary text
-  `tgc-neutral-700`   `#334155`   Strong secondary text
-  `tgc-neutral-800`   `#1E293B`   Headings / dark surfaces
-  `tgc-neutral-900`   `#0F172A`   Primary text
-  `tgc-neutral-950`   `#020617`   Maximum dark surface
+| Token | HEX | Recommended use |
+| --- | --- | --- |
+| `tgc-neutral-50` | `#F8FAFC` | Application background |
+| `tgc-neutral-100` | `#F1F5F9` | Subtle surface |
+| `tgc-neutral-200` | `#E2E8F0` | Default border |
+| `tgc-neutral-300` | `#CBD5E1` | Strong border |
+| `tgc-neutral-400` | `#94A3B8` | Placeholder / disabled |
+| `tgc-neutral-500` | `#64748B` | Muted text |
+| `tgc-neutral-600` | `#475569` | Secondary text |
+| `tgc-neutral-700` | `#334155` | Strong secondary text |
+| `tgc-neutral-800` | `#1E293B` | Headings / dark surfaces |
+| `tgc-neutral-900` | `#0F172A` | Primary text |
+| `tgc-neutral-950` | `#020617` | Maximum dark surface |
 
 ### Default UI neutrals
 
@@ -344,13 +344,13 @@ Use for:
 -   Positive confirmations
 -   Approved records
 
-  Token           HEX
-  --------------- -----------
-  `success-50`    `#F0FDF4`
-  `success-100`   `#DCFCE7`
-  `success-500`   `#22C55E`
-  `success-600`   `#16A34A`
-  `success-700`   `#15803D`
+| Token | HEX |
+| --- | --- |
+| `success-50` | `#F0FDF4` |
+| `success-100` | `#DCFCE7` |
+| `success-500` | `#22C55E` |
+| `success-600` | `#16A34A` |
+| `success-700` | `#15803D` |
 
 ------------------------------------------------------------------------
 
@@ -368,13 +368,13 @@ Use for:
 -   Non-critical risks
 -   Incomplete processes
 
-  Token           HEX
-  --------------- -----------
-  `warning-50`    `#FFFBEB`
-  `warning-100`   `#FEF3C7`
-  `warning-500`   `#F59E0B`
-  `warning-600`   `#D97706`
-  `warning-700`   `#B45309`
+| Token | HEX |
+| --- | --- |
+| `warning-50` | `#FFFBEB` |
+| `warning-100` | `#FEF3C7` |
+| `warning-500` | `#F59E0B` |
+| `warning-600` | `#D97706` |
+| `warning-700` | `#B45309` |
 
 ------------------------------------------------------------------------
 
@@ -392,13 +392,13 @@ Use for:
 -   Destructive actions
 -   Critical warnings
 
-  Token          HEX
-  -------------- -----------
-  `danger-50`    `#FEF2F2`
-  `danger-100`   `#FEE2E2`
-  `danger-500`   `#EF4444`
-  `danger-600`   `#DC2626`
-  `danger-700`   `#B91C1C`
+| Token | HEX |
+| --- | --- |
+| `danger-50` | `#FEF2F2` |
+| `danger-100` | `#FEE2E2` |
+| `danger-500` | `#EF4444` |
+| `danger-600` | `#DC2626` |
+| `danger-700` | `#B91C1C` |
 
 ------------------------------------------------------------------------
 
@@ -416,13 +416,13 @@ Use for:
 -   Neutral notifications
 -   System information
 
-  Token        HEX
-  ------------ -----------
-  `info-50`    `#EFF6FF`
-  `info-100`   `#DBEAFE`
-  `info-500`   `#3B82F6`
-  `info-600`   `#2563EB`
-  `info-700`   `#1D4ED8`
+| Token | HEX |
+| --- | --- |
+| `info-50` | `#EFF6FF` |
+| `info-100` | `#DBEAFE` |
+| `info-500` | `#3B82F6` |
+| `info-600` | `#2563EB` |
+| `info-700` | `#1D4ED8` |
 
 ------------------------------------------------------------------------
 
@@ -442,55 +442,55 @@ below is written in pairs.
 
 ## 12.2 Surface and text roles
 
-  Token                 Light       Dark        Meaning
-  --------------------- ----------- ----------- ----------------------------
-  `background`          `#F8FAFC`   `#020617`   Application ground
-  `foreground`          `#0F172A`   `#F8FAFC`   Text on `background`
-  `card`                `#FFFFFF`   `#0F172A`   Cards and panels
-  `card-foreground`     `#0F172A`   `#F8FAFC`   Text on `card`
-  `popover`             `#FFFFFF`   `#0F172A`   Popovers, menus, dropdowns
-  `popover-foreground`  `#0F172A`   `#F8FAFC`   Text on `popover`
-  `muted`               `#F1F5F9`   `#1E293B`   Secondary surface, hover
-  `secondary`           `#F1F5F9`   `#1E293B`   Quiet button surface
-  `accent`              `#F1F5F9`   `#1E293B`   Hover and highlight surface
-  `input`               `#E2E8F0`   `#334155`   Form control outline
-  `muted-foreground`    `#64748B`   `#94A3B8`   Metadata, helper text
-  `border`              `#E2E8F0`   `#334155`   Default divider
-  `border-strong`       `#CBD5E1`   `#475569`   Input outlines, emphasis
-  `ring`                `#0152A9`   `#3D8DD4`   Keyboard focus indicator
+| Token | Light | Dark | Meaning |
+| --- | --- | --- | --- |
+| `background` | `#F8FAFC` | `#020617` | Application ground |
+| `foreground` | `#0F172A` | `#F8FAFC` | Text on `background` |
+| `card` | `#FFFFFF` | `#0F172A` | Cards and panels |
+| `card-foreground` | `#0F172A` | `#F8FAFC` | Text on `card` |
+| `popover` | `#FFFFFF` | `#0F172A` | Popovers, menus, dropdowns |
+| `popover-foreground` | `#0F172A` | `#F8FAFC` | Text on `popover` |
+| `muted` | `#F1F5F9` | `#1E293B` | Secondary surface, hover |
+| `secondary` | `#F1F5F9` | `#1E293B` | Quiet button surface |
+| `accent` | `#F1F5F9` | `#1E293B` | Hover and highlight surface |
+| `input` | `#E2E8F0` | `#334155` | Form control outline |
+| `muted-foreground` | `#64748B` | `#94A3B8` | Metadata, helper text |
+| `border` | `#E2E8F0` | `#334155` | Default divider |
+| `border-strong` | `#CBD5E1` | `#475569` | Input outlines, emphasis |
+| `ring` | `#0152A9` | `#3D8DD4` | Keyboard focus indicator |
 
 ## 12.3 Brand roles
 
-  Token                 Light       Dark        Meaning
-  --------------------- ----------- ----------- ----------------------------
-  `primary`             `#0152A9`   `#3D8DD4`   Main TGC action surface
-  `primary-foreground`  `#FFFFFF`   `#001A36`   Text on `primary`
-  `primary-hover`       `#00458F`   `#0A6ED1`   Primary hover
-  `primary-active`      `#00366F`   `#0152A9`   Primary pressed
-  `primary-subtle`      `#EFF6FF`   *derived*   Brand tint background
-  `institutional`       `#074C70`   `#032637`   Nav, headers, footers
-  `institutional-foreground`    `#FFFFFF`   `#F8FAFC`   Text on `institutional`
-  `gold`                `#E4A41E`   `#F0B832`   Brand accent surface
-  `gold-foreground`     `#452A05`   `#452A05`   Text on `gold`
+| Token | Light | Dark | Meaning |
+| --- | --- | --- | --- |
+| `primary` | `#0152A9` | `#3D8DD4` | Main TGC action surface |
+| `primary-foreground` | `#FFFFFF` | `#001A36` | Text on `primary` |
+| `primary-hover` | `#00458F` | `#0A6ED1` | Primary hover |
+| `primary-active` | `#00366F` | `#0152A9` | Primary pressed |
+| `primary-subtle` | `#EFF6FF` | *derived* | Brand tint background |
+| `institutional` | `#074C70` | `#032637` | Nav, headers, footers |
+| `institutional-foregro | und`    `#FF | FFFF`   `#F8 | FAFC`   Text on `institutional` |
+| `gold` | `#E4A41E` | `#F0B832` | Brand accent surface |
+| `gold-foreground` | `#452A05` | `#452A05` | Text on `gold` |
 
 ## 12.4 Semantic roles
 
 Each semantic colour is a **quad**, not a single value. One value cannot paint
 both a solid button and a tinted badge.
 
-  Suffix        Purpose                                  Example use
-  ------------- ---------------------------------------- ----------------------
-  *(base)*      Solid fill                               Button, filled badge
-  `-foreground` Text on the solid fill                   Button label
-  `-text`       The colour as *text* on a plain surface  Inline error message
-  `-subtle`     Tinted background                        Alert, status pill
+| Suffix | Purpose | Example use |
+| --- | --- | --- |
+| *(base)* | Solid fill | Button, filled badge |
+| `-foreground` | Text on the solid fill | Button label |
+| `-text` | The colour as *text* on a plain surface | Inline error message |
+| `-subtle` | Tinted background | Alert, status pill |
 
-  Role       Base      On base   Text (light) Text (dark)  Subtle
-  ---------- --------- --------- ------------ ------------ ---------------
-  `success`  `#16A34A` `#FFFFFF` `#15803D`    `#4ADE80`    *derived*
-  `warning`  `#D97706` `#FFFFFF` `#B45309`    `#FBBF24`    *derived*
-  `danger`   `#DC2626` `#FFFFFF` `#B91C1C`    `#F87171`    *derived*
-  `info`     `#2563EB` `#FFFFFF` `#1D4ED8`    `#60A5FA`    *derived*
+| Role | Base | On base | Text (light) | Text (dark) | Subtle |
+| --- | --- | --- | --- | --- | --- |
+| `success` | `#16A34A` | `#FFFFFF` | `#15803D` | `#4ADE80` | *derived* |
+| `warning` | `#D97706` | `#FFFFFF` | `#B45309` | `#FBBF24` | *derived* |
+| `danger` | `#DC2626` | `#FFFFFF` | `#B91C1C` | `#F87171` | *derived* |
+| `info` | `#2563EB` | `#FFFFFF` | `#1D4ED8` | `#60A5FA` | *derived* |
 
 **`-text` exists because a solid fill is rarely legible as text.** `#DC2626`
 on a dark background fails contrast; `#F87171` passes. Never reuse the base
@@ -770,20 +770,20 @@ Most application borders should remain neutral.
 
 Use this standard wherever statuses occur.
 
-  Status meaning   Color            Example
-  ---------------- ---------------- -----------------
-  Successful       Success          Verified
-  Active           Success          Active
-  Completed        Success          Completed
-  Approved         Success          Approved
-  Pending          Warning          Pending
-  Attention        Warning          Requires review
-  Processing       Info             Processing
-  Draft            Neutral          Draft
-  Archived         Neutral          Archived
-  Rejected         Danger           Rejected
-  Failed           Danger           Failed
-  Cancelled        Danger/Neutral   Cancelled
+| Status meaning | Color | Example |
+| --- | --- | --- |
+| Successful | Success | Verified |
+| Active | Success | Active |
+| Completed | Success | Completed |
+| Approved | Success | Approved |
+| Pending | Warning | Pending |
+| Attention | Warning | Requires review |
+| Processing | Info | Processing |
+| Draft | Neutral | Draft |
+| Archived | Neutral | Archived |
+| Rejected | Danger | Rejected |
+| Failed | Danger | Failed |
+| Cancelled | Danger/Neutral | Cancelled |
 
 Status colors should be supplemented with text or icons.
 
@@ -1326,11 +1326,11 @@ Some role names are already claimed by common UI frameworks with a *different*
 meaning. Applying the TGC meaning on top of the framework meaning silently
 repaints unrelated parts of an interface.
 
-  Name          Framework meaning                   TGC meaning   Resolution
-  ------------- ----------------------------------- ------------- ---------------------------
-  `accent`      Neutral hover/selection surface     TGC Gold      TGC uses **`gold`**
-  `secondary`   Quiet neutral chip or button        TGC Teal      TGC uses **`institutional`**
-  `destructive` Danger                              Danger        Alias --- same meaning
+| Name | Framework meaning | TGC meaning | Resolution |
+| --- | --- | --- | --- |
+| `accent` | Neutral hover/selection surface | TGC Gold | TGC uses **`gold`** |
+| `secondary` | Quiet neutral chip or button | TGC Teal | TGC uses **`institutional`** |
+| `destructive` | Danger | Danger | Alias --- same meaning |
 
 ### Why `accent` is not Gold
 
@@ -1368,29 +1368,29 @@ Section 25 gives dark surfaces. This section completes the role table, so that
 every light-mode role has a defined dark counterpart. A theme is not finished
 until this table has no blanks.
 
-  Role                   Light       Dark        Note
-  ---------------------- ----------- ----------- -------------------------------
-  `background`           `#F8FAFC`   `#020617`
-  `card`                 `#FFFFFF`   `#0F172A`   Cards lift *above* the ground
-  `popover`              `#FFFFFF`   `#0F172A`
-  `muted`                `#F1F5F9`   `#1E293B`
-  `secondary`            `#F1F5F9`   `#1E293B`
-  `accent`               `#F1F5F9`   `#1E293B`
-  `foreground`           `#0F172A`   `#F8FAFC`
-  `muted-foreground`     `#64748B`   `#94A3B8`
-  `border`               `#E2E8F0`   `#334155`
-  `border-strong`        `#CBD5E1`   `#475569`
-  `input`                `#E2E8F0`   `#334155`
-  `primary`              `#0152A9`   `#3D8DD4`   Lightens as the ground darkens
-  `primary-foreground`   `#FFFFFF`   `#001A36`   **Inverts** with it
-  `institutional`        `#074C70`   `#032637`   Darkens; it is already dark
-  `gold`                 `#E4A41E`   `#F0B832`
-  `ring`                 `#0152A9`   `#3D8DD4`
-  `sidebar`              `#EFF6FF`   `#032637`   Blue chrome; teal in the dark
-  `sidebar-accent`       `#B8D5F2`   `#063A56`   The active page
-  `sidebar-border`       `#82B4E5`   `#07364D`
-  `header`               = `sidebar` = `sidebar` Aliased, not duplicated
-  `table-header`         `#E8EEF6`   `#1E293B`   Its own tone, not `muted`
+| Role | Light | Dark | Note |
+| --- | --- | --- | --- |
+| `background` | `#F8FAFC` | `#020617` |  |
+| `card` | `#FFFFFF` | `#0F172A` | Cards lift *above* the ground |
+| `popover` | `#FFFFFF` | `#0F172A` |  |
+| `muted` | `#F1F5F9` | `#1E293B` |  |
+| `secondary` | `#F1F5F9` | `#1E293B` |  |
+| `accent` | `#F1F5F9` | `#1E293B` |  |
+| `foreground` | `#0F172A` | `#F8FAFC` |  |
+| `muted-foreground` | `#64748B` | `#94A3B8` |  |
+| `border` | `#E2E8F0` | `#334155` |  |
+| `border-strong` | `#CBD5E1` | `#475569` |  |
+| `input` | `#E2E8F0` | `#334155` |  |
+| `primary` | `#0152A9` | `#3D8DD4` | Lightens as the ground darkens |
+| `primary-foreground` | `#FFFFFF` | `#001A36` | **Inverts** with it |
+| `institutional` | `#074C70` | `#032637` | Darkens; it is already dark |
+| `gold` | `#E4A41E` | `#F0B832` |  |
+| `ring` | `#0152A9` | `#3D8DD4` |  |
+| `sidebar` | `#EFF6FF` | `#032637` | Blue chrome; teal in the dark |
+| `sidebar-accent` | `#B8D5F2` | `#063A56` | The active page |
+| `sidebar-border` | `#82B4E5` | `#07364D` |  |
+| `header` | = `sidebar` | = `sidebar` | Aliased, not duplicated |
+| `table-header` | `#E8EEF6` | `#1E293B` | Its own tone, not `muted` |
 
 ### The inversion rule
 
@@ -1426,14 +1426,14 @@ institutional teal, and the content lifts off it.
 
 Section 22 gives the categorical *order*. These are the values.
 
-  Token       Light       Dark        Source
-  ----------- ----------- ----------- -----------------
-  `chart-1`   `#0152A9`   `#3D8DD4`   TGC Blue
-  `chart-2`   `#074C70`   `#45A6BD`   TGC Teal
-  `chart-3`   `#E4A41E`   `#F0B832`   TGC Gold
-  `chart-4`   `#3D8DD4`   `#82B4E5`   Blue 400 / 300
-  `chart-5`   `#45A6BD`   `#7BC4D4`   Teal 400 / 300
-  `chart-6`   `#94A3B8`   `#64748B`   Neutral
+| Token | Light | Dark | Source |
+| --- | --- | --- | --- |
+| `chart-1` | `#0152A9` | `#3D8DD4` | TGC Blue |
+| `chart-2` | `#074C70` | `#45A6BD` | TGC Teal |
+| `chart-3` | `#E4A41E` | `#F0B832` | TGC Gold |
+| `chart-4` | `#3D8DD4` | `#82B4E5` | Blue 400 / 300 |
+| `chart-5` | `#45A6BD` | `#7BC4D4` | Teal 400 / 300 |
+| `chart-6` | `#94A3B8` | `#64748B` | Neutral |
 
 Six is the practical limit for a categorical sequence. Beyond six a legend stops
 being readable, and the data needs grouping rather than more colours.
@@ -1478,13 +1478,13 @@ palette is the source the roles are drawn from; components consume roles. A
 component that reaches past the role layer cannot be re-themed, and will not
 follow the interface into dark mode.
 
-  Status                              Role
-  ----------------------------------- -----------
-  Verified, Active, Completed         `success`
-  Pending, Requires review, Expiring  `warning`
-  Processing                          `info`
-  Rejected, Failed                    `danger`
-  Draft, Archived                     *neutral*
+| Status | Role |
+| --- | --- |
+| Verified, Active, Completed | `success` |
+| Pending, Requires review, Expiring | `warning` |
+| Processing | `info` |
+| Rejected, Failed | `danger` |
+| Draft, Archived | *neutral* |
 
 Neutral statuses use `muted` / `border` / `muted-foreground`.
 
@@ -1587,6 +1587,12 @@ Components never reference a hex value. Two places are worth knowing:
 - **Scrollbars** — `src/styles/index.css` paints them with `border-strong` on
   `muted`, so they are visible against every surface in both themes without a
   bespoke colour.
+- **Dashboard charts** — draw with two series colours only, TGC Blue and TGC
+  Gold, set per theme in
+  `src/features/dashboard/components/management/chart-palette.ts`. Dark mode
+  uses a deeper gold, `#BF8A10`, instead of `--chart-3` (`#F0B832`): checked with
+  a colour-blindness and contrast validator against the dark card surface, the
+  lighter gold falls outside the lightness band marks need to read as data.
 
 ------------------------------------------------------------------------
 

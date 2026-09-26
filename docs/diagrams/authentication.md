@@ -9,11 +9,11 @@ by an Axios interceptor.
 flowchart LR
     subgraph store["useAuthStore (Zustand)"]
         direction TB
-        TOKEN["accessToken"]
+        TOKEN["accessToken + refreshToken"]
         USER["user — id, permissions, roles"]
     end
 
-    TOKEN --> COOKIE[("cookie<br/>tgc_access_token")]
+    TOKEN --> COOKIE[("cookies<br/>tgc_access_token,<br/>tgc_refresh_token")]
     USER --> MEMORY["memory only<br/><i>gone on refresh</i>"]
 
     COOKIE --> SURVIVE["survives a page refresh"]
@@ -41,18 +41,19 @@ sequenceDiagram
     participant R as Router
 
     U->>F: submits email + password
-    F->>A: POST /auth/login
+    F->>A: login() - POST /auth/login
     A->>API: request
     alt invalid credentials
-        API-->>F: 401 or 422
+        API-->>F: 401
         F-->>U: field errors or toast
     else success
-        API-->>A: token + user
-        A-->>F: response
-        F->>S: setAccessToken(token)
-        Note over S: mirrored into the cookie
-        F->>S: setUser(user)
+        API-->>A: access + refresh + user
+        A->>S: setTokens(access, refresh)
+        Note over S: always both - mirrored into the cookies
+        A->>S: setUser(user)
+        A-->>F: user
         F->>R: navigate to redirect target or /
+        Note over R: the _authenticated guard sends a user<br/>with a first login due to /first-login
     end
 ```
 
@@ -140,7 +141,7 @@ Three conditions guard the retry, and each prevents a specific loop:
 | --- | --- |
 | `!original._retry` | Retrying forever when the new token is also rejected |
 | `!isRefreshCall` | A dead session looping on `/auth/refresh` itself |
-| `Boolean(accessToken)` | Trying to refresh when never signed in |
+| `Boolean(refreshToken)` | Trying to refresh with nothing to refresh with |
 
 ## Session expiry
 
@@ -160,3 +161,34 @@ flowchart LR
     style TOAST stroke:#d99a2b,stroke-width:2px
     style NAV stroke:#d99a2b,stroke-width:2px
 ```
+
+## First login
+
+An account created from the Users screen must set a password and complete its
+profile before using the app. The user object carries two flags,
+`must_change_password` and `must_complete_profile`; `needsFirstLogin(user)` in
+`stores/auth-store.ts` is true while either is set.
+
+```mermaid
+flowchart TD
+    NAV(["navigate to any app page"]) --> GUARD["_authenticated guard"]
+    GUARD --> FLAGS{"needsFirstLogin(user)?"}
+    FLAGS -->|no| APP(["page renders"])
+    FLAGS -->|yes| FL["/first-login"]
+    FL --> STEP{"must_change_password?"}
+    STEP -->|yes| PW["Set your password<br/>setFirstPassword() stores the new token pair"]
+    STEP -->|no| PROFILE["Complete your profile<br/>completeFirstProfile()"]
+    PW --> STEP
+    PROFILE --> APP
+
+    Q["any query answers 403<br/>code: first_login_required"] --> FL
+
+    style NAV stroke:#4d90d9,stroke-width:2px
+    style FLAGS stroke:#d99a2b,stroke-width:2px
+    style STEP stroke:#d99a2b,stroke-width:2px
+    style APP stroke:#3fa860,stroke-width:2px
+```
+
+The step shown follows the flags, so a reload or a second sign-in resumes where
+the user left off. Storing the token pair from the password step matters: the
+API revokes every older token there, including the one the page is using.
