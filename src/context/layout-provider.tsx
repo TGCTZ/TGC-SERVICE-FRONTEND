@@ -105,6 +105,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
  *   `resetLayout`
  * @throws If used outside a `LayoutProvider`
  */
+/** How the sidebar collapses and which variant it draws, with setters. Throws outside `LayoutProvider`. */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useLayout() {
   const context = useContext(LayoutContext)

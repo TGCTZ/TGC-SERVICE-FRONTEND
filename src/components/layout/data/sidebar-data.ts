@@ -64,6 +64,7 @@ const findingsQueue = worklistConfig('findings')
 const billingQueue = worklistConfig('billing')
 const certificationQueue = worklistConfig('certification')
 
+/** The whole navigation tree, unfiltered - `filterNavGroups` narrows it per user. */
 export const sidebarData: SidebarData = {
   navGroups: [
     {

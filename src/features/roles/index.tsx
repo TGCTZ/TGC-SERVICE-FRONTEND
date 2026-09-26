@@ -106,8 +106,8 @@ export function Roles() {
   const roles = data?.items ?? []
 
   /**
-   * Every action the API exposes for a role. Roles live in spatie's tables,
-   * which have no soft deletes, so there is no Restore. Rename and Delete are
+   * Every action the API exposes for a role. Roles are Django groups, which are
+   * not soft-deletable, so there is no Restore. Rename and Delete are
    * withheld from roles the requester cannot manage - protected ones, and any
    * ranked at or above their own - because the API would refuse both.
    */

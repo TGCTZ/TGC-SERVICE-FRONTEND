@@ -8,15 +8,16 @@
  * `aliases` are the English names people also search by.
  */
 
-export type RegionZone = 'mainland' | 'zanzibar'
+type RegionZone = 'mainland' | 'zanzibar'
 
-export type Region = {
+type Region = {
   value: string
   label: string
   zone: RegionZone
   aliases?: readonly string[]
 }
 
+/** All 31 regions, mainland first, each alphabetical - the order the dropdown lists them. */
 export const REGIONS = [
   { value: 'arusha', label: 'Arusha', zone: 'mainland' },
   {
@@ -81,6 +82,7 @@ export const REGIONS = [
   },
 ] as const satisfies readonly Region[]
 
+/** The dropdown's groups, in display order. */
 export const REGION_ZONES: { zone: RegionZone; label: string }[] = [
   { zone: 'mainland', label: 'Mainland' },
   { zone: 'zanzibar', label: 'Zanzibar' },

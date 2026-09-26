@@ -20,20 +20,17 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
  * configure it: the trail is derived from the URL, so it can never contradict
  * the sidebar the user just clicked. See `./breadcrumbs.tsx`.
  *
- * The sidebar trigger is unconditional. The sidebar carries none of its own any
- * more, so this is the only control that collapses or reopens it — in every
- * collapse mode, which the old conditional did not manage.
+ * The sidebar trigger is unconditional: it is the only control that collapses
+ * or reopens the sidebar, in every collapse mode.
  *
  * **`children` are wrapped in a right-aligned cluster.** Pass controls in
  * reading order and nothing else: an `ms-auto` or `me-auto` on a child now
  * fights the wrapper instead of helping it.
  *
- * The bar paints `--header`, which is the navigation surface rather than the
- * content sheet beneath it: the header and the sidebar are one continuous band
- * of chrome wrapping the content, so they carry one colour. That opaque fill is
- * also what stops content reading through a `fixed` header — it replaces the
- * translucent blur wash this used to grow on scroll, which could never fully
- * hide what passed under it. The shadow past 10px stays, as the lift cue.
+ * The bar paints `--header`, the navigation surface: header and sidebar are one
+ * continuous band of chrome around the content, so they share a colour. The
+ * fill is opaque so content never reads through a `fixed` header; past 10px of
+ * scroll a shadow marks the lift.
  *
  * The notification bell leads the right cluster on every page, like the left
  * cluster, rather than being passed in as a child: an inbox that some screens

@@ -26,6 +26,7 @@ const appConfigSchema = z.object({
  */
 export type DeploymentConfig = z.infer<typeof appConfigSchema>
 
+/** Facts about this deployment, fetched once from `GET /config` - e.g. whether payments can be simulated. */
 export const appConfigQuery = () =>
   queryOptions({
     queryKey: ['config'],

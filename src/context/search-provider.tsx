@@ -52,6 +52,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
  * @returns The palette's `open` state and its setter
  * @throws If used outside a `SearchProvider`
  */
+/** Whether the command palette is open. Throws outside `SearchProvider`. */
 // eslint-disable-next-line react-refresh/only-export-components
 export const useSearch = () => {
   const searchContext = useContext(SearchContext)

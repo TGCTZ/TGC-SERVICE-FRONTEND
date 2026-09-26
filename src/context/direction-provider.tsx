@@ -72,6 +72,7 @@ export function DirectionProvider({ children }: { children: React.ReactNode }) {
  * @returns The current `dir`, the default, and `setDir`/`resetDir`
  * @throws If used outside a `DirectionProvider`
  */
+/** The text direction (`ltr` / `rtl`) and its setters. Throws outside `DirectionProvider`. */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useDirection() {
   const context = useContext(DirectionContext)

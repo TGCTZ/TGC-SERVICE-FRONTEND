@@ -48,11 +48,9 @@ type CustomerPickerProps = {
 /**
  * Find a customer, or register one, without leaving the order form.
  *
- * Both paths are on screen at once, as two tabs. The previous version hid
- * registration inside the search popover, behind typing two characters and
- * then spotting a "Register …" row — capable, but only if you already knew it
- * was there. Reception at intake does not yet know which path the customer
- * needs, so neither path may be the one that has to be discovered.
+ * Both paths are on screen at once, as two tabs: reception at intake does not
+ * yet know which one the customer needs, so neither may be hidden behind the
+ * other waiting to be discovered.
  *
  * Searching is inline rather than in a popover for the same reason: results
  * stay visible while the registration fields are filled in, so a returning

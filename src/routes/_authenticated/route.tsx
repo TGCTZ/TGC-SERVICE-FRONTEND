@@ -12,8 +12,8 @@ export const Route = createFileRoute('/_authenticated')({
    * showing a name: permissions come from this call, and rendering the app
    * without them would briefly hide every gated control.
    *
-   * Auth-provider swap point: replace the token check and the `me` call with
-   * your provider's session lookup (Clerk / Auth0 / Supabase).
+   * A user with a first login still due goes to `/first-login` instead; the
+   * API would refuse this page's requests anyway.
    */
   beforeLoad: async ({ location, context }) => {
     const { auth } = useAuthStore.getState()
