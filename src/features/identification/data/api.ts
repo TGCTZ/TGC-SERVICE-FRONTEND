@@ -20,7 +20,7 @@ import {
 
 const listSchema = paginatedSchema(reportSchema)
 
-export async function fetchReports(
+async function fetchReports(
   params: ListParams
 ): Promise<Paginated<IdentificationReport>> {
   const res = await api.get('/identification-reports', {
@@ -54,7 +54,7 @@ export const reportQuery = (id: number) =>
     },
   })
 
-export type ReportPayload = Record<string, unknown>
+type ReportPayload = Record<string, unknown>
 
 /**
  * Create a report against a stone.

@@ -21,7 +21,7 @@ const APP_TIMEZONE = 'Africa/Dar_es_Salaam'
  * Widening to multi-currency means adding a picker here and, more importantly,
  * deciding what a mixed-currency total means.
  */
-export const DEFAULT_CURRENCY = 'TZS'
+const DEFAULT_CURRENCY = 'TZS'
 
 /**
  * Format a monetary value.

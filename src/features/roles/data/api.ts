@@ -16,7 +16,7 @@ import {
 
 const listSchema = paginatedSchema(roleSchema)
 
-export async function fetchRoles(
+async function fetchRoles(
   params: ListParams = {}
 ): Promise<Paginated<Role>> {
   const res = await api.get('/roles', { params: buildListParams(params) })
@@ -31,7 +31,7 @@ export const rolesQuery = (params: ListParams = {}) =>
     placeholderData: (previous) => previous,
   })
 
-export async function fetchRole(id: number): Promise<Role> {
+async function fetchRole(id: number): Promise<Role> {
   const res = await api.get(`/roles/${id}`)
   return roleSchema.parse(res.data)
 }
@@ -48,7 +48,7 @@ export const roleQuery = (id: number) =>
  * Permissions are code-defined and seeded, so this rarely changes and is cached
  * for the session. It is the source of rows for the permission matrix.
  */
-export async function fetchGroupedPermissions(): Promise<GroupedPermissions> {
+async function fetchGroupedPermissions(): Promise<GroupedPermissions> {
   const res = await api.get('/permissions/grouped')
   return groupedPermissionsSchema.parse(res.data)
 }
@@ -60,7 +60,7 @@ export const groupedPermissionsQuery = () =>
     staleTime: 10 * 60 * 1000,
   })
 
-export type RolePayload = {
+type RolePayload = {
   name?: string
   /** Fully qualified `app_label.codename` labels. */
   permissions?: string[]

@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table'
 
 /** The same figures as the chart, as rows: its accessible twin. */
-export type TableView = {
+type TableView = {
   columns: string[]
   rows: React.ReactNode[][]
 }

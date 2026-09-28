@@ -9,7 +9,7 @@ import { toast } from 'sonner'
  * The two are told apart by shape: a refusal carries `detail`, a validation
  * failure carries one key per bad field.
  */
-export type FieldErrors = Record<string, string[]>
+type FieldErrors = Record<string, string[]>
 
 /**
  * Pull field errors out of a rejected request, or null if there are none.

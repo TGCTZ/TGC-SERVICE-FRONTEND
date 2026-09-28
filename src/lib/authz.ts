@@ -15,7 +15,7 @@ import { useAuthStore } from '@/stores/auth-store'
  */
 
 /** Permissions held by the signed-in user (empty when signed out). */
-export function getCurrentPermissions(): string[] {
+function getCurrentPermissions(): string[] {
   return useAuthStore.getState().auth.user?.permissions ?? []
 }
 

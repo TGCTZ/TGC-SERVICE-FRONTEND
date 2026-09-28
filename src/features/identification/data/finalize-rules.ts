@@ -14,7 +14,7 @@ import { type IdentificationReport } from './schema'
  * because a stone may legitimately defeat a test and still deserve a
  * certificate, which is why the form itself stays permissive.
  */
-export const FINALIZE_REQUIRED_FIELDS = [
+const FINALIZE_REQUIRED_FIELDS = [
   { name: 'species', label: 'species' },
   { name: 'color', label: 'colour' },
   { name: 'weight', label: 'weight' },

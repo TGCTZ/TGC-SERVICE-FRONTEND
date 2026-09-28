@@ -21,7 +21,7 @@
  * There is deliberately no `viewAny`: one `view` permission covers both the
  * list and the detail of a resource.
  */
-export type PermissionAction = 'view' | 'add' | 'change' | 'delete'
+type PermissionAction = 'view' | 'add' | 'change' | 'delete'
 
 /** Where a URL segment's records actually live on the server. */
 type ModelRef = {

@@ -37,7 +37,7 @@ export const RANGE_PRESETS = [
   'last-fy',
 ] as const
 export type RangePreset = (typeof RANGE_PRESETS)[number]
-export const DEFAULT_RANGE: RangePreset = '12m'
+const DEFAULT_RANGE: RangePreset = '12m'
 
 export const RANGE_LABELS: Record<RangePreset, string> = {
   '7d': 'Last 7 days',
@@ -55,7 +55,7 @@ export const RANGE_LABELS: Record<RangePreset, string> = {
  * Longest range the API accepts - `MAX_DAYS` in apps/analytics/periods.py.
  * Checked here too, so the picker can say so before a request fails.
  */
-export const MAX_RANGE_DAYS = 3 * 366
+const MAX_RANGE_DAYS = 3 * 366
 
 /** Inclusive `yyyy-MM-dd` dates, as the statistics endpoints take them. */
 export type DateRange = { from: string; to: string }
@@ -177,7 +177,7 @@ export type Summary = {
   outstanding: Outstanding[]
 }
 
-export type VolumePoint = {
+type VolumePoint = {
   period: string
   orders: number
   stones: number
@@ -186,7 +186,7 @@ export type VolumePoint = {
   returning_customers: number
 }
 
-export type Volume = {
+type Volume = {
   range: RangeInfo
   series: VolumePoint[]
   totals: Omit<VolumePoint, 'period'>
@@ -215,7 +215,7 @@ export type Revenue = {
   unprocessed_payments: number
 }
 
-export type Stage = {
+type Stage = {
   key: string
   label: string
   median_days: number | null
@@ -235,7 +235,7 @@ export type AgingRow = {
   }[]
 }
 
-export type Turnaround = {
+type Turnaround = {
   range: RangeInfo
   certified_stones: number
   turnaround_days: Distribution
@@ -245,7 +245,7 @@ export type Turnaround = {
   workload: { reports: Ranked[]; certificates: Ranked[] }
 }
 
-export type Market = {
+type Market = {
   range: RangeInfo
   reports: number
   species: Ranked[]

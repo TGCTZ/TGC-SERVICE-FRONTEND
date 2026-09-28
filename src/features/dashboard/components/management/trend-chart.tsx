@@ -29,7 +29,7 @@ export type TooltipProps = {
   }[]
 }
 
-export type Series = {
+type Series = {
   key: string
   label: string
   color: { theme: { light: string; dark: string } }

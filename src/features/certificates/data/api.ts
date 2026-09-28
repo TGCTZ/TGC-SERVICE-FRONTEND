@@ -12,7 +12,7 @@ import { certificateSchema, type Certificate } from './schema'
 
 const listSchema = paginatedSchema(certificateSchema)
 
-export async function fetchCertificates(
+async function fetchCertificates(
   params: ListParams
 ): Promise<Paginated<Certificate>> {
   const res = await api.get('/certificates', {

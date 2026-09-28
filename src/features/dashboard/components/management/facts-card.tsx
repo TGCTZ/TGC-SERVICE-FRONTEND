@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export type Fact = {
+type Fact = {
   label: string
   value: React.ReactNode
   /** A second line under the label, for what the number means. */

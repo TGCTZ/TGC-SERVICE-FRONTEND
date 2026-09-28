@@ -24,7 +24,7 @@ const appConfigSchema = z.object({
  * Named apart from `config/app-config.ts`'s `AppConfig`, which is the static
  * build-time config. These are facts about the *deployment*, fetched from it.
  */
-export type DeploymentConfig = z.infer<typeof appConfigSchema>
+type DeploymentConfig = z.infer<typeof appConfigSchema>
 
 /** Facts about this deployment, fetched once from `GET /config` - e.g. whether payments can be simulated. */
 export const appConfigQuery = () =>

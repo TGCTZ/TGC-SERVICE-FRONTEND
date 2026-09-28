@@ -12,7 +12,7 @@ import { orderSchema, type Order } from './schema'
 
 const listSchema = paginatedSchema(orderSchema)
 
-export type OrdersParams = ListParams & {
+type OrdersParams = ListParams & {
   /**
    * An `OrderStage` value, narrowing to orders at that stage.
    *
@@ -24,7 +24,7 @@ export type OrdersParams = ListParams & {
   stage?: string
 }
 
-export async function fetchOrders({
+async function fetchOrders({
   stage,
   ...params
 }: OrdersParams): Promise<Paginated<Order>> {
@@ -67,7 +67,7 @@ export const orderQuery = (id: number) =>
     },
   })
 
-export type OrderPayload = Record<string, unknown>
+type OrderPayload = Record<string, unknown>
 
 export async function createOrder(payload: OrderPayload): Promise<Order> {
   const res = await api.post('/orders', payload)

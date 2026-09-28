@@ -19,7 +19,7 @@ const listSchema = paginatedSchema(billSchema)
  * thereafter written only by the GePG payment callbacks, so this module has no
  * create, update, delete or restore.
  */
-export async function fetchBills(params: ListParams): Promise<Paginated<Bill>> {
+async function fetchBills(params: ListParams): Promise<Paginated<Bill>> {
   const res = await api.get('/bills', { params: buildListParams(params) })
 
   return toPaginated(listSchema.parse(res.data), params)
@@ -52,7 +52,7 @@ const billPreviewSchema = z.object({
   blockers: z.array(z.string()).default([]),
 })
 
-export type BillPreview = z.infer<typeof billPreviewSchema>
+type BillPreview = z.infer<typeof billPreviewSchema>
 
 /**
  * What billing an order would charge, without creating anything.

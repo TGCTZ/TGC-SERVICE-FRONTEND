@@ -13,7 +13,7 @@ import { userSchema, type User } from './schema'
 
 const listSchema = paginatedSchema(userSchema)
 
-export async function fetchUsers(params: ListParams): Promise<Paginated<User>> {
+async function fetchUsers(params: ListParams): Promise<Paginated<User>> {
   const res = await api.get('/users', { params: buildListParams(params) })
 
   return toPaginated(listSchema.parse(res.data), params)
@@ -26,7 +26,7 @@ export const usersQueryOptions = (params: ListParams) =>
     placeholderData: (previous) => previous,
   })
 
-export type UserPayload = Record<string, unknown> & {
+type UserPayload = Record<string, unknown> & {
   avatar?: File | null
   roles?: string[]
 }

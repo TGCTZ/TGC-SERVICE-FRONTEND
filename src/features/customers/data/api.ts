@@ -11,7 +11,7 @@ import { customerSchema, type Customer } from './schema'
 
 const listSchema = paginatedSchema(customerSchema)
 
-export async function fetchCustomers(
+async function fetchCustomers(
   params: ListParams
 ): Promise<Paginated<Customer>> {
   const res = await api.get('/customers', { params: buildListParams(params) })
@@ -49,7 +49,7 @@ export const customerSearchQuery = (term: string) =>
     staleTime: 60 * 1000,
   })
 
-export type CustomerPayload = Record<string, unknown>
+type CustomerPayload = Record<string, unknown>
 
 export async function createCustomer(
   payload: CustomerPayload

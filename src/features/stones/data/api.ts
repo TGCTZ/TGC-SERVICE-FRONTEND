@@ -16,7 +16,7 @@ import {
 
 const listSchema = paginatedSchema(stoneSchema)
 
-export async function fetchStones(
+async function fetchStones(
   params: ListParams
 ): Promise<Paginated<Stone>> {
   const res = await api.get('/stones', { params: buildListParams(params) })
@@ -63,7 +63,7 @@ export const orderStonesQuery = (orderId: number) =>
     },
   })
 
-export type StonePayload = Record<string, unknown>
+type StonePayload = Record<string, unknown>
 
 /**
  * Update a stone's editable facts.

@@ -9,7 +9,7 @@ import { api } from '@/lib/api'
  * `.loose()` keeps the many extra profile fields the API returns instead of
  * stripping them, while still guaranteeing the shape we depend on.
  */
-export const authUserSchema = z
+const authUserSchema = z
   .object({
     id: z.number(),
     first_name: z.string(),
@@ -36,7 +36,7 @@ const loginResponseSchema = z.object({
   user: authUserSchema,
 })
 
-export type LoginCredentials = {
+type LoginCredentials = {
   email: string
   password: string
 }
@@ -79,7 +79,7 @@ export async function logout(): Promise<void> {
   }
 }
 
-export type PasswordChange = {
+type PasswordChange = {
   current_password: string
   password: string
   password_confirmation: string
@@ -98,7 +98,7 @@ export async function changePassword(payload: PasswordChange): Promise<void> {
 }
 
 /** Fetch the authenticated user, including their roles and permissions. */
-export async function fetchMe(): Promise<AuthUser> {
+async function fetchMe(): Promise<AuthUser> {
   const res = await api.get('/auth/me')
   return authUserSchema.parse(res.data) as AuthUser
 }
@@ -114,7 +114,7 @@ export const meQueryOptions = queryOptions({
   retry: false,
 })
 
-export type FirstLoginPassword = { password: string; password_confirm: string }
+type FirstLoginPassword = { password: string; password_confirm: string }
 
 /**
  * First login, step one: replace the temporary password.
@@ -135,7 +135,7 @@ export async function setFirstPassword(
   return parsed.user as AuthUser
 }
 
-export type FirstLoginProfile = {
+type FirstLoginProfile = {
   first_name: string
   middle_name?: string
   last_name: string

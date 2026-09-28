@@ -16,10 +16,10 @@ describe('resolveBreadcrumbs', () => {
     expect(labels('/orders')).toEqual(['Home', 'Operations', 'Orders'])
     expect(labels('/identification')).toEqual([
       'Home',
-      'Operations',
+      'Gemmology Lab',
       'Identification',
     ])
-    expect(labels('/stones')).toEqual(['Home', 'Operations', 'Stones'])
+    expect(labels('/stones')).toEqual(['Home', 'Gemmology Lab', 'Stones'])
   })
 
   it('walks two levels for a nested page', () => {
@@ -32,11 +32,16 @@ describe('resolveBreadcrumbs', () => {
   })
 
   it('resolves a generated worklist slug without a slug lookup', () => {
+    // Each queue sits in the group of the stage it feeds.
     expect(labels('/worklists/findings')).toEqual([
       'Home',
-      'Overview',
-      'Queues',
+      'Gemmology Lab',
       'Findings queue',
+    ])
+    expect(labels('/worklists/billing')).toEqual([
+      'Home',
+      'Billing',
+      'Ready to bill',
     ])
   })
 

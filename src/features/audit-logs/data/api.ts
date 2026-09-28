@@ -39,7 +39,7 @@ function toAuditParams(params: ListParams): ListParams {
 }
 
 /** Fetch one page of audit entries, validated at the network boundary. */
-export async function fetchActivityLogs(
+async function fetchActivityLogs(
   params: ListParams
 ): Promise<Paginated<ActivityLog>> {
   const res = await api.get('/activity-logs', {

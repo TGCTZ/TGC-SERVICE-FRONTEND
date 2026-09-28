@@ -31,4 +31,4 @@ export const appConfig = {
 } as const
 
 /** Shape of {@link appConfig}. Literal types, so values are readonly. */
-export type AppConfig = typeof appConfig
+type AppConfig = typeof appConfig

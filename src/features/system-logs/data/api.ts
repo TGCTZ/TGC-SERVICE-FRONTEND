@@ -22,7 +22,7 @@ const listSchema = z.array(systemLogWireSchema)
  * of it here costs nothing and lets the screen reuse the same table, pager and
  * `Paginated` shape as every other list.
  */
-export async function fetchSystemLogs(
+async function fetchSystemLogs(
   params: ListParams
 ): Promise<Paginated<SystemLog>> {
   const level = params.filters?.level
