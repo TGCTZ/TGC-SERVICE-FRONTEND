@@ -11,13 +11,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 /**
- * A theme menu offering Light, Dark and System.
+ * A theme menu offering Light and Dark.
  *
  * Also keeps the `theme-color` meta tag in sync, which is what tints the
  * browser chrome on mobile — without it a dark app keeps a white status bar.
  *
- * Three options rather than a two-way toggle, because "follow my system" is a
- * distinct choice from either fixed theme; see `context/theme-provider.tsx`.
+ * Light and Dark are explicit choices; the provider defaults to Dark.
  */
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme()
@@ -52,13 +51,6 @@ export function ThemeSwitch() {
           <Check
             size={14}
             className={cn('ms-auto', theme !== 'dark' && 'hidden')}
-          />
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
-          System
-          <Check
-            size={14}
-            className={cn('ms-auto', theme !== 'system' && 'hidden')}
           />
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -10,7 +10,6 @@ import { IconSidebarInset } from '@/assets/custom/icon-sidebar-inset'
 import { IconSidebarSidebar } from '@/assets/custom/icon-sidebar-sidebar'
 import { IconThemeDark } from '@/assets/custom/icon-theme-dark'
 import { IconThemeLight } from '@/assets/custom/icon-theme-light'
-import { IconThemeSystem } from '@/assets/custom/icon-theme-system'
 import { cn } from '@/lib/utils'
 import { useDirection } from '@/context/direction-provider'
 import { type Collapsible, useLayout } from '@/context/layout-provider'
@@ -196,16 +195,11 @@ function ThemeConfig() {
       <Radio
         value={theme}
         onValueChange={setTheme}
-        className='grid w-full max-w-md grid-cols-3 gap-4'
+        className='grid w-full max-w-md grid-cols-2 gap-4'
         aria-label='Select theme preference'
         aria-describedby='theme-description'
       >
         {[
-          {
-            value: 'system',
-            label: 'System',
-            icon: IconThemeSystem,
-          },
           {
             value: 'light',
             label: 'Light',
@@ -221,7 +215,7 @@ function ThemeConfig() {
         ))}
       </Radio>
       <div id='theme-description' className='sr-only'>
-        Choose between system preference, light mode, or dark mode
+        Choose light mode or dark mode
       </div>
     </div>
   )
