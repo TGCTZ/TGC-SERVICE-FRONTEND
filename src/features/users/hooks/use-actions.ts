@@ -1,0 +1,76 @@
+import { Eye, KeyRound, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
+import { perm, restorePerm } from '@/lib/permissions'
+import { type RowAction } from '@/components/data-table'
+import { useUsers } from '../components/provider'
+import { type User } from '../data/schema'
+
+/**
+ * Every action the API exposes for a user, in one place.
+ *
+ * A hook rather than a component so the table cell and the record's view
+ * dialog render the same list.
+ */
+export function useUserActions(user: User | null): RowAction[] {
+  const { setOpen, setCurrentRow } = useUsers()
+  const me = useAuthStore((state) => state.auth.user)
+
+  function select(
+    dialog: 'view' | 'update' | 'delete' | 'restore' | 'reset-password'
+  ) {
+    setCurrentRow(user)
+    setOpen(dialog)
+  }
+
+  // Called unconditionally by the page before a row is chosen.
+  if (!user) return []
+
+  const isDeleted = Boolean(user.deleted_at)
+  // Accounts ranked at or above the requester's own are read-only to them;
+  // the API refuses the edit and the delete, so neither is offered.
+  const readOnly = !user.can_manage
+
+  // Every action the API exposes for a user. Role assignment lives inside the
+  // edit dialog, which is where the API accepts it (PUT users/{id}/roles is
+  // called from there), so it is not a separate menu entry.
+  return [
+    {
+      label: 'View',
+      icon: Eye,
+      permission: perm('users', 'view'),
+      onSelect: () => select('view'),
+    },
+    {
+      label: 'Edit',
+      icon: Pencil,
+      permission: perm('users', 'change'),
+      onSelect: () => select('update'),
+      hidden: isDeleted || readOnly,
+    },
+    {
+      // Your own password is changed from Settings, where you prove the old one.
+      label: 'Reset password',
+      icon: KeyRound,
+      permission: perm('users', 'change'),
+      onSelect: () => select('reset-password'),
+      hidden: isDeleted || readOnly || user.id === me?.id,
+    },
+    {
+      label: 'Restore',
+      icon: RotateCcw,
+      permission: restorePerm('users'),
+      onSelect: () => select('restore'),
+      hidden: !isDeleted,
+      separatorBefore: true,
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      permission: perm('users', 'delete'),
+      onSelect: () => select('delete'),
+      tone: 'destructive',
+      hidden: isDeleted || readOnly,
+      separatorBefore: true,
+    },
+  ]
+}

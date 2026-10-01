@@ -14,12 +14,18 @@ function isVisible(permission: NavItem['permission'], granted: string[]) {
  * about what is reachable. Filtering from the same permission list the API
  * enforces means navigation never offers a page that would immediately 403.
  * Collapsible groups are dropped once all their children are filtered out.
+ *
+ * A group's module gate is checked first and on top of that: an admin can
+ * hide a whole section from a role on the Roles screen without stripping the
+ * model permissions its pages need. The gates are presentation only — the API
+ * never checks them — so a hidden page still opens from a direct link.
  */
 export function filterNavGroups(
   groups: NavGroup[],
   granted: string[]
 ): NavGroup[] {
   return groups
+    .filter((group) => isVisible(group.permission, granted))
     .map((group) => ({
       ...group,
       items: group.items

@@ -1,6 +1,6 @@
 # Tech Stack & Rationale
 
-Every library in the template and *why* it's here. The theme throughout:
+Every library in the app and *why* it's here. The theme throughout:
 **typed, composable, and file-based** — tools that catch mistakes at compile time
 and stay out of your way at runtime.
 
@@ -38,20 +38,19 @@ flowchart TD
 | Tool | Why it's here | Trade-off / alternative |
 | --- | --- | --- |
 | **Vite** | Near-instant dev server (native ESM) and fast builds. Rich plugin API used for routing, Tailwind, and HTML branding injection. | vs. Next.js: Vite is a pure SPA build — no SSR/RSC. Chosen because this is a client-rendered admin app. |
-| **TypeScript** | Types are the safety net for a *reusable* template — refactors and new features fail at compile time, not in production. | Slightly more upfront ceremony; worth it at any real scale. |
+| **TypeScript** | Types are the safety net for a system this size — refactors and new features fail at compile time, not in production. | Slightly more upfront ceremony; worth it at any real scale. |
 
 ## UI layer
 
 | Tool | Why it's here |
 | --- | --- |
 | **React 19** | The ecosystem baseline; everything else assumes it. |
-| **Tailwind CSS v4** | Utility-first styling keeps styles co-located with markup and avoids a growing pile of dead CSS. v4 is config-light (CSS-based tokens in `styles/index.css`). |
+| **Tailwind CSS v4** | Utility-first styling keeps styles co-located with markup and avoids a growing pile of dead CSS. v4 is config-light: every token is a CSS variable in `styles/theme.css`, mapped to utility classes by an `@theme inline` block. |
 | **UI primitives** | **Not a dependency — copied source** in `components/ui/`. You *own* these components and can edit them freely. Built on Radix. |
 | **Radix UI** | Unstyled, accessible primitives (focus traps, ARIA, keyboard nav) underneath them. Accessibility is hard to retrofit — this bakes it in. |
 | **lucide-react** | Consistent, tree-shakeable icon set. |
-| **Recharts** | Declarative, composable charts for the dashboard. |
 
-> **Why "own the source" matters for a template:** you aren't locked
+> **Why "own the source" matters:** you aren't locked
 > to a component library's API. Each project can tweak primitives without forking
 > a dependency.
 
@@ -103,7 +102,7 @@ prevents the "one giant global store" anti-pattern.
 | --- | --- |
 | **ESLint + typescript-eslint** | Static analysis and consistent code style. |
 | **Prettier** | Opinionated formatting (with import sorting + Tailwind class sorting plugins). |
-| **knip** | Finds unused files, exports, and dependencies — keeps a reusable template from accumulating cruft. |
+| **knip** | Finds unused files, exports, and dependencies. Run it after deleting anything — a component can stop being reachable long before it stops compiling. |
 | **Vitest + Playwright** | Component/browser testing (Vitest browser mode drives a real Chromium via Playwright). |
 | **husky + lint-staged** | Pre-commit hook runs ESLint + Prettier on staged files, so bad code never gets committed. |
 
@@ -135,7 +134,7 @@ safety.
 
 ## A note on versions
 
-This template tracks **aggressive majors** — TypeScript 6, Vite 8, ESLint 10,
+This app tracks **aggressive majors** — TypeScript 6, Vite 8, ESLint 10,
 Zod 4, Vitest 4, Tailwind 4. That is deliberate for a starting point: a new
 project should begin on current tooling rather than inherit a migration.
 

@@ -20,20 +20,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Resolve after a delay.
- *
- * For demos and artificial latency while developing against a fast local API.
- * Not for sequencing real work — if you are sleeping to wait for state, the
- * dependency is the bug.
- *
- * @param ms - Milliseconds to wait
- * @returns A promise resolving once the delay has elapsed
- */
-export function sleep(ms: number = 1000) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-/**
  * Build the page-button sequence for a pager, collapsing gaps to an ellipsis.
  *
  * At most five numbered buttons are shown. The first and last page are always

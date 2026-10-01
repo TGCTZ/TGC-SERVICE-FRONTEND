@@ -1,0 +1,103 @@
+import { z } from 'zod'
+
+/** A reference row expanded alongside its id. */
+const relatedSchema = z.object({ id: z.number(), name: z.string() }).loose()
+
+/**
+ * Someone who may be named as the second gemmologist.
+ *
+ * Deliberately not a `User`: the endpoint behind it returns only a name and an
+ * id, because the bench holds no permission to read the user list.
+ */
+export const gemmologistCandidateSchema = z.object({
+  id: z.number(),
+  label: z.string(),
+})
+
+export type GemmologistCandidate = z.infer<typeof gemmologistCandidateSchema>
+
+/** One instrument used during a report. */
+export const instrumentUsedSchema = z.object({
+  id: z.number(),
+  report: z.number(),
+  instrument: z.number(),
+  instrument_detail: relatedSchema.nullable().default(null),
+})
+
+export type InstrumentUsed = z.infer<typeof instrumentUsedSchema>
+
+/**
+ * A gemmologist's findings for one stone.
+ *
+ * Every finding is optional: a report is built up over a sitting at the bench,
+ * and a stone may defeat one test while answering another. What makes it
+ * authoritative is `is_finalized`, which is one-way and moves only through
+ * `POST {id}/finalize/`.
+ *
+ * `report_number`, `is_finalized`, `identified_by` and `identified_at` are all
+ * read-only — the service writes them.
+ */
+export const reportSchema = z.object({
+  id: z.number(),
+  stone: z.number(),
+  stone_label: z.string().nullable().default(null),
+  /**
+   * The stone's weight, mirrored here read-only.
+   *
+   * Weight is measured at the bench with the other readings, so it belongs on
+   * this form — but it lives on the Stone, which is what a certificate
+   * snapshots. The API takes `weight`/`weight_unit` write-only and hands them
+   * on, and reflects them back under `stone_*`.
+   */
+  stone_weight: z.string().nullable().default(null),
+  stone_weight_unit: z.string().default('carat'),
+  order_reference: z.string().nullable().default(null),
+  /** The customer whose visit this stone came in on. */
+  customer_name: z.string().nullable().default(null),
+  customer_phone: z.string().nullable().default(null),
+  report_number: z.string(),
+
+  species: z.number().nullable().default(null),
+  species_detail: relatedSchema.nullable().default(null),
+  variety: z.number().nullable().default(null),
+  variety_detail: relatedSchema.nullable().default(null),
+  origin: z.number().nullable().default(null),
+  origin_detail: relatedSchema.nullable().default(null),
+  shape_cut: z.number().nullable().default(null),
+  shape_cut_detail: relatedSchema.nullable().default(null),
+  color: z.number().nullable().default(null),
+  color_detail: relatedSchema.nullable().default(null),
+
+  nature_type: z.string().default(''),
+  transparency: z.string().default(''),
+  treatment: z.string().default(''),
+  optic_character: z.string().default(''),
+
+  refractive_index: z.string().default(''),
+  // A decimal, so it crosses the wire as a string.
+  specific_gravity: z.string().nullable().default(null),
+  is_polished: z.boolean().default(false),
+  conclusion: z.string().default(''),
+
+  instruments_used: z.array(instrumentUsedSchema).default([]),
+
+  is_finalized: z.boolean().default(false),
+  identified_by: z.number().nullable().default(null),
+  identified_by_label: z.string().nullable().default(null),
+  /**
+   * The second gemmologist, named beside the first on the certificate.
+   *
+   * Nullable: a report can be closed when only one person saw the stone, and
+   * the certificate then prints a single name. Set at finalize time, not while
+   * the findings are being written — it is a sign-off, not a finding.
+   */
+  verified_by: z.number().nullable().default(null),
+  verified_by_label: z.string().nullable().default(null),
+  identified_at: z.string().nullable().default(null),
+
+  created_at: z.string().nullable().default(null),
+  updated_at: z.string().nullable().default(null),
+  deleted_at: z.string().nullable().default(null),
+})
+
+export type IdentificationReport = z.infer<typeof reportSchema>

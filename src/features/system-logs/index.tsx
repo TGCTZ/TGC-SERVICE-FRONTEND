@@ -27,14 +27,12 @@ import { DataTable, DataTableColumnHeader } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
+import { systemLogLevelsQuery, systemLogsQueryOptions } from './data/api'
 import { type SystemLog } from './data/schema'
-import {
-  systemLogLevelsQuery,
-  systemLogsQueryOptions,
-} from './data/system-logs-api'
 
 const route = getRouteApi('/_authenticated/system-logs/')
 
@@ -235,21 +233,16 @@ export function SystemLogs() {
   return (
     <>
       <Header fixed>
-        <div className='ms-auto flex items-center gap-4'>
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
-        </div>
+        <ThemeSwitch />
+        <ConfigDrawer />
+        <ProfileDropdown />
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>System log</h2>
-          <p className='text-muted-foreground'>
-            Application errors and warnings written by the API. Credentials are
-            redacted before they leave the server.
-          </p>
-        </div>
+        <PageHeading
+          title='System log'
+          description='Application errors and warnings written by the API. Credentials are redacted before they leave the server.'
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
@@ -285,8 +278,7 @@ export function SystemLogs() {
                   </Badge>
                   <span className='text-sm font-normal text-muted-foreground'>
                     {formatDate(selected.logged_at)}{' '}
-                    {formatTime(selected.logged_at)} · {selected.environment} ·{' '}
-                    {selected.file}
+                    {formatTime(selected.logged_at)} · {selected.file}
                   </span>
                 </DialogTitle>
                 <DialogDescription className='break-words'>
@@ -295,8 +287,10 @@ export function SystemLogs() {
               </DialogHeader>
 
               <DialogBody className='me-0 pe-0'>
+                {/* The log format records no stack trace, so the message is the
+                    whole entry; kept in a <pre> for long wrapped lines. */}
                 <pre className='rounded-md bg-muted p-3 text-xs whitespace-pre-wrap'>
-                  {selected.context.trim() || 'No stack trace recorded.'}
+                  {selected.message.trim() || 'No detail recorded.'}
                 </pre>
               </DialogBody>
             </>

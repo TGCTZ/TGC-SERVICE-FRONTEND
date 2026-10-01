@@ -123,6 +123,10 @@ export function ThemeProvider({
  *   palette actually applied), plus `setTheme` and `resetTheme`
  * @throws If used outside a `ThemeProvider`
  */
+/**
+ * The chosen theme (`light`, `dark` or `system`), what it resolves to, and a
+ * setter. Throws outside `ThemeProvider`.
+ */
 // eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => {
   const context = useContext(ThemeContext)

@@ -3,6 +3,7 @@ import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { fieldErrors } from '@/lib/handle-server-error'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { PasswordInput } from '@/components/password-input'
-import { changePassword } from '@/features/auth/data/auth-api'
+import { changePassword } from '@/features/auth/data/api'
 
 /**
  * Mirrors the API's rules (`Password::min(8)`, `confirmed`, `different`) so the
@@ -57,12 +58,11 @@ export function PasswordForm() {
       form.reset()
     },
     onError: (error) => {
-      if (error instanceof AxiosError && error.response?.status === 422) {
-        const errors = error.response.data?.errors ?? {}
-
-        for (const [field, messages] of Object.entries(errors)) {
+      const fields = fieldErrors(error)
+      if (fields) {
+        for (const [field, messages] of Object.entries(fields)) {
           form.setError(field as keyof PasswordFormValues, {
-            message: Array.isArray(messages) ? messages[0] : String(messages),
+            message: messages[0],
           })
         }
 

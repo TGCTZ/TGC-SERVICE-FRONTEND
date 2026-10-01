@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { useLayout } from '@/context/layout-provider'
 import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { NotificationBell } from '@/features/notifications/components/notification-bell'
+import { BackButton } from './back-button'
+import { Breadcrumbs } from './breadcrumbs'
 
 type HeaderProps = React.HTMLAttributes<HTMLElement> & {
   fixed?: boolean
@@ -10,31 +12,35 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
 }
 
 /**
- * The page header bar, holding search, theme and profile controls.
+ * The page header bar: where you are and how you got here on one side, the
+ * page's own controls on the other.
  *
- * Renders a sidebar trigger **only when the sidebar is not showing its own** —
- * a closed mobile sheet or a collapsed `offcanvas` sidebar takes its trigger
- * with it, which would otherwise leave no way to reopen it. In every other
- * state a second trigger is redundant.
+ * The left cluster — sidebar toggle, back button, breadcrumb trail — is fixed
+ * and identical on every screen. A page cannot opt out of it and cannot
+ * configure it: the trail is derived from the URL, so it can never contradict
+ * the sidebar the user just clicked. See `./breadcrumbs.tsx`.
  *
- * With `fixed`, it sticks to the top and grows a blur backdrop once the page
- * scrolls past 10px, so content does not read through it.
+ * The sidebar trigger is unconditional: it is the only control that collapses
+ * or reopens the sidebar, in every collapse mode.
+ *
+ * **`children` are wrapped in a right-aligned cluster.** Pass controls in
+ * reading order and nothing else: an `ms-auto` or `me-auto` on a child now
+ * fights the wrapper instead of helping it.
+ *
+ * The bar paints `--sidebar`, the navigation surface: header and sidebar are one
+ * continuous band of chrome around the content, so they share a colour. The
+ * fill is opaque so content never reads through a `fixed` header; past 10px of
+ * scroll a shadow marks the lift.
+ *
+ * The notification bell leads the right cluster on every page, like the left
+ * cluster, rather than being passed in as a child: an inbox that some screens
+ * forgot to include would miss the handoffs it exists to announce.
  *
  * @param props.fixed - Stick to the top of the scroll container
- * @param props.children - Header content, laid out in a flex row
+ * @param props.children - The page's controls, laid out at the end of the bar
  */
 export function Header({ className, fixed, children, ...props }: HeaderProps) {
   const [offset, setOffset] = useState(0)
-  const { collapsible } = useLayout()
-  const { isMobile, openMobile, state } = useSidebar()
-
-  // The sidebar carries its own trigger, so a second one here is redundant
-  // whenever the sidebar is on screen. It is not always on screen though: a
-  // closed mobile sheet and a collapsed "offcanvas" sidebar both take their
-  // trigger with them, which would leave no way to reopen it.
-  const sidebarTriggerVisible = isMobile
-    ? openMobile
-    : collapsible !== 'offcanvas' || state === 'expanded'
 
   useEffect(() => {
     const onScroll = () => {
@@ -50,29 +56,24 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
 
   return (
     <header
+      data-slot='page-header'
       className={cn(
-        'z-50 h-16',
-        fixed && 'header-fixed peer/header sticky top-0 w-[inherit]',
+        'z-50 h-16 border-b border-sidebar-border bg-sidebar text-sidebar-foreground',
+        fixed && 'sticky top-0 w-[inherit]',
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
         className
       )}
       {...props}
     >
-      <div
-        className={cn(
-          'relative flex h-full items-center gap-3 p-4 sm:gap-4',
-          offset > 10 &&
-            fixed &&
-            'after:absolute after:inset-0 after:-z-10 after:bg-background/20 after:backdrop-blur-lg'
-        )}
-      >
-        {!sidebarTriggerVisible && (
-          <>
-            <SidebarTrigger variant='outline' className='max-md:scale-125' />
-            <Separator orientation='vertical' className='h-6' />
-          </>
-        )}
-        {children}
+      <div className='relative flex h-full items-center gap-3 p-4 sm:gap-4'>
+        <SidebarTrigger variant='outline' className='max-md:scale-125' />
+        <Separator orientation='vertical' className='h-6' />
+        <BackButton />
+        <Breadcrumbs className='min-w-0 flex-1' />
+        <div className='ms-auto flex shrink-0 items-center gap-3 sm:gap-4'>
+          <NotificationBell />
+          {children}
+        </div>
       </div>
     </header>
   )

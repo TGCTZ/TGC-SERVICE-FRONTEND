@@ -3,10 +3,10 @@ import { AxiosError } from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, History, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { Eye, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { subjectTypes } from '@/lib/subject-types'
-import { Badge } from '@/components/ui/badge'
+import { formatMoney } from '@/lib/format'
+import { perm, restorePerm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,38 +24,31 @@ import {
 } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
+import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
-import { LookupMutateDialog } from './components/lookup-mutate-dialog'
+import { LookupMutateDialog } from './components/mutate-dialog'
+import { LookupViewDialog } from './components/view-dialog'
+import { deleteLookupRow, lookupRowsQuery, restoreLookupRow } from './data/api'
 import {
   lookupConfigBySlug,
+  lookupFieldLabel,
   type LookupConfig,
   type LookupRow,
-} from './data/lookup-config'
-import {
-  deleteLookupRow,
-  lookupRowsQuery,
-  restoreLookupRow,
-} from './data/lookups-api'
+} from './data/config'
 
 const route = getRouteApi('/_authenticated/lookups/$slug/')
 
-type DialogState =
-  | 'view'
-  | 'history'
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'restore'
+type DialogState = 'view' | 'create' | 'update' | 'delete' | 'restore'
 
 /**
  * One screen for every lookup table.
  *
- * All five lookups share an identical API contract, so they share a screen
+ * Every lookup shares an identical API contract, so they share a screen
  * parameterised by `lookupConfigs` rather than each getting a near-identical
- * copy. Adding a sixth lookup means adding a config entry.
+ * copy. Adding another lookup means adding a config entry.
  */
 export function Lookups() {
   const { slug } = route.useParams()
@@ -87,7 +80,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
   }
 
   const { data, isPending, isError, isFetching } = useQuery(
-    lookupRowsQuery(config.resource, config.collectionKey, {
+    lookupRowsQuery(config.resource, {
       page: state.page,
       perPage: state.perPage,
       search: state.search,
@@ -128,8 +121,8 @@ function LookupsContent({ config }: { config: LookupConfig }) {
       setOpen(null)
     },
     onError: (error) => {
-      // A lookup still referenced by a product cannot be removed; the API
-      // answers 409/422 rather than orphaning the rows that point at it.
+      // A lookup still referenced by a stone or report cannot be removed; the
+      // API answers 400 rather than orphaning the rows that point at it.
       if (error instanceof AxiosError && error.response?.status === 403) {
         toast.error('You do not have permission to delete this.')
         return
@@ -157,26 +150,20 @@ function LookupsContent({ config }: { config: LookupConfig }) {
       {
         label: 'View',
         icon: Eye,
-        permission: `${config.resource}.view`,
+        permission: perm(config.resource, 'view'),
         onSelect: () => select('view', row),
       },
       {
         label: 'Edit',
         icon: Pencil,
-        permission: `${config.resource}.update`,
+        permission: perm(config.resource, 'change'),
         onSelect: () => select('update', row),
         hidden: isDeleted,
       },
       {
-        label: 'History',
-        icon: History,
-        permission: 'activity-logs.viewAny',
-        onSelect: () => select('history', row),
-      },
-      {
         label: 'Restore',
         icon: RotateCcw,
-        permission: `${config.resource}.restore`,
+        permission: restorePerm(config.resource),
         onSelect: () => select('restore', row),
         hidden: !isDeleted,
         separatorBefore: true,
@@ -184,9 +171,9 @@ function LookupsContent({ config }: { config: LookupConfig }) {
       {
         label: 'Delete',
         icon: Trash2,
-        permission: `${config.resource}.delete`,
+        permission: perm(config.resource, 'delete'),
         onSelect: () => select('delete', row),
-        variant: 'destructive',
+        tone: 'destructive',
         hidden: isDeleted,
         separatorBefore: true,
       },
@@ -203,39 +190,45 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         <div className='flex items-center gap-2 font-medium'>
           {row.original.name}
           {row.original.deleted_at && (
-            <Badge variant='destructive'>Deleted</Badge>
+            <StatusBadge tone='danger'>Deleted</StatusBadge>
           )}
         </div>
       ),
     },
-    ...config.extraFields
-      // A parent select shows as a raw id in a table, which helps nobody.
-      .filter((field) => field.type !== 'select')
-      .map<ColumnDef<LookupRow>>((field) => ({
-        accessorKey: field.key,
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={field.label} />
-        ),
-        enableSorting: false,
-        cell: ({ row }) => {
-          const value = (row.original as Record<string, unknown>)[field.key]
-          if (!value) return <span className='text-muted-foreground'>—</span>
+    ...config.extraFields.map<ColumnDef<LookupRow>>((field) => ({
+      accessorKey: field.key,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={field.label} />
+      ),
+      enableSorting: false,
+      cell: ({ row }) => {
+        const record = row.original as Record<string, unknown>
+        const value = record[field.key]
 
-          if (field.type === 'color') {
-            return (
-              <span className='flex items-center gap-2'>
-                <span
-                  className='size-4 rounded-full border'
-                  style={{ backgroundColor: String(value) }}
-                />
-                {String(value)}
-              </span>
-            )
-          }
+        if (value === null || value === undefined || value === '') {
+          return <span className='text-muted-foreground'>—</span>
+        }
 
-          return String(value)
-        },
-      })),
+        if (field.type === 'color') {
+          return (
+            <span className='flex items-center gap-2'>
+              <span
+                className='size-4 rounded-full border'
+                style={{ backgroundColor: String(value) }}
+              />
+              {String(value)}
+            </span>
+          )
+        }
+
+        if (field.type === 'money') {
+          // Decimals cross the wire as strings, to survive the round trip.
+          return formatMoney(Number(value))
+        }
+
+        return lookupFieldLabel(field, record) ?? String(value)
+      },
+    })),
     {
       accessorKey: 'is_active',
       header: ({ column }) => (
@@ -300,23 +293,14 @@ function LookupsContent({ config }: { config: LookupConfig }) {
   return (
     <>
       <Header fixed>
-        <div className='ms-auto flex items-center gap-4'>
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
-        </div>
+        <ThemeSwitch />
+        <ConfigDrawer />
+        <ProfileDropdown />
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              {config.title}
-            </h2>
-            <p className='text-muted-foreground'>{config.description}</p>
-          </div>
-
-          <Can permission={`${config.resource}.create`}>
+        <PageHeading title={config.title} description={config.description}>
+          <Can permission={perm(config.resource, 'add')}>
             <Button
               onClick={() => {
                 setCurrentRow(null)
@@ -327,7 +311,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>
-        </div>
+        </PageHeading>
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
@@ -347,30 +331,32 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         )}
       </Main>
 
-      {currentRow &&
-        subjectTypes[config.resource as keyof typeof subjectTypes] && (
-          <RecordHistorySheet
-            subjectType={
-              subjectTypes[config.resource as keyof typeof subjectTypes]
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
+      {currentRow && (
+        <LookupViewDialog
+          key={`row-view-${currentRow.id}`}
+          config={config}
+          row={currentRow}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
             }
-            subjectId={currentRow.id}
-            title={currentRow.name}
-            open={open === 'history'}
-            onOpenChange={(isOpen) => !isOpen && setOpen(null)}
-          />
-        )}
+          }}
+          onRequestEdit={() => setOpen('update')}
+          actions={rowActions(currentRow)}
+        />
+      )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
       <LookupMutateDialog
         key={
           currentRow && open !== 'create' ? `row-${currentRow.id}` : 'create'
         }
         config={config}
         currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={currentRow ? rowActions(currentRow) : []}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        open={open === 'create' || open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)

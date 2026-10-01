@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, type RenderResult } from 'vitest-browser-react'
 import { userEvent } from 'vitest/browser'
 import { useAuthStore } from '@/stores/auth-store'
+import { PERMISSIONS, perm } from '@/lib/permissions'
 import { SearchProvider } from '@/context/search-provider'
 
 const COMMAND_MENU_PLACEHOLDER = 'Type a command or search...'
@@ -30,7 +31,15 @@ type ShortcutModifier = 'Control' | 'Meta'
  * signed-in user may reach. Seed a user holding the permissions the assertions
  * below rely on.
  */
-function signIn(permissions: string[] = ['products.viewAny', 'users.viewAny']) {
+function signIn(
+  permissions: string[] = [
+    perm('orders', 'view'),
+    perm('stone-types', 'view'),
+    perm('users', 'view'),
+    PERMISSIONS.moduleOrders,
+    PERMISSIONS.moduleUser,
+  ]
+) {
   useAuthStore.getState().auth.setUser({
     id: 1,
     first_name: 'Test',
@@ -38,9 +47,11 @@ function signIn(permissions: string[] = ['products.viewAny', 'users.viewAny']) {
     full_name: 'Test User',
     username: 'testuser',
     email: 'test@example.com',
-    avatar_url: null,
+    avatar: null,
     is_active: true,
     roles: ['admin'],
+    must_change_password: false,
+    must_complete_profile: false,
     permissions,
   })
 }
@@ -95,7 +106,7 @@ describe('SearchProvider and CommandMenu', () => {
     await expect.element(getByText('Light')).toBeInTheDocument()
     await expect.element(getByText('Dark')).toBeInTheDocument()
     await expect.element(getByText('System')).toBeInTheDocument()
-    await expect.element(getByText('Dashboard')).toBeInTheDocument()
+    await expect.element(getByText('Operational reports')).toBeInTheDocument()
   })
 
   it('does not show the dialog content when search is closed', async () => {
@@ -131,9 +142,9 @@ describe('SearchProvider and CommandMenu', () => {
 
     await openCommandPalette(screen)
 
-    await userEvent.click(screen.getByText('Products'))
+    await userEvent.click(screen.getByText('Orders'))
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/products' })
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/orders' })
     await expect
       .element(screen.getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
       .not.toBeInTheDocument()
@@ -145,9 +156,11 @@ describe('SearchProvider and CommandMenu', () => {
 
     await openCommandPalette(screen)
 
-    await userEvent.click(getByRole('option', { name: 'Settings Account' }))
+    // Nested entries render as "<group> <item>", e.g. the Users collapsible
+    // in Administration.
+    await userEvent.click(getByRole('option', { name: 'Users All Users' }))
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/settings/account' })
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/users' })
     await expect
       .element(getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
       .not.toBeInTheDocument()

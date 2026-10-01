@@ -34,8 +34,8 @@ export function ViewFooterActions({
     (action) => action.label !== 'View' && action.label !== 'Edit'
   )
 
-  const destructive = rest.filter((action) => action.variant === 'destructive')
-  const safe = rest.filter((action) => action.variant !== 'destructive')
+  const destructive = rest.filter((action) => action.tone === 'destructive')
+  const safe = rest.filter((action) => action.tone !== 'destructive')
 
   return (
     <>

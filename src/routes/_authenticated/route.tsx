@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { useAuthStore } from '@/stores/auth-store'
+import { needsFirstLogin, useAuthStore } from '@/stores/auth-store'
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
-import { meQueryOptions } from '@/features/auth/data/auth-api'
+import { meQueryOptions } from '@/features/auth/data/api'
 
 export const Route = createFileRoute('/_authenticated')({
   /**
@@ -12,8 +12,8 @@ export const Route = createFileRoute('/_authenticated')({
    * showing a name: permissions come from this call, and rendering the app
    * without them would briefly hide every gated control.
    *
-   * Auth-provider swap point: replace the token check and the `me` call with
-   * your provider's session lookup (Clerk / Auth0 / Supabase).
+   * A user with a first login still due goes to `/first-login` instead; the
+   * API would refuse this page's requests anyway.
    */
   beforeLoad: async ({ location, context }) => {
     const { auth } = useAuthStore.getState()
@@ -25,10 +25,16 @@ export const Route = createFileRoute('/_authenticated')({
       })
     }
 
-    if (auth.user) return
+    // A new account finishes its first login before anything else; the API
+    // refuses the rest until then, so there is nothing else to show it.
+    if (auth.user) {
+      if (needsFirstLogin(auth.user)) throw redirect({ to: '/first-login' })
+      return
+    }
 
+    let user
     try {
-      const user = await context.queryClient.ensureQueryData(meQueryOptions)
+      user = await context.queryClient.ensureQueryData(meQueryOptions)
       useAuthStore.getState().auth.setUser(user)
     } catch {
       // The stored token is stale or revoked — start a clean session.
@@ -39,6 +45,9 @@ export const Route = createFileRoute('/_authenticated')({
         search: { redirect: location.href },
       })
     }
+
+    // Outside the try: a redirect thrown inside it would be caught as a failure.
+    if (needsFirstLogin(user)) throw redirect({ to: '/first-login' })
   },
   component: AuthenticatedLayout,
 })

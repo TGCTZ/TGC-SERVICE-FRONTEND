@@ -1,0 +1,104 @@
+import { X } from 'lucide-react'
+import { type Meta } from '@/lib/api-query'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { DataTable, type TableQueryState } from '@/components/data-table'
+import { BILL_STATUS_LABELS, type Bill } from '../data/schema'
+import { billsColumns as columns } from './columns'
+
+export type BillsQueryState = TableQueryState & {
+  status?: string
+}
+
+type BillsTableProps = {
+  data: Bill[]
+  meta?: Meta
+  isFetching: boolean
+  state: BillsQueryState
+  onStateChange: (next: Partial<BillsQueryState>) => void
+  onRowClick: (bill: Bill) => void
+}
+
+/**
+ * Server-side bills table.
+ *
+ * No "Show deleted" switch: a bill has no soft-delete columns, because it is
+ * never deleted at all.
+ */
+export function BillsTable({
+  data,
+  meta,
+  isFetching,
+  state,
+  onStateChange,
+  onRowClick,
+}: BillsTableProps) {
+  const hasFilters = Boolean(state.search) || Boolean(state.status)
+
+  const toolbar = (
+    <>
+      <Input
+        placeholder='Search bill, control number, order or customer...'
+        value={state.search}
+        onChange={(e) => onStateChange({ search: e.target.value, page: 1 })}
+        className='h-8 w-full max-w-80'
+      />
+
+      <Select
+        value={state.status ?? 'all'}
+        onValueChange={(value) =>
+          onStateChange({
+            status: value === 'all' ? undefined : value,
+            page: 1,
+          })
+        }
+      >
+        <SelectTrigger className='h-8 w-40'>
+          <SelectValue placeholder='Status' />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value='all'>All statuses</SelectItem>
+          {Object.entries(BILL_STATUS_LABELS).map(([value, label]) => (
+            <SelectItem key={value} value={value}>
+              {label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {hasFilters && (
+        <Button
+          variant='ghost'
+          className='h-8 px-2 lg:px-3'
+          onClick={() =>
+            onStateChange({ search: '', status: undefined, page: 1 })
+          }
+        >
+          Reset
+          <X className='ms-2 size-4' />
+        </Button>
+      )}
+    </>
+  )
+
+  return (
+    <DataTable
+      columns={columns}
+      data={data}
+      meta={meta}
+      isFetching={isFetching}
+      state={state}
+      onStateChange={onStateChange}
+      onRowClick={onRowClick}
+      toolbar={toolbar}
+      emptyMessage='No bills found.'
+    />
+  )
+}

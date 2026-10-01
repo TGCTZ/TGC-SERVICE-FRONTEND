@@ -1,8 +1,9 @@
 # Adding a Feature
 
 A step-by-step guide to adding a new feature (a screen/module). It follows the
-reference feature, [`src/features/products/`](../src/features/products) — copy
-that folder when in doubt.
+reference feature, [`src/features/customers/`](../src/features/customers) —
+copy that folder when in doubt. It is the smallest feature with the full set:
+table, create/edit, soft delete, restore and audit history.
 
 > Background: read [architecture.md](./architecture.md) first if you're unsure
 > how `routes/` and `features/` relate.
@@ -43,11 +44,12 @@ flowchart TD
 
 If your resource is reference data — `name`, `description`, `is_active`, soft
 deletes, restore — **stop**. Add one entry to `lookupConfigs` in
-[`src/features/lookups/data/lookup-config.ts`](../src/features/lookups/data/lookup-config.ts)
+[`src/features/lookups/data/config.ts`](../src/features/lookups/data/config.ts)
 and you get a table, CRUD, soft-delete/restore, permission gating and audit
 history with no new components.
 
-Five screens already work this way. The instinct to copy `features/products/`
+Ten reference tables already work this way, and the four queues work the same
+way through `features/worklists/`. The instinct to copy `features/customers/`
 for a table of tags costs a folder of code that then has to be maintained
 separately. Only continue below if your resource genuinely needs its own
 screen.
@@ -68,7 +70,7 @@ import { z } from 'zod'
 export const widgetSchema = z.object({
   id: z.number(),
   name: z.string(),
-  // Laravel casts decimals to strings; coerce once, here at the boundary.
+  // The API serialises decimals as strings; coerce once, here at the boundary.
   price: z.coerce.number(),
   is_active: z.boolean().default(true),
 })
@@ -76,33 +78,32 @@ export const widgetSchema = z.object({
 export type Widget = z.infer<typeof widgetSchema>
 ```
 
-### 2. Add the API calls — `data/widgets-api.ts`
+### 2. Add the API calls — `data/api.ts`
 
 Use the shared `api` client (never raw `axios`) so the base URL, auth header and
 401-refresh all apply. Lists are **paginated by the server**, so use
 `buildListParams` to translate table state into the API's query contract.
 
 ```ts
-// src/features/widgets/data/widgets-api.ts
+// src/features/widgets/data/api.ts
 import { queryOptions } from '@tanstack/react-query'
-import { z } from 'zod'
 import { api } from '@/lib/api'
-import { buildListParams, metaSchema, type ListParams } from '@/lib/api-query'
+import {
+  buildListParams,
+  paginatedSchema,
+  toPaginated,
+  type ListParams,
+} from '@/lib/api-query'
 import { widgetSchema, type Widget } from './schema'
 
-// A literal key (not a generic helper) keeps TypeScript inference intact.
-const listSchema = z.object({
-  widgets: z.array(widgetSchema),
-  meta: metaSchema,
-})
+const listSchema = paginatedSchema(widgetSchema)
 
 export async function fetchWidgets(params: ListParams) {
   const res = await api.get('/widgets', { params: buildListParams(params) })
-  const parsed = listSchema.parse(res.data)
-  return { items: parsed.widgets, meta: parsed.meta }
+  return toPaginated(listSchema.parse(res.data), params)
 }
 
-export const widgetsQueryOptions = (params: ListParams) =>
+export const widgetsQuery = (params: ListParams) =>
   queryOptions({
     queryKey: ['widgets', params],
     queryFn: () => fetchWidgets(params),
@@ -115,18 +116,25 @@ export const widgetsQueryOptions = (params: ListParams) =>
 > component *and* `ensureQueryData` in a route loader — one source of truth for
 > the query key and fetcher.
 
-**Writes with a file** must be `multipart/form-data`, and PHP does not parse
-multipart on `PUT` — so updates POST with `_method=PUT`. See `toFormData()` in
-[`products-api.ts`](../src/features/products/data/products-api.ts).
+**Writes with a file** must be `multipart/form-data`; everything else is plain
+JSON, which is what the API prefers — multipart flattens every value to a
+string, so a `null` meant to clear a column arrives as `"null"`. Send the
+heavier encoding only for the write that genuinely carries a file: see
+`encode()` in
+[`users/data/api.ts`](../src/features/users/data/api.ts).
 
 ### 3. Build feature components — `components/`
 
-Keep feature-only components in the feature folder. The response envelope is
-always:
+Keep feature-only components in the feature folder. Every collection comes back
+in the same envelope:
 
 ```json
-{ "widgets": [ ... ], "links": { ... }, "meta": { "current_page": 1, "last_page": 9, "per_page": 10, "total": 84 } }
+{ "count": 84, "next": "…?page=2", "previous": null, "results": [ ... ] }
 ```
+
+`toPaginated()` normalises that into `{ items, meta }` for the table
+components, working out the page numbers from `count` and the page size you
+asked for — the API does not send them.
 
 **Do not write your own table.** `<DataTable>` already owns the `manual*` flags,
 the serial-number column, the row-click guard and the deleted-row styling — the
@@ -159,11 +167,11 @@ as icon buttons in the cell and as labelled buttons in the view dialog, so build
 them in a hook both can call:
 
 ```tsx
-// components/use-widget-actions.ts
+// hooks/use-actions.ts
 const actions: RowAction[] = [
-  { label: 'View', icon: Eye, permission: 'widgets.view', onSelect: () => select('view') },
-  { label: 'Edit', icon: Pencil, permission: 'widgets.update', onSelect: () => select('update'), hidden: isDeleted },
-  { label: 'Delete', icon: Trash2, permission: 'widgets.delete', onSelect: () => select('delete'), variant: 'destructive', hidden: isDeleted, separatorBefore: true },
+  { label: 'View', icon: Eye, permission: perm('widgets', 'view'), onSelect: () => select('view') },
+  { label: 'Edit', icon: Pencil, permission: perm('widgets', 'change'), onSelect: () => select('update'), hidden: isDeleted },
+  { label: 'Delete', icon: Trash2, permission: perm('widgets', 'delete'), onSelect: () => select('delete'), tone: 'destructive', hidden: isDeleted, separatorBefore: true },
 ]
 
 return <DataTableRowActions actions={actions} />
@@ -185,17 +193,22 @@ screen.
 The page reads table state from the URL, runs the query, and handles the error
 state explicitly.
 
+`<Header>` already carries the sidebar toggle, the back button and the
+breadcrumb trail on every screen — pass it the page's own controls and nothing
+else. No `ms-auto` or `me-auto`: the header owns that alignment, and the trail
+is derived from the URL via the sidebar entry you add in step 6.
+
 ```tsx
 const search = route.useSearch()
 const { data, isPending, isError, isFetching } = useQuery(
-  widgetsQueryOptions({ page: search.page ?? 1, perPage: search.pageSize ?? 10 })
+  widgetsQuery({ page: search.page ?? 1, perPage: search.pageSize ?? 10 })
 )
 ```
 
 Gate write actions with `<Can>`:
 
 ```tsx
-<Can permission='widgets.create'>
+<Can permission={perm('widgets', 'add')}>
   <Button onClick={openCreate}>Add widget</Button>
 </Can>
 ```
@@ -234,7 +247,7 @@ const widgetsSearchSchema = z.object({
 })
 
 export const Route = createFileRoute('/_authenticated/widgets/')({
-  beforeLoad: requirePermission(['widgets.viewAny']),
+  beforeLoad: requirePermission([perm('widgets', 'view')]),
   validateSearch: widgetsSearchSchema,
   component: Widgets,
 })
@@ -246,8 +259,8 @@ The file path **is** the URL: this route serves `/widgets`.
 
 ```ts
 import { Boxes } from 'lucide-react'
-// …inside navGroups → General → items:
-{ title: 'Widgets', url: '/widgets', icon: Boxes, permission: 'widgets.viewAny' },
+// …inside the items of whichever navGroup the screen belongs to:
+{ title: 'Widgets', url: '/widgets', icon: Boxes, permission: perm('widgets', 'view') },
 ```
 
 The `permission` field filters both the sidebar and the ⌘K command palette, so
@@ -267,8 +280,11 @@ pnpm dev
 
 ### A static feature (no data fetching)
 
-Skip steps 1–2. Create `index.tsx` and wire the route + sidebar entry. For a
-placeholder, reuse [`ComingSoon`](../src/components/coming-soon.tsx).
+Skip steps 1–2. Create `index.tsx` and wire the route + sidebar entry.
+
+Resist adding a route with nothing behind it: an ungated placeholder in the
+sidebar is a promise the app does not keep, and every user sees it regardless
+of their permissions. Add the entry when the screen exists.
 
 ### A feature with a form
 
@@ -283,12 +299,13 @@ if (error instanceof AxiosError && error.response?.status === 422) {
 ```
 
 Full example:
-[`product-mutate-dialog.tsx`](../src/features/products/components/product-mutate-dialog.tsx).
+[`customers/components/mutate-dialog.tsx`](../src/features/customers/components/mutate-dialog.tsx).
 
 ### File uploads
 
-See [`product-gallery.tsx`](../src/features/products/components/product-gallery.tsx)
-for multi-file upload, set-primary and delete against the API.
+See the avatar field in
+[`users/components/mutate-dialog.tsx`](../src/features/users/components/mutate-dialog.tsx),
+which is the one write in the app that sends multipart.
 
 ---
 
@@ -296,14 +313,13 @@ for multi-file upload, set-primary and delete against the API.
 
 - [ ] Confirmed this is not a lookup (step 0)
 - [ ] `features/<name>/data/schema.ts` — Zod schema + inferred type
-- [ ] `features/<name>/data/<name>-api.ts` — fetchers + `queryOptions`
+- [ ] `features/<name>/data/api.ts` — fetchers + `queryOptions`
 - [ ] `features/<name>/components/` — uses `<DataTable>` and `RowAction[]`
 - [ ] View reuses the mutate dialog with `readOnly`
 - [ ] `features/<name>/index.tsx` — page with error/empty handling
 - [ ] `routes/_authenticated/<name>/index.tsx` — thin route + `requirePermission`
 - [ ] `sidebar-data.ts` — nav entry with `permission` and a lucide icon
-- [ ] `lib/subject-types.ts` entry, if the record should have history
 - [ ] A test for anything non-obvious — see [testing.md](./testing.md)
 - [ ] Docs updated in the same commit, if you changed a shared component
 - [ ] `pnpm typecheck`, `pnpm lint`, `pnpm knip` and `pnpm docs:check` pass
-- [ ] Signed in as `viewer@test.com` — the row menu collapses to View
+- [ ] Signed in as a limited role — the row menu loses what it cannot do

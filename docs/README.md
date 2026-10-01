@@ -1,8 +1,8 @@
-# AlphaDashboard Documentation
+# TGC Service Frontend — Documentation
 
-Reference docs for the AlphaDashboard template — a reusable React admin frontend
-built on Vite, React 19, TypeScript, Tailwind v4 and Radix-based UI
-primitives.
+Reference docs for the web client of the Tanzania Gemmological Centre's
+stone-certification system, built on Vite, React 19, TypeScript, Tailwind v4 and
+Radix-based UI primitives.
 
 ## Start here
 
@@ -13,7 +13,8 @@ primitives.
 | See the flows drawn out | [diagrams/](./diagrams/README.md) |
 | Write a screen that matches the others | [conventions.md](./conventions.md) |
 | Add a feature, step by step | [adding-a-feature.md](./adding-a-feature.md) |
-| Make it my project | [customizing.md](./customizing.md) |
+| Change branding, navigation or theme | [customizing.md](./customizing.md) |
+| Look up a colour or a design token | [TGC-COLOR-SYSTEM.md](./TGC-COLOR-SYSTEM.md) |
 | Run or write tests | [testing.md](./testing.md) |
 | Ship it | [deployment.md](./deployment.md) |
 | Know why these libraries | [tech-stack.md](./tech-stack.md) |
@@ -30,7 +31,7 @@ flowchart LR
     Routes --> Features["features/<br/>(pages + logic)"]
     Features --> Shared["components/ · hooks/ · lib/<br/>(reusable building blocks)"]
     Features --> API["lib/api.ts<br/>(Axios client)"]
-    API --> Backend[("Backend API")]
+    API --> Backend[("TGC API<br/>(Django, in ../backend)")]
     Features --> Stores["stores/<br/>(Zustand global state)"]
 ```
 
@@ -43,21 +44,23 @@ flowchart LR
 
 ## Keeping these docs honest
 
-Two rules, because an earlier version of this doc set went stale within a single
-session's work — describing deleted components as though they still existed, and
-telling readers to hand-roll a table the shared component exists to prevent.
+Docs rot quietly. A component is deleted and the paragraph describing it stays
+behind, still reading as though it were true. Two rules push back.
 
 **1. Code owns the "why".** The most important explanations live in docblocks
-next to the code they describe — `sidebar-data.ts` on navigation tiers,
-`lookup-config.ts` on the lookup escape hatch, `dialog-body.tsx` on why it does
-not use Radix `ScrollArea`, `subject-types.ts` on why a typo there fails
-silently. Docs **link** to those rather than restating them, because restating
-is what rots.
+next to the code they describe — `sidebar-data.ts` on how navigation is
+assembled and filtered, `lookups/data/config.ts` on the one-screen-many-tables
+escape hatch, `dialog-body.tsx` on why it does not use Radix `ScrollArea`,
+`api-query.ts` on the list contract. Docs **link** to those rather than
+restating them, because restating is what rots.
 
 **2. `pnpm docs:check` enforces the rest.** It fails when any doc references a
 file that no longer exists — a link, a code span, or a path in an ASCII diagram.
-It runs in CI. It would have caught every dangling reference the audit found.
+There is no CI pipeline in this repository, so nothing runs it for you: run it
+before opening a pull request, alongside `pnpm typecheck`, `pnpm lint` and
+`pnpm build`. The backend has its own equivalent, `scripts/check_docs.py`,
+covering its own tree; neither script sees the other half of the repository.
 
-It cannot tell you a *description* went stale. That still needs a human, which
+Neither can tell you a *description* went stale. That still needs a human, which
 is why the [adding-a-feature checklist](./adding-a-feature.md#checklist) ends
 with "update the docs in the same commit".

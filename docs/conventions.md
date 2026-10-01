@@ -14,12 +14,12 @@ is the reference you keep open while writing.
 If your resource matches the lookup contract — `name`, `description`,
 `is_active`, soft deletes, restore — **do not create a feature folder.** Add one
 entry to `lookupConfigs` in
-[`src/features/lookups/data/lookup-config.ts`](../src/features/lookups/data/lookup-config.ts)
+[`src/features/lookups/data/config.ts`](../src/features/lookups/data/config.ts)
 and you get a table, CRUD, soft-delete/restore, permission gating and audit
 history without writing a component.
 
-Five screens already run this way. The wrong instinct — copying
-`features/products/` for a table of tags — costs a folder of code that then has
+Ten lookup screens and four worklist queues already run this way. The wrong
+instinct — copying a whole feature folder for a table of colours — costs code that then has
 to be maintained separately.
 
 ---
@@ -53,7 +53,7 @@ Your feature supplies four things: `columns`, `state`, `onStateChange`, and a
   onRowClick={(row) => select('view', row)}
   isRowDeleted={(row) => Boolean(row.deleted_at)}
   toolbar={toolbar}
-  emptyMessage='No widgets found.'
+  emptyMessage='No customers found.'
 />
 ```
 
@@ -94,15 +94,15 @@ data rather than JSX:
 - `<RowActionButtons>` — icon **and** label, for the record's view dialog
 
 So build the list in a hook, not inside the cell component — see
-`use-product-actions.ts` — and pass it to both.
+`features/<name>/hooks/use-actions.ts` — and pass it to both.
 
 ```tsx
 const actions: RowAction[] = [
-  { label: 'View', icon: Eye, permission: 'widgets.view', onSelect: () => select('view') },
-  { label: 'Edit', icon: Pencil, permission: 'widgets.update', onSelect: () => select('update'), hidden: isDeleted },
-  { label: 'History', icon: History, permission: 'activity-logs.viewAny', onSelect: () => select('history') },
-  { label: 'Restore', icon: RotateCcw, permission: 'widgets.restore', onSelect: () => select('restore'), hidden: !isDeleted, separatorBefore: true },
-  { label: 'Delete', icon: Trash2, permission: 'widgets.delete', onSelect: () => select('delete'), variant: 'destructive', hidden: isDeleted, separatorBefore: true },
+  { label: 'View', icon: Eye, permission: perm('orders', 'view'), onSelect: () => select('view') },
+  { label: 'Edit', icon: Pencil, permission: perm('orders', 'change'), onSelect: () => select('update'), hidden: isDeleted },
+  { label: 'Generate bill', icon: ReceiptText, permission: 'billing.generate_bill', tone: 'advance', onSelect: () => select('bill'), hidden: isBilled(order) },
+  { label: 'Restore', icon: RotateCcw, permission: perm('orders', 'delete'), onSelect: () => select('restore'), hidden: !isDeleted, separatorBefore: true },
+  { label: 'Delete', icon: Trash2, permission: perm('orders', 'delete'), onSelect: () => select('delete'), tone: 'destructive', hidden: isDeleted, separatorBefore: true },
 ]
 ```
 
@@ -110,8 +110,24 @@ const actions: RowAction[] = [
 | --- | --- |
 | `permission` | A string or array; the user needs one of them |
 | `hidden` | Structural absence — Restore on a live record |
-| `variant: 'destructive'` | Red styling |
+| `tone` | What kind of action this is — see below |
 | `separatorBefore` | Draws a divider before it, fencing destructive actions off; suppressed if it would land first |
+
+### Tone
+
+`tone` says what an action *means*, and the shared renderer turns that into a
+Button variant. Never reach for a variant directly: the point is that "advance
+the workflow" looks the same on every screen.
+
+| Tone | Meaning | Renders as |
+| --- | --- | --- |
+| `neutral` (default) | Reading or editing — View, Edit | outline |
+| `advance` | Moves the record to its next stage — Generate bill, Identify, Issue | solid primary |
+| `document` | Produces something to take away — Download PDF, Print | solid green |
+| `destructive` | Delete | outlined red |
+
+Only one action in a row should carry `advance`: the workflow verb. A row where
+everything is emphasised reads the same as a row where nothing is.
 
 `hidden` and `permission` are different things: `hidden` means *not applicable
 to this row*, `permission` means *not allowed for this user*.
@@ -178,7 +194,7 @@ For a soft-deletable resource:
 - **Restore** replacing **Delete** in the row menu
 
 Not every table has this. Audit logs and system logs are append-only, and roles
-live in spatie's tables which have no soft deletes — those three have no toggle.
+are Django groups, which have no soft deletes — those three have no toggle.
 
 ---
 
@@ -188,8 +204,8 @@ Three tools, one source of truth — the permission list on the signed-in user:
 
 | Where | Tool |
 | --- | --- |
-| Route | `requirePermission(['widgets.viewAny'])` in `beforeLoad` |
-| UI | `<Can permission='widgets.create'>` |
+| Route | `requirePermission([perm('orders', 'view')])` in `beforeLoad` |
+| UI | `<Can permission={perm('orders', 'add')}>` |
 | Sidebar and ⌘K palette | `filterNavGroups`, via the `permission` field on nav entries |
 
 Gate on **permissions**, never roles. A role gate drifts the moment someone
@@ -241,30 +257,67 @@ record reads differently on two machines.
 
 ---
 
-## 9. Record history
+## 9. Status badges
 
-Any model in [`src/lib/subject-types.ts`](../src/lib/subject-types.ts) gets a
-timeline for free:
+Every status in the system renders through
+[`src/components/status-badge.tsx`](../src/components/status-badge.tsx), so the
+meaning of a colour is decided once rather than per screen.
+
+There are five tones, and every status is one of them:
+
+| Tone | Means | Examples |
+| --- | --- | --- |
+| `success` | Arrived where it was going | paid, certified, collected, issued |
+| `warning` | Paused, partial, or waiting | on hold, partly paid, awaiting payment |
+| `danger` | Stopped or withdrawn | cancelled, revoked, expired |
+| `info` | Under way | under identification, in findings |
+| `neutral` | An ordinary step with no news in it | received, pending, draft |
+
+A feature does not write a badge. It writes a **map**, and
+`createStatusBadge(labels, tones)` returns the component:
 
 ```tsx
-<RecordHistorySheet
-  subjectType={subjectTypes.widget}
-  subjectId={widget.id}
-  title={widget.name}
-  open={open === 'history'}
-  onOpenChange={(isOpen) => !isOpen && setOpen(null)}
-/>
+const TONES: Record<string, StatusTone> = {
+  pending: 'warning',
+  partially_paid: 'warning',
+  paid: 'success',
+  cancelled: 'danger',
+}
+
+export const BillStatusBadge = createStatusBadge(BILL_STATUS_LABELS, TONES)
 ```
 
-Add the row action behind `<Can permission='activity-logs.viewAny'>`. Remember
-the silent-failure warning in
-[customizing.md](./customizing.md#7-audit-subjects--srclibsubject-typests--fails-silently).
+Badges are tinted, not solid — they use the `-subtle` / `-border` / `-text`
+token triplets. A table is mostly badges, and solid pills turn one into a
+traffic light; a tint carries the same meaning quietly enough to read a hundred
+rows of. Both halves of each pair are theme tokens, so dark mode follows without
+a second definition. The tokens themselves are in
+[TGC-COLOR-SYSTEM.md](./TGC-COLOR-SYSTEM.md).
+
+---
+
+## 9b. Page headings and feedback
+
+Two smaller shared pieces that screens should not re-implement:
+
+- **`<PageHeading title description>`** — the screen's name and the one sentence
+  saying what it holds. The description renders in a blue-outlined box tinted
+  with the chrome colour, because it is the screen explaining itself rather than
+  data.
+- **`<Progress value max>`** — use it wherever a screen would otherwise print
+  "3 of 5". It turns amber while work remains and green once complete.
+- **Toasts** are configured once in
+  [`src/components/ui/sonner.tsx`](../src/components/ui/sonner.tsx): 16 seconds,
+  bottom-right, coloured by kind, with a close button, at most four at a time.
+  Never pass a `duration` at a call site — a toast that outlives the others
+  reads as a bug. Say what happened and what it means for the next step
+  ("Order created — the stone is ready for identification"), not just "Saved".
 
 ---
 
 ## 10. Data fetching
 
-- One `queryOptions` factory per query, colocated in `data/*-api.ts`
+- One `queryOptions` factory per query, colocated in the feature's `data/api.ts`
 - Parse every response with Zod **at the boundary** — a schema change surfaces
   as a parse error at the fetch, not as `undefined` three components deep
 - `placeholderData: (previous) => previous` on lists, so paging does not flash a
@@ -314,15 +367,92 @@ docblock — a summary is what hover is missing, the parameter list is not.
 wrong.** `DialogContent` carries a layout contract, `SidebarProvider` persists
 to a cookie, `Table` wraps itself in a scroll container. Those need the why.
 
+### State today's reason, not the history
+
+"Opaque, so content never reads through a fixed header" - not "replaces the
+blur this used to grow on scroll". Git records what changed; a comment that
+tells the story of a fix goes stale once nobody remembers the story. Keep a
+docblock to the contract and the why; design rationale longer than about ten
+lines belongs in `docs/`, linked from the code. No leftovers from the starter
+template or other frameworks.
+
 ### Link, do not restate
 
 When the reasoning already lives somewhere, point at it. `dialog-body.tsx`
-explains the dialog layout traps; `sidebar-data.ts` explains the navigation
-tiers; `subject-types.ts` explains why a typo there fails silently. Copying
+explains the dialog layout traps; `sidebar-data.ts` explains how navigation is
+assembled and filtered; `api-query.ts` explains the list contract. Copying
 those into a second docblock just creates a second thing to go stale — the
 same rule the [docs README](./README.md) sets out.
 
 ---
+
+## 12. File and folder naming
+
+### The rule
+
+> Read the full path aloud as a sentence. Every word must earn its place, and
+> no word may repeat.
+
+The **folder is the namespace**. A filename only has to distinguish a module
+from its siblings, not from every module in the project — so anything the path
+has already said is dropped from the name.
+
+```text
+<feature>/data/api.ts                 "users data api"          ✅
+<feature>/data/<feature>-api.ts       "users data users api"    ❌
+<feature>/components/table.tsx        "users components table"  ✅
+<feature>/components/<feature>-table.tsx                        ❌
+```
+
+Repeated basenames across different folders are expected and fine. There are
+several `api.ts`, several `table.tsx` and many `index.tsx`; they are told apart
+by the folder that contains them, which is the folder's job.
+
+### Case
+
+`kebab-case` for every file and folder, including React components. The file is
+`src/features/users/components/mutate-dialog.tsx`; the component it exports is still
+`MutateDialog`.
+
+This is not only style. macOS and Windows have case-insensitive filesystems
+while Linux and CI do not, so a rename that only changes case can pass locally
+and fail in CI with an unresolved import. Never encoding meaning in case
+removes the whole class of bug.
+
+### Where a module goes
+
+| Folder | Holds | Example |
+|---|---|---|
+| `data/` | API client, schemas, config | `src/features/users/data/api.ts` |
+| `components/` | React components only | `src/features/users/components/table.tsx` |
+| `hooks/` | Hooks only | `src/features/users/hooks/use-actions.ts` |
+| *(feature root)* | The screen | `src/features/users/index.tsx` |
+
+A `use-` prefix means the file belongs in `hooks/`, not `components/`. The
+prefix and the folder must agree.
+
+### `index.tsx` is the feature's screen
+
+Each feature exposes exactly one screen, at its root, as `index.tsx`. Route
+files under `src/routes/` import it and add the guard.
+
+`src/routes/**` filenames are **owned by TanStack Router** — they generate the
+URL and `routeTree.gen.ts`. Never rename them to satisfy this convention.
+
+### Singular or plural
+
+Inside a feature the folder already names the subject, so the question does not
+arise. It applies to shared code and to exported identifiers:
+
+- **Plural** when the subject is the collection — `usersQueryOptions`,
+  `groupedPermissionsSchema`
+- **Singular** when the subject is one record — `userSchema`, `fetchProduct`
+
+### Shared code keeps its subject
+
+`src/components/`, `src/lib/` and `src/hooks/` have no namespacing folder, so
+names there must stand alone: `src/lib/permissions.ts`, `src/components/confirm-dialog.tsx`.
+A bare `src/lib/api.ts` is acceptable only because it is *the* HTTP client.
 
 ## Checklist for a new screen
 
@@ -333,7 +463,15 @@ same rule the [docs README](./README.md) sets out.
 - [ ] View reuses the mutate dialog with `readOnly`
 - [ ] Show deleted toggle, if the resource soft-deletes
 - [ ] Route guarded with `requirePermission`
-- [ ] Sidebar entry carries its `permission`
+- [ ] Sidebar entry carries its `permission` — the breadcrumb trail comes free
+      from it; a screen missing from `sidebar-data.ts` falls back to a
+      humanised path
+- [ ] `<Header>` children are the right-hand controls only — no `ms-auto` or
+      `me-auto`, the header owns that alignment
 - [ ] Dates and money go through `lib/format.ts`
-- [ ] `subject-types.ts` entry, if you want history
-- [ ] Checked as `viewer@test.com` — the menu should collapse to View
+- [ ] Statuses render through `createStatusBadge`, never a hand-rolled pill
+- [ ] At most one `tone: 'advance'` action per row — the workflow verb
+- [ ] Checked as `receptionist@example.com` — the menu should lose what that role
+      cannot do
+- [ ] Filenames carry nothing the folder already says (§12)
+- [ ] Docs describing this area updated in the same change

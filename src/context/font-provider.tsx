@@ -66,6 +66,7 @@ export function FontProvider({ children }: { children: React.ReactNode }) {
  * @returns The current `font`, plus `setFont` and `resetFont`
  * @throws If used outside a `FontProvider`
  */
+/** The interface font and its setters. Throws outside `FontProvider`. */
 // eslint-disable-next-line react-refresh/only-export-components
 export const useFont = () => {
   const context = useContext(FontContext)

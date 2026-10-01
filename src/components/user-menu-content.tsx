@@ -25,7 +25,7 @@ export function useUserIdentity() {
   return {
     name,
     email: user?.email ?? '',
-    avatar: user?.avatar_url ?? '',
+    avatar: user?.avatar ?? '',
     initials: getDisplayNameInitials(name),
   }
 }

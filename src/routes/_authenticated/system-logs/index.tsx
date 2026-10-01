@@ -1,6 +1,7 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { requirePermission } from '@/lib/authz'
+import { PERMISSIONS } from '@/lib/permissions'
 import { SystemLogs } from '@/features/system-logs'
 
 const systemLogsSearchSchema = z.object({
@@ -13,7 +14,7 @@ const systemLogsSearchSchema = z.object({
 })
 
 export const Route = createFileRoute('/_authenticated/system-logs/')({
-  beforeLoad: requirePermission(['system-logs.viewAny']),
+  beforeLoad: requirePermission([PERMISSIONS.viewSystemLogs]),
   validateSearch: systemLogsSearchSchema,
   component: SystemLogs,
 })

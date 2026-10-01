@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { AxiosError } from 'axios'
 import {
+  MutationCache,
   QueryCache,
   QueryClient,
   QueryClientProvider,
@@ -20,7 +21,7 @@ import { routeTree } from './routeTree.gen'
 // Styles
 import './styles/index.css'
 
-const queryClient = new QueryClient({
+const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
@@ -66,10 +67,25 @@ const queryClient = new QueryClient({
             router.navigate({ to: '/500' })
           }
         }
-        if (error.response?.status === 403) {
-          // router.navigate("/forbidden", { replace: true });
+        // The API holds a new account to its first login; if a request slips
+        // through before the route guard sends them there, send them now.
+        if (
+          error.response?.status === 403 &&
+          (error.response.data as { code?: string } | undefined)?.code ===
+            'first_login_required'
+        ) {
+          router.navigate({ to: '/first-login', replace: true })
         }
       }
+    },
+  }),
+  // Counters (`countQuery`) back the sidebar's queue badges,
+  // and almost every write moves some queue. Refreshing them centrally beats
+  // teaching each dialog which counts its action affects. Only counters on
+  // screen refetch, so this is a handful of one-row requests at most.
+  mutationCache: new MutationCache({
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['count'] })
     },
   }),
 })

@@ -2,17 +2,106 @@ import { AxiosError } from 'axios'
 import { toast } from 'sonner'
 
 /**
+ * Field-keyed validation errors, as the API returns them.
+ *
+ * DRF puts them at the response root — `{"email": ["Already taken."]}` — with no
+ * envelope, and at status **400**, the same status a business-rule refusal uses.
+ * The two are told apart by shape: a refusal carries `detail`, a validation
+ * failure carries one key per bad field.
+ */
+type FieldErrors = Record<string, string[]>
+
+/**
+ * Pull field errors out of a rejected request, or null if there are none.
+ *
+ * Use it to route a validation failure onto the inputs that caused it:
+ *
+ * ```ts
+ * const fields = fieldErrors(error)
+ * if (fields) {
+ *   for (const [name, messages] of Object.entries(fields)) {
+ *     form.setError(name, { message: messages[0] })
+ *   }
+ * }
+ * ```
+ *
+ * @param error - Anything thrown by a mutation or query.
+ * @returns The field/messages map, or null when the error is not field-keyed.
+ */
+export function fieldErrors(error: unknown): FieldErrors | null {
+  if (!(error instanceof AxiosError) || error.response?.status !== 400) {
+    return null
+  }
+
+  const data = error.response.data
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null
+  // `detail` is a business-rule refusal, not a field problem.
+  if ('detail' in data) return null
+
+  const fields: FieldErrors = {}
+  for (const [key, value] of Object.entries(data)) {
+    if (
+      Array.isArray(value) &&
+      value.every((item) => typeof item === 'string')
+    ) {
+      fields[key] = value
+    }
+  }
+  return Object.keys(fields).length > 0 ? fields : null
+}
+
+/**
+ * Read the human-readable message out of a rejected request.
+ *
+ * Prefers `detail` — a business rule explaining itself, which is almost always
+ * the most useful sentence available — then the first field message, then
+ * nothing.
+ */
+function serverMessage(error: AxiosError): string | null {
+  const data = error.response?.data
+  if (!data || typeof data !== 'object') return null
+
+  const detail = (data as { detail?: unknown }).detail
+  if (typeof detail === 'string' && detail.length > 0) return detail
+
+  const fields = fieldErrors(error)
+  if (fields) {
+    const [first] = Object.values(fields)
+    if (first?.[0]) return first[0]
+  }
+  return null
+}
+
+/**
+ * The API's own explanation for a refusal, or a fallback.
+ *
+ * Business rules refuse with a sentence written for the user — "Bill must be
+ * settled before findings can be recorded" — and that sentence is far more
+ * useful than anything the UI could invent. Use it wherever a 400 is expected
+ * and meaningful; a field-keyed validation failure should go through
+ * {@link fieldErrors} instead.
+ *
+ * @param error - Anything thrown by a mutation.
+ * @param fallback - Shown when the error carries no message of its own.
+ */
+export function serverMessageOr(error: unknown, fallback: string): string {
+  if (!(error instanceof AxiosError)) return fallback
+  return serverMessage(error) ?? fallback
+}
+
+/**
  * Turn an unknown thrown value into a user-facing error toast.
  *
  * The default handler for anything a mutation or query rejects with. It never
- * shows a raw exception: the API's `title` field is used when present, and
- * everything else collapses to a generic message, so a stack trace or SQL
- * fragment cannot reach the screen.
+ * shows a raw exception: only the API's own message is surfaced, and everything
+ * else collapses to a generic line, so a stack trace or SQL fragment cannot
+ * reach the screen.
  *
- * Form validation (422) should **not** come here — map those onto fields with
- * `form.setError` so the message lands next to the input that caused it.
+ * Field validation should **not** come here — route it through
+ * {@link fieldErrors} onto `form.setError`, so each message lands next to the
+ * input that caused it.
  *
- * @param error - Anything thrown; Axios errors get their `title` extracted
+ * @param error - Anything thrown; Axios errors get their message extracted.
  */
 export function handleServerError(error: unknown) {
   if (import.meta.env.DEV) {
@@ -20,7 +109,11 @@ export function handleServerError(error: unknown) {
     console.log(error)
   }
 
-  let errMsg = 'Something went wrong!'
+  // Title states the outcome, description explains it: with no server message
+  // the generic title alone tells the user nothing they can act on.
+  let title = 'That did not work'
+  let description =
+    'Something went wrong and the action was not completed. Please try again.'
 
   if (
     error &&
@@ -28,15 +121,23 @@ export function handleServerError(error: unknown) {
     'status' in error &&
     Number(error.status) === 204
   ) {
-    errMsg = 'No content.'
+    title = 'Nothing to show'
+    description = 'The server returned no content for that request.'
   }
 
   if (error instanceof AxiosError) {
-    const title = error.response?.data?.title
-    if (typeof title === 'string' && title.length > 0) {
-      errMsg = title
+    const message = serverMessage(error)
+    if (message) {
+      description = message
+    }
+
+    if (error.response?.status === 403) {
+      title = 'Not allowed'
+      description =
+        message ??
+        'You do not have permission to do that. Ask an administrator for access.'
     }
   }
 
-  toast.error(errMsg)
+  toast.error(title, { description })
 }
