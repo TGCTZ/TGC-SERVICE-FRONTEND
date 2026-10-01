@@ -113,7 +113,7 @@ src/
 ├── features/           One folder per feature/screen (the bulk of the app)
 │   ├── auth/             Sign-in page, form and the auth data layer
 │   ├── audit-logs/       The activity log: table, filters, diff renderer
-│   ├── dashboard/        Landing dashboard (demo charts — replace)
+│   ├── reports/          Financial and operational reports, filters and exports
 │   ├── products/         REFERENCE feature — server-side table + full CRUD + images
 │   ├── roles/            RBAC admin: roles and the permission matrix
 │   ├── users/            Accounts, avatars and role assignment
@@ -162,23 +162,22 @@ features/<name>/
 
 ## Navigation structure
 
-`sidebar-data.ts` is organised in three tiers, which hold for any admin app
-regardless of domain:
+`sidebar-data.ts` groups the lab's pages by their purpose:
 
 ```
-Overview         Dashboard                     ← rarely more than one entry
-Workspace        Products · Reference data     ← THE SWAP POINT
-Finance          (scaffolded placeholder)      ← build it or delete it
-Reports          (scaffolded placeholder)
-Administration   Users · Roles · Logs          ← same in every project
+Reports          Financial reports · Operational reports
+Queues           Configured workflow queues
+Reception        Customers · Orders · Stones
+Billing          Bills · Payments · Service providers
+Identification   Reports
+Certificates     Certificates · Verification log
+Reference data   Gem lookups
+Administration   Users · Roles · Logs
 ```
 
-Finance and Reports point at the shared `ComingSoon` screen: they make the
-intended shape visible without pretending to work.
-
-Only **Workspace** is project-specific. The example is a product catalogue
-because that is what the bundled TestAPI serves — replace its contents
-wholesale and keep the shape.
+Financial and Operational reports are working pages backed by `/api/v1/reports/`.
+Their sections share the existing tables, query helpers, and permission controls.
+The root route redirects to the first report page the user can access.
 
 Two invariants make the structure hold itself together:
 
@@ -305,7 +304,7 @@ flowchart TD
 
     root --> auth
     root --> pub
-    auth --> dash["/ → dashboard"]
+    auth --> reports["/ → first accessible report page"]
     auth --> products["/products → products"]
     auth --> roles["/roles → roles"]
     auth --> users["/users → users"]

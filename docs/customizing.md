@@ -118,9 +118,10 @@ on. Deleting it cleanly is the difference between a starting point and a mess.
 | `src/features/products/` | The reference feature. Read it first, then replace it. |
 | `src/features/lookups/` | Keep the folder if you have reference tables; replace `lookup-config.ts`'s entries. |
 | The **Workspace** group in `sidebar-data.ts` | Your domain goes here. |
-| The **Finance** / **Reports** groups + `src/routes/_authenticated/finance/`, `src/routes/_authenticated/reports/` | Scaffolded placeholders. Build them or remove them. |
 | The Workspace half of `src/lib/subject-types.ts` | Keep `user` and `role`. |
-| `src/features/dashboard/components/` | Demo charts with random data. |
+
+The Reports group and `src/features/reports/` now implement Financial and
+Operational reports backed by `/api/v1/reports/`; they are part of the lab domain.
 
 **Keep — this is the machinery:**
 

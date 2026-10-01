@@ -5,7 +5,6 @@ import {
   Contact,
   Gem,
   Landmark,
-  LayoutDashboard,
   ListChecks,
   Microscope,
   Receipt,
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react'
 import { PERMISSIONS, perm } from '@/lib/permissions'
 import { allLookupConfigs } from '@/features/lookups/data/config'
+import { reportConfigs } from '@/features/reports/data/config'
 import { allWorklistConfigs } from '@/features/worklists/data/config'
 import { type NavLink, type SidebarData } from '../types'
 
@@ -44,12 +44,19 @@ import { type NavLink, type SidebarData } from '../types'
 export const sidebarData: SidebarData = {
   navGroups: [
     {
-      title: 'Overview',
+      title: 'Reports',
       items: [
         {
-          title: 'Dashboard',
-          url: '/',
-          icon: LayoutDashboard,
+          title: 'Financial reports',
+          url: '/reports/financial',
+          icon: Receipt,
+          permission: reportConfigs.financial.permissions,
+        },
+        {
+          title: 'Operational reports',
+          url: '/reports/operational',
+          icon: ClipboardList,
+          permission: reportConfigs.operational.permissions,
         },
       ],
     },

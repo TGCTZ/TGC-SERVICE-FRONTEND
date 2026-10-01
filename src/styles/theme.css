@@ -16,20 +16,38 @@
 :root {
   --radius: 0.625rem;
 
-  /* Surfaces and text — spec §12.2 */
-  --background: #f8fafc; /* neutral-50 */
+  /*
+   * Surfaces and text — spec §12.2, tinted toward TGC Blue.
+   *
+   * The spec's default neutrals are the slate scale (#F8FAFC, #F1F5F9,
+   * #E2E8F0), which reads grey. Every light surface here is the same value
+   * rotated onto the blue hue and matched for lightness, so the interface
+   * reads as TGC Blue at rest while the brand blue itself stays reserved for
+   * the elements spec §3 says it should identify.
+   *
+   * Cards stay pure white deliberately: that contrast against the tinted
+   * ground is what makes them read as raised.
+   */
+  --background: #f7fafe; /* blue-tinted neutral-50 */
   --foreground: #0f172a; /* neutral-900 */
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --muted: #f1f5f9; /* neutral-100 */
-  --muted-foreground: #64748b; /* neutral-500 */
-  --border: #e2e8f0; /* neutral-200 */
-  --border-strong: #cbd5e1; /* neutral-300 */
+  --muted: #eaf1fb; /* blue-tinted neutral-100 */
+  /*
+   * A step darker than the spec's #64748B muted text.
+   *
+   * Tinted surfaces are slightly darker than the slate ones they replace, and
+   * #64748B falls to 3.9:1 on the sidebar accent — below AA. This clears 4.5:1
+   * on every surface in the theme while still reading as secondary text.
+   */
+  --muted-foreground: #586780;
+  --border: #dbe5f3; /* blue-tinted neutral-200 */
+  --border-strong: #c3d4ea; /* blue-tinted neutral-300 */
   /* Form outlines use the strong border: a field must read as an affordance,
    * not as a divider. */
-  --input: #cbd5e1;
+  --input: #c3d4ea;
   --ring: #0152a9; /* focus carries brand identity */
 
   /* Brand — spec §12.3 */
@@ -45,11 +63,16 @@
   --gold-foreground: #452a05; /* gold-950 — gold is too light for white text */
   --gold-subtle: #fffaeb; /* gold-50 */
 
-  /* Framework neutrals. Deliberately not brand-tinted: these paint hover and
-   * low-emphasis chips, which appear too often to carry identity. */
-  --secondary: #f1f5f9;
+  /*
+   * Framework hover and chip surfaces.
+   *
+   * Tinted with the same faint blue rather than the brand colour itself:
+   * `bg-accent` paints every hovered menu item, calendar day and ghost button,
+   * so it has to carry the family resemblance without carrying the identity.
+   */
+  --secondary: #e8f0fb;
   --secondary-foreground: #0f172a;
-  --accent: #f1f5f9;
+  --accent: #e8f0fb;
   --accent-foreground: #0f172a;
 
   /* Semantic quads — spec §12.4. Each role needs a solid fill, the text colour
@@ -102,18 +125,21 @@
    *
    * In the default `inset` variant the page takes --sidebar and the content
    * floats on it as a --background card, so this one value is what makes the
-   * content read as raised. It carries a teal tint rather than plain grey:
-   * spec §5 assigns navigation to the institutional colour, and §16's light
-   * navigation keeps the tint faint so the active blue still reads.
+   * content read as raised.
+   *
+   * Blue, not teal: spec §16's light navigation puts the active item on
+   * #EFF6FF, and taking that as the whole track keeps navigation in the
+   * primary brand colour rather than the institutional one. Teal keeps its own
+   * role under --institutional, and still owns the dark theme's navigation.
    */
-  --sidebar: #eef8fb; /* teal-50 */
+  --sidebar: #eff6ff; /* blue-50 — spec §4 "light surface" */
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
   /* Distinctly darker than the track, or hover is invisible on the tint. */
-  --sidebar-accent: #d7eef4; /* teal-100 */
+  --sidebar-accent: #dcebfa; /* blue-100 */
   --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: #cfe6ee;
+  --sidebar-border: #c7ddf5;
   --sidebar-ring: var(--ring);
 
   /*
@@ -123,7 +149,7 @@
    * blue-tinted neutral: dark enough to separate the header band, quiet enough
    * not to compete with the data.
    */
-  --table-header: #e8eef6;
+  --table-header: #e4edf9;
 }
 
 .dark {
