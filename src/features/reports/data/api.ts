@@ -12,7 +12,6 @@ function reportParams(search: ReportSearch) {
     section: search.section,
     customer: search.customer,
     status: search.status,
-    provider: search.provider,
     stone_type: search.stoneType,
     page: search.page,
     page_size: search.pageSize,

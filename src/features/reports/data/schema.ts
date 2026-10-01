@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { paginatedSchema } from '@/lib/api-query'
+import { dateRangePresetSchema } from './period'
 
 export const reportRowSchema = z
   .object({ id: z.number() })
@@ -39,7 +40,6 @@ export const reportResultSchema = paginatedSchema(reportRowSchema).extend({
   filters: z.object({
     customers: z.array(choiceSchema),
     stone_types: z.array(choiceSchema),
-    providers: z.array(choiceSchema),
   }),
 })
 export type ReportResult = z.infer<typeof reportResultSchema>
@@ -48,10 +48,10 @@ export type ReportResult = z.infer<typeof reportResultSchema>
 export const reportSearchSchema = z.object({
   from: z.string().optional().catch(undefined),
   to: z.string().optional().catch(undefined),
+  rangePreset: dateRangePresetSchema.optional().catch(undefined),
   section: z.string().optional().catch(undefined),
   customer: z.coerce.number().int().positive().optional().catch(undefined),
   status: z.string().optional().catch(undefined),
-  provider: z.string().optional().catch(undefined),
   stoneType: z.coerce.number().int().positive().optional().catch(undefined),
   page: z.number().int().positive().optional().catch(1),
   pageSize: z.number().int().min(1).max(100).optional().catch(10),

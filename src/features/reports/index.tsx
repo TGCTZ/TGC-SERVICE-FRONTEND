@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Download } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatDateTime } from '@/lib/format'
 import { serverMessageOr } from '@/lib/handle-server-error'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -27,7 +26,13 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ReportSectionCard } from './components/section'
 import { downloadReport, reportsQuery } from './data/api'
 import { reportConfigs, type ReportKind } from './data/config'
-import { defaultPeriod, periodProblem } from './data/period'
+import {
+  dateRangePresets,
+  defaultPeriod,
+  periodForPreset,
+  periodPresetForRange,
+  periodProblem,
+} from './data/period'
 import { type ReportSearch } from './data/schema'
 
 const financialRoute = getRouteApi('/_authenticated/reports/financial/')
@@ -80,6 +85,8 @@ export function ReportsPage({ kind, search, onChange }: Props) {
   const data = query.data
   const totalRows =
     data?.sections.reduce((sum, section) => sum + section.count, 0) ?? 0
+  const preferredRangePreset =
+    state.rangePreset ?? (!search.from && !search.to ? 'this-month' : undefined)
 
   function changeFilters(next: Partial<ReportSearch>) {
     onChange({ ...state, ...next, page: 1, section: undefined })
@@ -132,7 +139,7 @@ export function ReportsPage({ kind, search, onChange }: Props) {
         <PageHeading title={config.title} description={config.description}>
           <div className='flex gap-2'>
             <Button
-              variant='outline'
+              variant='success'
               disabled={
                 !data ||
                 !!problem ||
@@ -146,7 +153,8 @@ export function ReportsPage({ kind, search, onChange }: Props) {
               Excel
             </Button>
             <Button
-              variant='outline'
+              variant='default'
+              className='bg-institutional text-institutional-foreground hover:bg-institutional/90'
               disabled={
                 !data ||
                 !!problem ||
@@ -168,7 +176,12 @@ export function ReportsPage({ kind, search, onChange }: Props) {
               id='report-from'
               type='date'
               value={state.from}
-              onChange={(event) => changeFilters({ from: event.target.value })}
+              onChange={(event) =>
+                changeFilters({
+                  from: event.target.value,
+                  rangePreset: undefined,
+                })
+              }
             />
           </div>
           <div className='space-y-2'>
@@ -177,23 +190,59 @@ export function ReportsPage({ kind, search, onChange }: Props) {
               id='report-to'
               type='date'
               value={state.to}
-              onChange={(event) => changeFilters({ to: event.target.value })}
+              onChange={(event) =>
+                changeFilters({
+                  to: event.target.value,
+                  rangePreset: undefined,
+                })
+              }
             />
           </div>
-          <Button
-            variant='outline'
-            onClick={() => onChange({ ...defaults, pageSize: state.pageSize })}
-          >
-            Reset to this month
-          </Button>
-          <FilterSelect
-            label='Customer'
-            value={state.customer?.toString()}
-            choices={data?.filters.customers ?? []}
-            onChange={(value) =>
-              changeFilters({ customer: value ? Number(value) : undefined })
-            }
-          />
+          <div className='min-w-48 space-y-2'>
+            <Label htmlFor='report-date-range'>Date range</Label>
+            <Select
+              value={periodPresetForRange(
+                state.from,
+                state.to,
+                new Date(),
+                preferredRangePreset
+              )}
+              onValueChange={(value) => {
+                const preset = dateRangePresets.find(
+                  (option) => option.value === value
+                )
+                if (preset)
+                  changeFilters({
+                    ...periodForPreset(preset.value),
+                    rangePreset: preset.value,
+                  })
+              }}
+            >
+              <SelectTrigger id='report-date-range'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='custom' disabled>
+                  Custom range
+                </SelectItem>
+                {dateRangePresets.map((preset) => (
+                  <SelectItem key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {kind === 'operational' && (
+            <FilterSelect
+              label='Customer'
+              value={state.customer?.toString()}
+              choices={data?.filters.customers ?? []}
+              onChange={(value) =>
+                changeFilters({ customer: value ? Number(value) : undefined })
+              }
+            />
+          )}
           {kind === 'financial' ? (
             <>
               {data?.sections.some((section) =>
@@ -215,16 +264,6 @@ export function ReportsPage({ kind, search, onChange }: Props) {
                   onChange={(value) => changeFilters({ status: value })}
                 />
               )}
-              {data?.sections.some(
-                (section) => section.key === 'collections'
-              ) && (
-                <FilterSelect
-                  label='Payment provider'
-                  value={state.provider}
-                  choices={data.filters.providers}
-                  onChange={(value) => changeFilters({ provider: value })}
-                />
-              )}
             </>
           ) : (
             <FilterSelect
@@ -237,11 +276,6 @@ export function ReportsPage({ kind, search, onChange }: Props) {
             />
           )}
         </div>
-        <p className='text-xs text-muted-foreground'>
-          Dates are inclusive in Africa/Dar_es_Salaam.{' '}
-          {kind === 'financial' &&
-            'Bill status applies to billing and outstanding sections; payment provider applies to collections and exceptions. Outstanding balances are current.'}
-        </p>
         {query.isPlaceholderData && (
           <p role='status' className='text-sm text-muted-foreground'>
             Updating report...
@@ -267,10 +301,6 @@ export function ReportsPage({ kind, search, onChange }: Props) {
         ) : (
           data && (
             <>
-              <p className='text-xs text-muted-foreground'>
-                Generated {formatDateTime(data.generated_at)}. Exports include
-                all matching authorized sections.
-              </p>
               {totalRows > 10000 && (
                 <Alert>
                   <AlertTitle>Narrow the filters to export</AlertTitle>

@@ -27,7 +27,7 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
  * reading order and nothing else: an `ms-auto` or `me-auto` on a child now
  * fights the wrapper instead of helping it.
  *
- * The bar paints `--header`, the navigation surface: header and sidebar are one
+ * The bar paints `--sidebar`, the navigation surface: header and sidebar are one
  * continuous band of chrome around the content, so they share a colour. The
  * fill is opaque so content never reads through a `fixed` header; past 10px of
  * scroll a shadow marks the lift.
@@ -58,7 +58,7 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
     <header
       data-slot='page-header'
       className={cn(
-        'border-header-border bg-header text-header-foreground z-50 h-16 border-b',
+        'z-50 h-16 border-b border-sidebar-border bg-sidebar text-sidebar-foreground',
         fixed && 'sticky top-0 w-[inherit]',
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
         className

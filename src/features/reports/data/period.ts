@@ -2,6 +2,30 @@ import { z } from 'zod'
 
 const isoDay = z.iso.date()
 
+export const dateRangePresets = [
+  { value: 'today', label: 'Today' },
+  { value: 'this-month', label: 'This month' },
+  { value: 'this-year', label: 'This year' },
+  { value: 'this-financial-year', label: 'This financial year' },
+  { value: 'last-year', label: 'Last year' },
+  { value: 'last-financial-year', label: 'Last financial year' },
+] as const
+
+export type DateRangePreset = (typeof dateRangePresets)[number]['value']
+type PeriodPreset =
+  | DateRangePreset
+  | 'last-7-days'
+  | 'last-30-days'
+  | 'last-90-days'
+  | 'last-12-months'
+  | 'last-month'
+export const dateRangePresetSchema = z.enum(
+  dateRangePresets.map(({ value }) => value) as [
+    DateRangePreset,
+    ...DateRangePreset[],
+  ]
+)
+
 export const legacySearchSchema = z.object({
   from: z.string().optional().catch(undefined),
   to: z.string().optional().catch(undefined),
@@ -27,6 +51,78 @@ export function defaultPeriod(now = new Date()) {
   return { from: `${today.slice(0, 7)}-01`, to: today }
 }
 
+function utcDay(date: Date) {
+  return date.toISOString().slice(0, 10)
+}
+
+/** Resolve a named date range against the report's lab-local calendar day. */
+export function periodForPreset(preset: PeriodPreset, now = new Date()) {
+  const today = new Date(`${labToday(now)}T00:00:00Z`)
+  const year = today.getUTCFullYear()
+  const month = today.getUTCMonth()
+  let start = new Date(today)
+  let end = new Date(today)
+
+  switch (preset) {
+    case 'today':
+      break
+    case 'this-month':
+      start = new Date(Date.UTC(year, month, 1))
+      break
+    case 'this-year':
+      start = new Date(Date.UTC(year, 0, 1))
+      break
+    case 'this-financial-year':
+      start = new Date(Date.UTC(year - (month < 6 ? 1 : 0), 6, 1))
+      break
+    case 'last-7-days':
+    case 'last-30-days':
+    case 'last-90-days': {
+      const days = Number(preset.split('-')[1])
+      start.setUTCDate(start.getUTCDate() - days + 1)
+      break
+    }
+    case 'last-12-months':
+      start = new Date(Date.UTC(year, month - 11, 1))
+      break
+    case 'last-month':
+      start = new Date(Date.UTC(year, month - 1, 1))
+      end = new Date(Date.UTC(year, month, 0))
+      break
+    case 'last-year':
+      start = new Date(Date.UTC(year - 1, 0, 1))
+      end = new Date(Date.UTC(year - 1, 11, 31))
+      break
+    case 'last-financial-year': {
+      const financialYear = year - (month < 6 ? 1 : 0)
+      start = new Date(Date.UTC(financialYear - 1, 6, 1))
+      end = new Date(Date.UTC(financialYear, 6, 0))
+      break
+    }
+  }
+
+  return { from: utcDay(start), to: utcDay(end) }
+}
+
+/** Return the matching preset, or `custom` when the user edited either date. */
+export function periodPresetForRange(
+  from: string,
+  to: string,
+  now = new Date(),
+  preferred?: DateRangePreset
+): DateRangePreset | 'custom' {
+  if (preferred) {
+    const range = periodForPreset(preferred, now)
+    if (range.from === from && range.to === to) return preferred
+  }
+  return (
+    dateRangePresets.find((preset) => {
+      const range = periodForPreset(preset.value, now)
+      return range.from === from && range.to === to
+    })?.value ?? 'custom'
+  )
+}
+
 /** Preserve dates and named periods from old Management bookmarks. */
 export function legacyPeriod(
   search: Record<string, unknown>,
@@ -39,39 +135,19 @@ export function legacyPeriod(
   ) {
     return { from: String(search.from), to: String(search.to) }
   }
-  const today = new Date(`${labToday(now)}T00:00:00Z`)
-  const start = new Date(today)
-  const end = new Date(today)
   const preset = String(search.range ?? 'month')
-  if (['7d', '30d', '90d'].includes(preset)) {
-    start.setUTCDate(start.getUTCDate() - Number(preset.slice(0, -1)) + 1)
-  } else if (preset === '12m') {
-    start.setUTCDate(1)
-    start.setUTCMonth(start.getUTCMonth() - 11)
-  } else if (preset === 'ytd') {
-    start.setUTCMonth(0, 1)
-  } else if (preset === 'fy' || preset === 'last-fy') {
-    start.setUTCFullYear(
-      start.getUTCFullYear() - (start.getUTCMonth() < 6 ? 1 : 0),
-      6,
-      1
-    )
-    if (preset === 'last-fy') {
-      end.setTime(start.getTime())
-      end.setUTCDate(0)
-      start.setUTCFullYear(start.getUTCFullYear() - 1)
-    }
-  } else if (preset === 'last-month') {
-    start.setUTCDate(1)
-    end.setUTCDate(0)
-    start.setUTCMonth(start.getUTCMonth() - 1)
-  } else {
-    start.setUTCDate(1)
+  const legacyPresets: Record<string, PeriodPreset> = {
+    month: 'this-month',
+    '7d': 'last-7-days',
+    '30d': 'last-30-days',
+    '90d': 'last-90-days',
+    '12m': 'last-12-months',
+    ytd: 'this-year',
+    fy: 'this-financial-year',
+    'last-fy': 'last-financial-year',
+    'last-month': 'last-month',
   }
-  return {
-    from: start.toISOString().slice(0, 10),
-    to: end.toISOString().slice(0, 10),
-  }
+  return periodForPreset(legacyPresets[preset] ?? 'this-month', now)
 }
 
 /** Valid ISO dates compare chronologically without browser-local date conversion. */

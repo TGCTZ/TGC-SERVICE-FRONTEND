@@ -48,16 +48,27 @@ function result() {
         statuses: [],
       },
     ],
-    columns: [{ key: 'reference', label: 'Reference', kind: 'text' }],
-    filters: { customers: [], stone_types: [], providers: [] },
+    columns: [
+      { key: 'reference', label: 'Reference', kind: 'text' },
+      { key: 'control_number', label: 'Control number', kind: 'text' },
+    ],
+    filters: {
+      customers: [{ id: 4, label: 'Test Customer' }],
+      stone_types: [],
+    },
     page: {
-      items: [{ id: 1, reference: 'BILL-EXAMPLE' }],
+      items: [
+        { id: 1, reference: 'BILL-EXAMPLE', control_number: '991234567890' },
+      ],
       meta: { current_page: 1, last_page: 3, per_page: 1, total: 3 },
     },
   }
 }
 
-async function renderPage(search: ReportSearch = {}) {
+async function renderPage(
+  search: ReportSearch = {},
+  kind: 'financial' | 'operational' = 'financial'
+) {
   const onChange = vi.fn()
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -65,7 +76,7 @@ async function renderPage(search: ReportSearch = {}) {
   const screen = await render(
     <QueryClientProvider client={client}>
       <ReportsPage
-        kind='financial'
+        kind={kind}
         search={{
           from: '2026-09-01',
           to: '2026-09-30',
@@ -89,19 +100,53 @@ describe('Financial reports page', () => {
   it('renders only authorized sections and whole-result counts alongside a paginated row', async () => {
     const { screen } = await renderPage()
     await expect.element(screen.getByText('BILL-EXAMPLE')).toBeInTheDocument()
+    await expect.element(screen.getByText('991234567890')).toBeInTheDocument()
     await expect
       .element(screen.getByText('3 matching records'))
       .toBeInTheDocument()
     await expect
       .element(screen.getByText('Billing summary'))
       .toBeInTheDocument()
+    await expect.element(screen.getByText('Date range')).toBeInTheDocument()
+    await expect
+      .element(screen.getByText(/Dates are inclusive/))
+      .not.toBeInTheDocument()
+    await expect
+      .element(screen.getByText(/Exports include all matching/))
+      .not.toBeInTheDocument()
     await expect
       .element(screen.getByText('Outstanding bills', { exact: true }))
+      .not.toBeInTheDocument()
+    await expect
+      .element(screen.getByRole('button', { name: 'Excel', exact: true }))
+      .toHaveClass(/bg-success/)
+    await expect
+      .element(screen.getByRole('button', { name: 'PDF', exact: true }))
+      .toHaveClass(/bg-institutional/)
+  })
+
+  it('shows Customer only on Operational reports and omits providers', async () => {
+    const financial = await renderPage()
+    await expect
+      .element(financial.screen.getByText('Customer', { exact: true }))
+      .not.toBeInTheDocument()
+    await expect
+      .element(financial.screen.getByText('Payment provider', { exact: true }))
+      .not.toBeInTheDocument()
+
+    const operational = await renderPage({}, 'operational')
+    await expect
+      .element(operational.screen.getByText('Customer', { exact: true }))
+      .toBeInTheDocument()
+    await expect
+      .element(
+        operational.screen.getByText('Payment provider', { exact: true })
+      )
       .not.toBeInTheDocument()
   })
 
   it('passes effective dates and filters to exports without limiting them to the visible row', async () => {
-    const { screen } = await renderPage({ customer: 4 })
+    const { screen } = await renderPage({ status: 'paid' })
     await expect.element(screen.getByText('BILL-EXAMPLE')).toBeInTheDocument()
     await screen.getByRole('button', { name: 'Excel', exact: true }).click()
     expect(mocks.download).toHaveBeenCalledWith(
@@ -109,7 +154,7 @@ describe('Financial reports page', () => {
       expect.objectContaining({
         from: '2026-09-01',
         to: '2026-09-30',
-        customer: 4,
+        status: 'paid',
       }),
       'xlsx'
     )

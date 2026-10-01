@@ -41,7 +41,7 @@ export function PageHeading({
       <div className='space-y-1'>
         <h2 className='text-2xl font-bold tracking-tight'>{title}</h2>
         {description && (
-          // Grey text on `--header` — the same tint as the sidebar and the
+          // Grey text on `--sidebar` — the same tint as the sidebar and the
           // page header, since that token aliases `--sidebar`. The description
           // is the screen explaining itself, so it reads as part of the frame
           // around the data rather than as data; borrowing the chrome surface
@@ -51,7 +51,7 @@ export function PageHeading({
           // max-w: prose past roughly 90 characters is measurably harder to
           // scan, and these sit above a full-width table that would otherwise
           // stretch them the width of a monitor.
-          <p className='bg-header max-w-prose rounded-md px-3 py-2 text-sm/relaxed text-muted-foreground'>
+          <p className='max-w-prose rounded-md bg-sidebar px-3 py-2 text-sm/relaxed text-muted-foreground'>
             {description}
           </p>
         )}
