@@ -6,7 +6,7 @@ bills are settled through the GePG government payment gateway, and each stone
 leaves with a printed certificate.
 
 This app is a pure API client — it holds no data of its own. The Django API it
-talks to lives in [`../backend`](../backend/README.md).
+talks to lives in [TGC-SERVICE-BACKEND](https://github.com/TGCTZ/TGC-SERVICE-BACKEND).
 
 ## Quickstart
 

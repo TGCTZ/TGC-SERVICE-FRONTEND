@@ -17,7 +17,7 @@ Certificate PDFs are rendered by WeasyPrint, which needs system libraries
 present **before** the API's dependencies are installed — a missing one raises
 `OSError` at import time and takes the whole API down, not just the PDF
 endpoint. The package list is in
-[`../../backend/README.md`](../../backend/README.md).
+[the backend README](https://github.com/TGCTZ/TGC-SERVICE-BACKEND/blob/main/README.md).
 
 ## 1. Start the API
 
