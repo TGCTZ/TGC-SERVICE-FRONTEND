@@ -34,7 +34,7 @@ const TOAST_DURATION_MS = 16_000
  * caller can still override them per instance.
  */
 export function Toaster({ ...props }: ToasterProps) {
-  const { theme = 'system' } = useTheme()
+  const { theme = 'dark' } = useTheme()
   const { dir } = useDirection()
 
   return (
