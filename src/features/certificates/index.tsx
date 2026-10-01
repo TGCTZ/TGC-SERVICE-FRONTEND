@@ -2,18 +2,18 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { PERMISSIONS } from '@/lib/permissions'
-import { subjectTypes } from '@/lib/subject-types'
 import { Button } from '@/components/ui/button'
 import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { IssueCertificateDialog } from './components/issue-dialog'
+import { CertificatePreviewDialog } from './components/preview-dialog'
 import { CertificatesProvider, useCertificates } from './components/provider'
 import { RevokeCertificateDialog } from './components/revoke-dialog'
 import {
@@ -80,7 +80,7 @@ function CertificatesContent() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
@@ -88,13 +88,10 @@ function CertificatesContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Certificates</h2>
-            <p className='text-muted-foreground'>
-              The documents the lab stands behind. Each carries a public
-              verification link and can be withdrawn, but never edited.
-            </p>
-          </div>
+          <PageHeading
+            title='Certificates'
+            description='The documents the lab stands behind. Each downloads as a PDF for printing, and can be withdrawn, but never edited.'
+          />
 
           <Can permission={PERMISSIONS.issueCertificate}>
             <Button
@@ -134,18 +131,6 @@ function CertificatesContent() {
       />
 
       {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.certificates}
-          subjectId={currentRow.id}
-          title={currentRow.certificate_number}
-          open={open === 'history'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
-          }}
-        />
-      )}
-
-      {currentRow && (
         <CertificateViewDialog
           key={`certificate-${currentRow.id}`}
           open={open === 'view'}
@@ -157,6 +142,19 @@ function CertificatesContent() {
           }}
           certificate={currentRow}
           actions={actions}
+        />
+      )}
+
+      {currentRow && (
+        <CertificatePreviewDialog
+          open={open === 'preview'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          certificate={currentRow}
         />
       )}
 

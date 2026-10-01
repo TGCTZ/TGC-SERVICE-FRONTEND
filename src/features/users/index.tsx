@@ -2,22 +2,24 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { perm } from '@/lib/permissions'
-import { subjectTypes } from '@/lib/subject-types'
 import { Button } from '@/components/ui/button'
 import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
+import { UserCreateDialog } from './components/create-dialog'
 import { UserDeleteDialog } from './components/delete-dialog'
 import { UserMutateDialog } from './components/mutate-dialog'
 import { UsersProvider, useUsers } from './components/provider'
+import { UserResetPasswordDialog } from './components/reset-password-dialog'
 import { UserRestoreDialog } from './components/restore-dialog'
 import { UsersTable, type UsersQueryState } from './components/table'
+import { UserViewDialog } from './components/view-dialog'
 import { usersQueryOptions } from './data/api'
 import { useUserActions } from './hooks/use-actions'
 
@@ -86,7 +88,7 @@ function UsersContent() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
@@ -94,12 +96,10 @@ function UsersContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Users</h2>
-            <p className='text-muted-foreground'>
-              Manage accounts and the roles that grant their access.
-            </p>
-          </div>
+          <PageHeading
+            title='Users'
+            description='Manage accounts and the roles that grant their access.'
+          />
 
           <Can permission={perm('users', 'add')}>
             <Button
@@ -131,33 +131,60 @@ function UsersContent() {
         )}
       </Main>
 
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
       {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.users}
-          subjectId={currentRow.id}
-          title={currentRow.full_name || currentRow.email}
-          open={open === 'history'}
+        <UserViewDialog
+          key={`user-view-${currentRow.id}`}
+          open={open === 'view'}
           onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
           }}
+          user={currentRow}
+          onRequestEdit={() => setOpen('update')}
+          actions={actions}
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
-      <UserMutateDialog
-        key={currentRow ? `user-${currentRow.id}` : 'create'}
-        open={open === 'view' || open === 'create' || open === 'update'}
+      {/* Creating takes only an email and a role, so it has its own dialog;
+          the full form is for editing an existing account. */}
+      <UserCreateDialog
+        open={open === 'create'}
         onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setOpen(null)
-            setCurrentRow(null)
-          }
+          if (!isOpen) setOpen(null)
         }}
-        currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={actions}
       />
+
+      {currentRow && (
+        <UserMutateDialog
+          key={`user-${currentRow.id}`}
+          open={open === 'update'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          currentRow={currentRow}
+        />
+      )}
+
+      {currentRow && (
+        <UserResetPasswordDialog
+          key={`user-reset-${currentRow.id}`}
+          open={open === 'reset-password'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          currentRow={currentRow}
+        />
+      )}
 
       {currentRow && (
         <UserRestoreDialog

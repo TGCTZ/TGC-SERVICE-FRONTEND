@@ -21,7 +21,7 @@ import {
  */
 const listSchema = paginatedSchema(lookupRowSchema)
 
-export async function fetchLookupRows(
+async function fetchLookupRows(
   resource: string,
   params: ListParams
 ): Promise<Paginated<LookupRow>> {
@@ -37,7 +37,7 @@ export const lookupRowsQuery = (resource: string, params: ListParams) =>
     placeholderData: (previous) => previous,
   })
 
-export type LookupPayload = Record<string, unknown>
+type LookupPayload = Record<string, unknown>
 
 export async function createLookupRow(
   resource: string,

@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
@@ -122,19 +123,13 @@ export function ReportsPage({ kind, search, onChange }: Props) {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
       </Header>
-      <Main className='flex flex-1 flex-col gap-6'>
-        <div className='flex flex-wrap items-start justify-between gap-4'>
-          <div>
-            <h1 className='text-2xl font-bold tracking-tight'>
-              {config.title}
-            </h1>
-            <p className='text-muted-foreground'>{config.description}</p>
-          </div>
+      <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
+        <PageHeading title={config.title} description={config.description}>
           <div className='flex gap-2'>
             <Button
               variant='outline'
@@ -165,7 +160,7 @@ export function ReportsPage({ kind, search, onChange }: Props) {
               PDF
             </Button>
           </div>
-        </div>
+        </PageHeading>
         <div className='flex flex-wrap items-end gap-3 rounded-lg border bg-card p-4'>
           <div className='space-y-2'>
             <Label htmlFor='report-from'>From</Label>

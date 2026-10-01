@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from 'react'
 import { type Payment } from '../data/schema'
 
 /** Payments are written only by the gateway, so viewing is all there is. */
-type PaymentsDialogType = 'view' | 'history'
+type PaymentsDialogType = 'view'
 
 type PaymentsContextType = {
   open: PaymentsDialogType | null

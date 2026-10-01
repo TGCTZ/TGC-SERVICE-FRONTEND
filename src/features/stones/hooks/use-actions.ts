@@ -1,36 +1,21 @@
-import {
-  ArrowRightLeft,
-  Eye,
-  History,
-  ListOrdered,
-  Pencil,
-  RotateCcw,
-  Trash2,
-} from 'lucide-react'
+import { ArrowRightLeft, Eye, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useStones } from '../components/provider'
+import { isStoneLocked } from '../data/enums'
 import { type Stone } from '../data/schema'
 
 /**
  * Every action the API exposes for a stone, in one place.
  *
- * Note the two history entries: "Status history" is the domain ledger the
- * pipeline writes, while "History" is the generic audit log of field changes.
- * They answer different questions and neither replaces the other.
+ * A stone's status trail is not here: it is a section of the stone's details
+ * dialog, and the generic audit log lives on its own screen.
  */
 export function useStoneActions(stone: Stone | null): RowAction[] {
   const { setOpen, setCurrentRow } = useStones()
 
   function select(
-    dialog:
-      | 'view'
-      | 'history'
-      | 'statuses'
-      | 'transition'
-      | 'update'
-      | 'delete'
-      | 'restore'
+    dialog: 'view' | 'transition' | 'update' | 'delete' | 'restore'
   ) {
     setCurrentRow(stone)
     setOpen(dialog)
@@ -40,6 +25,9 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
   if (!stone) return []
 
   const isDeleted = Boolean(stone.deleted_at)
+  // Billed: the type priced the bill, so the record is settled. Weight is still
+  // editable, but on the findings form rather than here.
+  const isLocked = isStoneLocked(stone)
 
   return [
     {
@@ -53,27 +41,15 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
       icon: Pencil,
       permission: perm('stones', 'change'),
       onSelect: () => select('update'),
-      hidden: isDeleted,
+      hidden: isDeleted || isLocked,
     },
     {
       label: 'Change status',
+      tone: 'advance',
       icon: ArrowRightLeft,
       permission: PERMISSIONS.transitionStone,
       onSelect: () => select('transition'),
-      hidden: isDeleted,
-    },
-    {
-      label: 'Status history',
-      icon: ListOrdered,
-      permission: perm('status-history', 'view'),
-      onSelect: () => select('statuses'),
-      separatorBefore: true,
-    },
-    {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
+      hidden: isDeleted || isLocked,
     },
     {
       label: 'Restore',
@@ -88,8 +64,8 @@ export function useStoneActions(stone: Stone | null): RowAction[] {
       icon: Trash2,
       permission: perm('stones', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
-      hidden: isDeleted,
+      tone: 'destructive',
+      hidden: isDeleted || isLocked,
       separatorBefore: true,
     },
   ]

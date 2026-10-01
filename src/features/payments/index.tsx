@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { subjectTypes } from '@/lib/subject-types'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -71,19 +70,17 @@ function PaymentsContent() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Payments</h2>
-          <p className='text-muted-foreground'>
-            Every notification GePG has sent, exactly as it arrived.
-          </p>
-        </div>
+        <PageHeading
+          title='Payments'
+          description='Every notification GePG has sent, exactly as it arrived.'
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
@@ -101,18 +98,6 @@ function PaymentsContent() {
           />
         )}
       </Main>
-
-      {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.payments}
-          subjectId={currentRow.id}
-          title={currentRow.trx_id || `Payment ${currentRow.id}`}
-          open={open === 'history'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
-          }}
-        />
-      )}
 
       {currentRow && (
         <PaymentViewDialog

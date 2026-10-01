@@ -21,7 +21,7 @@
  * There is deliberately no `viewAny`: one `view` permission covers both the
  * list and the detail of a resource.
  */
-export type PermissionAction = 'view' | 'add' | 'change' | 'delete'
+type PermissionAction = 'view' | 'add' | 'change' | 'delete'
 
 /** Where a URL segment's records actually live on the server. */
 type ModelRef = {
@@ -39,6 +39,7 @@ type ModelRef = {
  */
 const RESOURCE_MODELS = {
   // Reference data.
+  'stone-categories': { app: 'gems', model: 'stonecategory' },
   'stone-types': { app: 'gems', model: 'stonetype' },
   species: { app: 'gems', model: 'species' },
   varieties: { app: 'gems', model: 'variety' },
@@ -57,7 +58,6 @@ const RESOURCE_MODELS = {
   bills: { app: 'billing', model: 'bill' },
   'bill-items': { app: 'billing', model: 'billitem' },
   payments: { app: 'billing', model: 'payment' },
-  'service-providers': { app: 'billing', model: 'serviceprovider' },
 
   // The bench.
   'identification-reports': {
@@ -68,10 +68,6 @@ const RESOURCE_MODELS = {
 
   // Certification.
   certificates: { app: 'certificates', model: 'certificate' },
-  'certificate-access-logs': {
-    app: 'certificates',
-    model: 'certificateaccesslog',
-  },
 
   // Administration.
   users: { app: 'users', model: 'user' },
@@ -128,9 +124,12 @@ export const PERMISSIONS = {
   viewActivityLogs: 'auditlog.view_logentry',
   /** Application-level events such as sign-ins and failures. */
   viewSystemLogs: 'audit.view_systemlog',
+  /** The Management tab's statistics: revenue, turnaround, market mix. */
+  viewStatistics: 'analytics.view_statistics',
 
   // Workflow verbs.
   transitionStone: 'orders.transition_stone',
+  holdOrder: 'orders.hold_order',
   generateBill: 'billing.generate_bill',
   finalizeReport: 'identification.finalize_report',
   issueCertificate: 'certificates.issue_certificate',

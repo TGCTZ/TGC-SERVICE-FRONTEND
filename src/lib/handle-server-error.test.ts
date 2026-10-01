@@ -25,13 +25,18 @@ describe('handleServerError', () => {
   it('shows a generic message when the error is not recognised', () => {
     handleServerError(new Error('network'))
 
-    expect(toastError).toHaveBeenCalledWith('Something went wrong!')
+    expect(toastError).toHaveBeenCalledWith('That did not work', {
+      description:
+        'Something went wrong and the action was not completed. Please try again.',
+    })
   })
 
   it('maps a plain object with status 204 to the no-content message', () => {
     handleServerError({ status: 204 })
 
-    expect(toastError).toHaveBeenCalledWith('No content.')
+    expect(toastError).toHaveBeenCalledWith('Nothing to show', {
+      description: 'The server returned no content for that request.',
+    })
   })
 
   it('surfaces the API detail message verbatim', () => {
@@ -40,9 +45,9 @@ describe('handleServerError', () => {
       apiError(400, { detail: 'Order ORD-2026-0001 already has a bill.' })
     )
 
-    expect(toastError).toHaveBeenCalledWith(
-      'Order ORD-2026-0001 already has a bill.'
-    )
+    expect(toastError).toHaveBeenCalledWith('That did not work', {
+      description: 'Order ORD-2026-0001 already has a bill.',
+    })
   })
 
   it('surfaces a detail message on a permission refusal', () => {
@@ -52,27 +57,35 @@ describe('handleServerError', () => {
       })
     )
 
-    expect(toastError).toHaveBeenCalledWith(
-      'You do not have permission to perform this action.'
-    )
+    expect(toastError).toHaveBeenCalledWith('Not allowed', {
+      description: 'You do not have permission to perform this action.',
+    })
   })
 
   it('falls back to the first field message when there is no detail', () => {
     handleServerError(apiError(400, { email: ['Already taken.'] }))
 
-    expect(toastError).toHaveBeenCalledWith('Already taken.')
+    expect(toastError).toHaveBeenCalledWith('That did not work', {
+      description: 'Already taken.',
+    })
   })
 
   it('falls back to the generic message when the body carries nothing usable', () => {
     handleServerError(apiError(500, {}))
 
-    expect(toastError).toHaveBeenCalledWith('Something went wrong!')
+    expect(toastError).toHaveBeenCalledWith('That did not work', {
+      description:
+        'Something went wrong and the action was not completed. Please try again.',
+    })
   })
 
   it('falls back to the generic message when detail is an empty string', () => {
     handleServerError(apiError(400, { detail: '' }))
 
-    expect(toastError).toHaveBeenCalledWith('Something went wrong!')
+    expect(toastError).toHaveBeenCalledWith('That did not work', {
+      description:
+        'Something went wrong and the action was not completed. Please try again.',
+    })
   })
 
   it('logs the error to the console in development', () => {

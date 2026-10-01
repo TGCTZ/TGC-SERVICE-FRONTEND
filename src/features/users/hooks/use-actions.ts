@@ -1,5 +1,6 @@
-import { Eye, History, Pencil, RotateCcw, Trash2 } from 'lucide-react'
-import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
+import { Eye, KeyRound, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
+import { perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useUsers } from '../components/provider'
 import { type User } from '../data/schema'
@@ -12,9 +13,10 @@ import { type User } from '../data/schema'
  */
 export function useUserActions(user: User | null): RowAction[] {
   const { setOpen, setCurrentRow } = useUsers()
+  const me = useAuthStore((state) => state.auth.user)
 
   function select(
-    dialog: 'view' | 'history' | 'update' | 'delete' | 'restore'
+    dialog: 'view' | 'update' | 'delete' | 'restore' | 'reset-password'
   ) {
     setCurrentRow(user)
     setOpen(dialog)
@@ -24,6 +26,9 @@ export function useUserActions(user: User | null): RowAction[] {
   if (!user) return []
 
   const isDeleted = Boolean(user.deleted_at)
+  // Accounts ranked at or above the requester's own are read-only to them;
+  // the API refuses the edit and the delete, so neither is offered.
+  const readOnly = !user.can_manage
 
   // Every action the API exposes for a user. Role assignment lives inside the
   // edit dialog, which is where the API accepts it (PUT users/{id}/roles is
@@ -40,13 +45,15 @@ export function useUserActions(user: User | null): RowAction[] {
       icon: Pencil,
       permission: perm('users', 'change'),
       onSelect: () => select('update'),
-      hidden: isDeleted,
+      hidden: isDeleted || readOnly,
     },
     {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
+      // Your own password is changed from Settings, where you prove the old one.
+      label: 'Reset password',
+      icon: KeyRound,
+      permission: perm('users', 'change'),
+      onSelect: () => select('reset-password'),
+      hidden: isDeleted || readOnly || user.id === me?.id,
     },
     {
       label: 'Restore',
@@ -61,8 +68,8 @@ export function useUserActions(user: User | null): RowAction[] {
       icon: Trash2,
       permission: perm('users', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
-      hidden: isDeleted,
+      tone: 'destructive',
+      hidden: isDeleted || readOnly,
       separatorBefore: true,
     },
   ]

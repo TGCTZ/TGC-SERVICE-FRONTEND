@@ -57,8 +57,16 @@ export const billSchema = z.object({
   issued_at: z.string().nullable().default(null),
   expiry_at: z.string().nullable().default(null),
   due_date: z.string().nullable().default(null),
-  bill_type: z.string().nullable().default(null),
-  pay_type: z.string().nullable().default(null),
+  /*
+   * Small integers, not strings: both are `PositiveSmallIntegerField` on the
+   * model and cross the wire as numbers. Declared as strings, every bill in the
+   * list failed to parse and the whole screen fell back to the error boundary.
+   *
+   * GePG defines a choice list behind each, but it is not mirrored anywhere in
+   * this codebase, so the raw value is rendered rather than a guessed label.
+   */
+  bill_type: z.number().nullable().default(null),
+  pay_type: z.number().nullable().default(null),
   status_code: z.string().nullable().default(null),
   status_desc: z.string().nullable().default(null),
   is_gepg_submitted: z.boolean().default(false),

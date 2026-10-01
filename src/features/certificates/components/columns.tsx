@@ -24,26 +24,32 @@ export const certificatesColumns: ColumnDef<Certificate>[] = [
     id: 'stone',
     header: () => <span>Stone</span>,
     enableSorting: false,
-    cell: ({ row }) => (
-      <div className='min-w-36'>
-        {/* The snapshot, not the live stone type: the certificate says what it
-          said on the day it was issued. */}
-        <div>{row.original.stone_type_snapshot || '—'}</div>
-        <div className='text-xs text-muted-foreground'>
-          {row.original.order_reference} · {row.original.stone_label}
+    // The customer sits here rather than in a column of their own, matching the
+    // Orders page: what was certified, which visit it came in on, and whose.
+    cell: ({ row }) => {
+      const certificate = row.original
+
+      return (
+        <div className='min-w-44'>
+          {/* The snapshot, not the live stone type: the certificate says what
+            it said on the day it was issued. */}
+          <div>{certificate.stone_type_snapshot || '—'}</div>
+          <div className='text-sm'>
+            {certificate.order_reference} · {certificate.stone_label}
+          </div>
+          {certificate.customer_name && (
+            <>
+              <LongText className='max-w-48 text-xs'>
+                {certificate.customer_name}
+              </LongText>
+              <div className='text-xs text-muted-foreground'>
+                {certificate.customer_phone}
+              </div>
+            </>
+          )}
         </div>
-      </div>
-    ),
-  },
-  {
-    id: 'customer',
-    header: () => <span>Customer</span>,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <LongText className='max-w-44'>
-        {row.original.customer_name ?? '—'}
-      </LongText>
-    ),
+      )
+    },
   },
   {
     accessorKey: 'status',

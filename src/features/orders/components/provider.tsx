@@ -3,13 +3,14 @@ import { type Order } from '../data/schema'
 
 type OrdersDialogType =
   | 'view'
-  | 'history'
   | 'create'
   | 'update'
   | 'delete'
   | 'restore'
   | 'add-stone'
   | 'generate-bill'
+  | 'hold'
+  | 'release'
 
 type OrdersContextType = {
   open: OrdersDialogType | null

@@ -1,5 +1,5 @@
-import { Eye, History } from 'lucide-react'
-import { PERMISSIONS, perm } from '@/lib/permissions'
+import { Eye } from 'lucide-react'
+import { perm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { usePayments } from '../components/provider'
 import { type Payment } from '../data/schema'
@@ -8,7 +8,7 @@ import { type Payment } from '../data/schema'
 export function usePaymentActions(payment: Payment | null): RowAction[] {
   const { setOpen, setCurrentRow } = usePayments()
 
-  function select(dialog: 'view' | 'history') {
+  function select(dialog: 'view') {
     setCurrentRow(payment)
     setOpen(dialog)
   }
@@ -22,12 +22,6 @@ export function usePaymentActions(payment: Payment | null): RowAction[] {
       icon: Eye,
       permission: perm('payments', 'view'),
       onSelect: () => select('view'),
-    },
-    {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
     },
   ]
 }

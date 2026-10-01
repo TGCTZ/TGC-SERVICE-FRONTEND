@@ -3,12 +3,10 @@ import { AxiosError } from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, History, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { Eye, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatMoney } from '@/lib/format'
-import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
-import { subjectTypes } from '@/lib/subject-types'
-import { Badge } from '@/components/ui/badge'
+import { perm, restorePerm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,11 +24,13 @@ import {
 } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
+import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { LookupMutateDialog } from './components/mutate-dialog'
+import { LookupViewDialog } from './components/view-dialog'
 import { deleteLookupRow, lookupRowsQuery, restoreLookupRow } from './data/api'
 import {
   lookupConfigBySlug,
@@ -41,13 +41,7 @@ import {
 
 const route = getRouteApi('/_authenticated/lookups/$slug/')
 
-type DialogState =
-  | 'view'
-  | 'history'
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'restore'
+type DialogState = 'view' | 'create' | 'update' | 'delete' | 'restore'
 
 /**
  * One screen for every lookup table.
@@ -167,12 +161,6 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         hidden: isDeleted,
       },
       {
-        label: 'History',
-        icon: History,
-        permission: PERMISSIONS.viewActivityLogs,
-        onSelect: () => select('history', row),
-      },
-      {
         label: 'Restore',
         icon: RotateCcw,
         permission: restorePerm(config.resource),
@@ -185,7 +173,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         icon: Trash2,
         permission: perm(config.resource, 'delete'),
         onSelect: () => select('delete', row),
-        variant: 'destructive',
+        tone: 'destructive',
         hidden: isDeleted,
         separatorBefore: true,
       },
@@ -202,7 +190,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         <div className='flex items-center gap-2 font-medium'>
           {row.original.name}
           {row.original.deleted_at && (
-            <Badge variant='destructive'>Deleted</Badge>
+            <StatusBadge tone='danger'>Deleted</StatusBadge>
           )}
         </div>
       ),
@@ -305,22 +293,13 @@ function LookupsContent({ config }: { config: LookupConfig }) {
   return (
     <>
       <Header fixed>
-        <div className='ms-auto flex items-center gap-4'>
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
-        </div>
+        <ThemeSwitch />
+        <ConfigDrawer />
+        <ProfileDropdown />
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              {config.title}
-            </h2>
-            <p className='text-muted-foreground'>{config.description}</p>
-          </div>
-
+        <PageHeading title={config.title} description={config.description}>
           <Can permission={perm(config.resource, 'add')}>
             <Button
               onClick={() => {
@@ -332,7 +311,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>
-        </div>
+        </PageHeading>
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
@@ -352,30 +331,32 @@ function LookupsContent({ config }: { config: LookupConfig }) {
         )}
       </Main>
 
-      {currentRow &&
-        subjectTypes[config.resource as keyof typeof subjectTypes] && (
-          <RecordHistorySheet
-            subjectType={
-              subjectTypes[config.resource as keyof typeof subjectTypes]
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
+      {currentRow && (
+        <LookupViewDialog
+          key={`row-view-${currentRow.id}`}
+          config={config}
+          row={currentRow}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
             }
-            subjectId={currentRow.id}
-            title={currentRow.name}
-            open={open === 'history'}
-            onOpenChange={(isOpen) => !isOpen && setOpen(null)}
-          />
-        )}
+          }}
+          onRequestEdit={() => setOpen('update')}
+          actions={rowActions(currentRow)}
+        />
+      )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
       <LookupMutateDialog
         key={
           currentRow && open !== 'create' ? `row-${currentRow.id}` : 'create'
         }
         config={config}
         currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={currentRow ? rowActions(currentRow) : []}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        open={open === 'create' || open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)

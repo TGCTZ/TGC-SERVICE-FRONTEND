@@ -17,9 +17,7 @@ const listSchema = paginatedSchema(paymentSchema)
  * The only legitimate writer is the GePG notification webhook, so there is no
  * create or edit path — and deliberately none here either.
  */
-export async function fetchPayments(
-  params: ListParams
-): Promise<Paginated<Payment>> {
+async function fetchPayments(params: ListParams): Promise<Paginated<Payment>> {
   const res = await api.get('/payments', { params: buildListParams(params) })
 
   return toPaginated(listSchema.parse(res.data), params)

@@ -12,22 +12,62 @@ import { orderSchema, type Order } from './schema'
 
 const listSchema = paginatedSchema(orderSchema)
 
-export async function fetchOrders(
-  params: ListParams
-): Promise<Paginated<Order>> {
-  const res = await api.get('/orders', { params: buildListParams(params) })
+type OrdersParams = ListParams & {
+  /**
+   * An `OrderStage` value, narrowing to orders at that stage.
+   *
+   * Rides alongside the shared list contract rather than inside `filters`, for
+   * the same reason `identification` does: the stage is not a column. It is
+   * derived from the stones and the bill, and the API re-expresses that
+   * derivation as SQL — no `filter[field]` lookup can reach it.
+   */
+  stage?: string
+}
+
+async function fetchOrders({
+  stage,
+  ...params
+}: OrdersParams): Promise<Paginated<Order>> {
+  const res = await api.get('/orders', {
+    params: { ...buildListParams(params), ...(stage ? { stage } : {}) },
+  })
 
   return toPaginated(listSchema.parse(res.data), params)
 }
 
-export const ordersQuery = (params: ListParams) =>
+export const ordersQuery = (params: OrdersParams) =>
   queryOptions({
     queryKey: ['orders', params],
     queryFn: () => fetchOrders(params),
     placeholderData: (previous) => previous,
   })
 
-export type OrderPayload = Record<string, unknown>
+/**
+ * Orders with stones still to identify.
+ *
+ * The same endpoint the identification queue reads, reused to populate the
+ * order picker: it returns exactly the orders that still have a free slot, so
+ * a full order cannot be chosen and the list empties itself when there is no
+ * work left.
+ */
+/**
+ * One order, refetched on demand.
+ *
+ * Needed where a screen acts on an order repeatedly and has to see the result:
+ * the identify dialog stays open across several stones, so the progress and the
+ * next label it shows must come from a live read rather than the row snapshot
+ * it was handed when it opened.
+ */
+export const orderQuery = (id: number) =>
+  queryOptions({
+    queryKey: ['orders', 'detail', id],
+    queryFn: async (): Promise<Order> => {
+      const res = await api.get(`/orders/${id}`)
+      return orderSchema.parse(res.data)
+    },
+  })
+
+type OrderPayload = Record<string, unknown>
 
 export async function createOrder(payload: OrderPayload): Promise<Order> {
   const res = await api.post('/orders', payload)
@@ -52,13 +92,13 @@ export async function restoreOrder(id: number): Promise<void> {
 }
 
 /**
- * Register the next stone against an order.
+ * Record the identification of the next stone.
  *
  * A sub-resource rather than `POST /stones/`: the service owns the A/B/C label
  * sequence and the cap at `order.stone_count`, and refuses with a 400 once the
  * order is full.
  *
- * @param orderId - The order to register against.
+ * @param orderId - The order the stone belongs to.
  * @param payload - `stone_type`, and optionally `weight` and `weight_unit`.
  * @returns The stone the service created, label included.
  */
@@ -89,4 +129,25 @@ export async function generateBill(
     ...(serviceProvider ? { service_provider: serviceProvider } : {}),
   })
   return res.data
+}
+
+/**
+ * Pause or withdraw a whole order.
+ *
+ * The one part of an order's state that is written rather than derived: a
+ * customer asking the lab to stop is a fact about the visit, not about any
+ * stone in it. Undoes nothing — stones keep their statuses and the bill stands.
+ */
+export async function holdOrder(
+  id: number,
+  payload: { hold_status: 'on_hold' | 'cancelled'; reason: string }
+): Promise<Order> {
+  const res = await api.post(`/orders/${id}/hold`, payload)
+  return orderSchema.parse(res.data)
+}
+
+/** Return a held or cancelled order to active work. */
+export async function releaseOrder(id: number): Promise<Order> {
+  const res = await api.post(`/orders/${id}/release`)
+  return orderSchema.parse(res.data)
 }

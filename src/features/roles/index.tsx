@@ -31,10 +31,12 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { DataTableRowActions, type RowAction } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
 import { RolePermissionsDialog } from './components/permissions-dialog'
+import { RoleViewDialog } from './components/view-dialog'
 import { createRole, deleteRole, rolesQuery, updateRole } from './data/api'
 import { type Role } from './data/schema'
 
@@ -104,9 +106,10 @@ export function Roles() {
   const roles = data?.items ?? []
 
   /**
-   * Every action the API exposes for a role. Roles live in spatie's tables,
-   * which have no soft deletes, so there is no Restore. Rename and Delete are
-   * withheld from protected roles because the API rejects both with a 400.
+   * Every action the API exposes for a role. Roles are Django groups, which are
+   * not soft-deletable, so there is no Restore. Rename and Delete are
+   * withheld from roles the requester cannot manage - protected ones, and any
+   * ranked at or above their own - because the API would refuse both.
    */
   function rowActions(role: Role): RowAction[] {
     return [
@@ -130,15 +133,15 @@ export function Roles() {
           setRenameFor(role)
           setRenameValue(role.name)
         },
-        hidden: role.is_protected,
+        hidden: !role.can_manage,
       },
       {
         label: 'Delete',
         icon: Trash2,
         permission: perm('roles', 'delete'),
         onSelect: () => setDeleteFor(role),
-        variant: 'destructive',
-        hidden: role.is_protected,
+        tone: 'destructive',
+        hidden: !role.can_manage,
         separatorBefore: true,
       },
     ]
@@ -147,21 +150,17 @@ export function Roles() {
   return (
     <>
       <Header fixed>
-        <div className='ms-auto flex items-center gap-4'>
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
-        </div>
+        <ThemeSwitch />
+        <ConfigDrawer />
+        <ProfileDropdown />
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Roles</h2>
-            <p className='text-muted-foreground'>
-              Define what each role may do. Permissions are enforced by the API.
-            </p>
-          </div>
+          <PageHeading
+            title='Roles'
+            description='Define what each role may do. Permissions are enforced by the API.'
+          />
 
           <Can permission={perm('roles', 'add')}>
             <Button onClick={() => setCreateOpen(true)}>
@@ -227,14 +226,18 @@ export function Roles() {
                           <span className='font-medium capitalize'>
                             {role.name}
                           </span>
-                          {role.is_protected && (
+                          {!role.can_manage && (
                             <Badge
                               variant='outline'
                               className='gap-1 text-muted-foreground'
-                              title='Protected: always holds every permission'
+                              title={
+                                role.is_protected
+                                  ? 'Protected: always holds every permission'
+                                  : 'Roles at your own level are managed by the level above'
+                              }
                             >
                               <Lock className='size-3' />
-                              Protected
+                              {role.is_protected ? 'Protected' : 'Your level'}
                             </Badge>
                           )}
                         </div>
@@ -259,20 +262,16 @@ export function Roles() {
         )}
       </Main>
 
-      {/*
-        A role IS its permissions, so the matrix doubles as the read-only view
-        rather than a separate detail layout that could drift from it.
-      */}
+      {/* Reading a role and re-scoping it are different jobs: this states what
+          the role holds, the matrix below is where a grant is changed. */}
       {viewFor && (
-        <RolePermissionsDialog
+        <RoleViewDialog
           key={`view-${viewFor.id}`}
           open={Boolean(viewFor)}
           onOpenChange={(open) => !open && setViewFor(null)}
           role={viewFor}
-          readOnly
-          // 'Permissions' is what the Edit button already does here — this
-          // dialog IS the permission matrix — so it would be a second button
-          // for the same thing.
+          // 'Permissions' is what the Edit button already does here — it opens
+          // the matrix — so it would be a second button for the same thing.
           actions={rowActions(viewFor).filter(
             (action) => action.label !== 'Permissions'
           )}

@@ -4,18 +4,26 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-150 active:translate-y-px active:shadow-none motion-reduce:transition-none motion-reduce:active:translate-y-0 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
+          'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:shadow-md',
         destructive:
-          'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+          'bg-destructive text-white shadow-xs hover:bg-destructive/90 hover:shadow-md focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+        /* A finished document to take away — a certificate, a receipt. Solid,
+           because it is the one thing you came to that row for. */
+        success:
+          'bg-success text-success-foreground shadow-xs hover:bg-success/90 hover:shadow-md focus-visible:ring-success/20',
+        /* Dangerous, but not the row's headline. Red enough to hesitate over,
+           quiet enough that the solid button beside it still leads. */
+        'destructive-outline':
+          'border border-destructive/50 text-destructive bg-background shadow-xs hover:border-destructive hover:bg-destructive/10 hover:text-destructive hover:shadow-sm',
         outline:
-          'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
+          'border bg-background shadow-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground hover:shadow-sm dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
         secondary:
-          'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
+          'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 hover:shadow-md',
         ghost:
           'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
         link: 'text-primary underline-offset-4 hover:underline',
@@ -34,7 +42,18 @@ const buttonVariants = cva(
   }
 )
 
-/** The standard button. `variant` sets intent (use `destructive` for deletes), `size` its footprint; `asChild` renders a link as a button. */
+/**
+ * The standard button.
+ *
+ * `variant` sets intent (use `destructive` for deletes), `size` its footprint;
+ * `asChild` renders a link as a button.
+ *
+ * Hover lifts the shadow and, on outlined buttons, warms the border toward the
+ * colour that variant stands for. Pressing moves it a pixel down and drops the
+ * shadow, so the click has somewhere to land. Movement is confined to that one
+ * pixel on purpose: a button that grows or slides on hover makes a dense table
+ * row jitter as the pointer crosses it. `motion-reduce` skips it entirely.
+ */
 function Button({
   className,
   variant,

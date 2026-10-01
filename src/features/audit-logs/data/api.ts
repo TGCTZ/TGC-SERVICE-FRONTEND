@@ -39,7 +39,7 @@ function toAuditParams(params: ListParams): ListParams {
 }
 
 /** Fetch one page of audit entries, validated at the network boundary. */
-export async function fetchActivityLogs(
+async function fetchActivityLogs(
   params: ListParams
 ): Promise<Paginated<ActivityLog>> {
   const res = await api.get('/activity-logs', {
@@ -54,28 +54,4 @@ export const activityLogsQueryOptions = (params: ListParams) =>
     queryKey: ['activity-logs', params],
     queryFn: () => fetchActivityLogs(params),
     placeholderData: (previous) => previous,
-  })
-
-/**
- * Every entry for one record, newest first.
- *
- * Backs the History sheet. `subjectType` is the API's lowercase model name
- * (e.g. `product`), so history cannot collide between two models that happen to
- * share an id.
- */
-export const recordHistoryQueryOptions = (
-  subjectType: string,
-  subjectId: number,
-  enabled: boolean
-) =>
-  queryOptions({
-    queryKey: ['activity-logs', 'record', subjectType, subjectId],
-    queryFn: () =>
-      fetchActivityLogs({
-        perPage: 50,
-        sortBy: 'created_at',
-        sortDir: 'desc',
-        filters: { subject_type: subjectType, subject_id: subjectId },
-      }),
-    enabled,
   })

@@ -2,14 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { perm } from '@/lib/permissions'
-import { subjectTypes } from '@/lib/subject-types'
 import { Button } from '@/components/ui/button'
 import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -19,6 +18,7 @@ import { ReportMutateDialog } from './components/mutate-dialog'
 import { ReportsProvider, useReports } from './components/provider'
 import { ReportRestoreDialog } from './components/restore-dialog'
 import { ReportsTable, type ReportsQueryState } from './components/table'
+import { ReportViewDialog } from './components/view-dialog'
 import { reportsQuery } from './data/api'
 import { useReportActions } from './hooks/use-actions'
 
@@ -82,7 +82,7 @@ function IdentificationContent() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
@@ -90,15 +90,10 @@ function IdentificationContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              Identification
-            </h2>
-            <p className='text-muted-foreground'>
-              What the bench found, per stone. A report can only be opened once
-              the stone&apos;s bill is settled.
-            </p>
-          </div>
+          <PageHeading
+            title='Findings'
+            description="What the bench found, per stone — the findings recorded after payment. A report can only be opened once the stone's bill is settled."
+          />
 
           <Can permission={perm('identification-reports', 'add')}>
             <Button
@@ -130,22 +125,27 @@ function IdentificationContent() {
         )}
       </Main>
 
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
       {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes['identification-reports']}
-          subjectId={currentRow.id}
-          title={currentRow.report_number}
-          open={open === 'history'}
+        <ReportViewDialog
+          key={`report-view-${currentRow.id}`}
+          open={open === 'view'}
           onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
           }}
+          report={currentRow}
+          onRequestEdit={() => setOpen('update')}
+          actions={actions}
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
       <ReportMutateDialog
         key={currentRow ? `report-${currentRow.id}` : 'create'}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        open={open === 'create' || open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
@@ -153,9 +153,6 @@ function IdentificationContent() {
           }
         }}
         currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={actions}
       />
 
       {currentRow && (

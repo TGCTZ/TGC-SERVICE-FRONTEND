@@ -1,4 +1,4 @@
-import { Eye, History, Lock, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { Eye, Lock, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useReports } from '../components/provider'
@@ -17,7 +17,7 @@ export function useReportActions(
   const { setOpen, setCurrentRow } = useReports()
 
   function select(
-    dialog: 'view' | 'history' | 'update' | 'delete' | 'restore' | 'finalize'
+    dialog: 'view' | 'update' | 'delete' | 'restore' | 'finalize'
   ) {
     setCurrentRow(report)
     setOpen(dialog)
@@ -45,17 +45,11 @@ export function useReportActions(
     },
     {
       label: 'Finalize',
+      tone: 'advance',
       icon: Lock,
       permission: PERMISSIONS.finalizeReport,
       onSelect: () => select('finalize'),
       hidden: isDeleted || isLocked,
-    },
-    {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
-      separatorBefore: true,
     },
     {
       label: 'Restore',
@@ -70,7 +64,7 @@ export function useReportActions(
       icon: Trash2,
       permission: perm('identification-reports', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
+      tone: 'destructive',
       hidden: isDeleted,
       separatorBefore: true,
     },

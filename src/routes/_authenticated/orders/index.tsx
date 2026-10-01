@@ -11,6 +11,8 @@ const ordersSearchSchema = z.object({
   sortBy: z.string().optional().catch(undefined),
   sortDir: z.enum(['asc', 'desc']).optional().catch(undefined),
   showDeleted: z.boolean().optional().catch(undefined),
+  // An OrderStage value. Kept in the URL so a filtered view is shareable.
+  stage: z.string().optional().catch(undefined),
 })
 
 export const Route = createFileRoute('/_authenticated/orders/')({

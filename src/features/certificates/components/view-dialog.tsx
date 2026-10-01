@@ -1,8 +1,5 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Check, Copy } from 'lucide-react'
+import { Square, SquareCheck } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -11,16 +8,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
 import { ViewFooterActions } from '@/components/view-footer-actions'
-import { certificateAccessLogsQuery } from '../data/api'
+import { WEIGHT_UNIT_SYMBOLS } from '@/features/stones/data/enums'
 import { type Certificate } from '../data/schema'
-import { verificationUrl } from '../data/verification-link'
 import { CertificateStatusBadge } from './status-badge'
 
 type CertificateViewDialogProps = {
@@ -31,9 +25,9 @@ type CertificateViewDialogProps = {
 }
 
 /**
- * Everything on one certificate, plus the link that proves it.
+ * Everything on one certificate; the footer carries its actions.
  *
- * The four snapshot fields are shown as the document's own words rather than
+ * The four snapshot fields are shown as the document\'s own words rather than
  * joined to the live records — that is what a certificate is.
  */
 export function CertificateViewDialog({
@@ -42,25 +36,13 @@ export function CertificateViewDialog({
   certificate,
   actions = [],
 }: CertificateViewDialogProps) {
-  const [copied, setCopied] = useState(false)
-  const link = verificationUrl(certificate.verification_token)
-
-  const { data: visits, isPending } = useQuery({
-    ...certificateAccessLogsQuery(certificate.id),
-    enabled: open,
-  })
-
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(link)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard access is denied in some browsers and over plain HTTP; the
-      // input beside the button is selectable, so there is still a way through.
-      setCopied(false)
-    }
-  }
+  // The unit is snapshotted alongside the number: a weight without its unit
+  // states nothing, and reading the stone's live unit could rewrite the
+  // document after the fact.
+  const weightUnit =
+    WEIGHT_UNIT_SYMBOLS[certificate.weight_unit_snapshot ?? ''] ??
+    certificate.weight_unit_snapshot ??
+    ''
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,39 +59,100 @@ export function CertificateViewDialog({
         </DialogHeader>
 
         <DialogBody className='space-y-5'>
+          {/* The photograph frozen at issue — replacing the stone's photo
+              afterwards never changes what this document shows. */}
+          {certificate.photo_snapshot && (
+            <div className='flex justify-center rounded-md border p-2'>
+              <img
+                src={certificate.photo_snapshot}
+                alt='The stone, as certified'
+                className='max-h-48 rounded object-contain'
+              />
+            </div>
+          )}
+
           <div className='space-y-3'>
             <h3 className='text-sm font-medium'>What the document says</h3>
             <DefinitionList
               items={[
                 { label: 'Stone type', value: certificate.stone_type_snapshot },
-                { label: 'Weight', value: certificate.weight_snapshot },
+                {
+                  label: 'Weight',
+                  value: `${certificate.weight_snapshot} ${weightUnit}`,
+                },
+                { label: 'Species', value: certificate.species_snapshot },
+                { label: 'Variety', value: certificate.variety_snapshot },
                 { label: 'Colour', value: certificate.color_snapshot },
+                { label: 'Shape / cut', value: certificate.shape_cut_snapshot },
                 { label: 'Origin', value: certificate.origin_snapshot },
-                { label: 'Gemmologist', value: certificate.gemmologist },
-                { label: 'From report', value: certificate.report_number },
+                { label: 'Nature', value: certificate.nature_type_snapshot },
+                { label: 'Treatment', value: certificate.treatment_snapshot },
+                {
+                  label: 'Transparency',
+                  value: certificate.transparency_snapshot,
+                },
+                {
+                  label: 'Optic character',
+                  value: certificate.optic_character_snapshot,
+                },
+                {
+                  label: 'Refractive index',
+                  value: certificate.refractive_index_snapshot,
+                },
+                {
+                  label: 'Specific gravity',
+                  value: certificate.specific_gravity_snapshot,
+                },
+                { label: 'Gemmologist 1', value: certificate.gemmologist },
+                { label: 'Gemmologist 2', value: certificate.gemmologist_two },
+                {
+                  label: 'From report',
+                  value:
+                    certificate.report_number_snapshot ||
+                    certificate.report_number,
+                },
+                {
+                  label: 'Comments',
+                  value: certificate.comments_snapshot,
+                  wide: true,
+                },
               ]}
             />
           </div>
 
           <Separator />
 
-          <div className='space-y-2'>
-            <h3 className='text-sm font-medium'>Verification link</h3>
-            <div className='flex gap-2'>
-              <Input readOnly value={link} className='font-mono text-xs' />
-              <Button type='button' variant='outline' onClick={copyLink}>
-                {copied ? (
-                  <Check className='me-1 size-4' />
-                ) : (
-                  <Copy className='me-1 size-4' />
-                )}
-                {copied ? 'Copied' : 'Copy'}
-              </Button>
-            </div>
-            <p className='text-xs text-muted-foreground'>
-              Anyone holding the printed certificate can open this without
-              signing in. Every visit is recorded below.
-            </p>
+          <div className='space-y-3'>
+            <h3 className='text-sm font-medium'>Instruments used</h3>
+            {certificate.instrument_checklist.length === 0 ? (
+              <p className='rounded-md border border-dashed p-4 text-sm text-muted-foreground'>
+                No instruments recorded.
+              </p>
+            ) : (
+              <ul className='divide-y rounded-md border'>
+                {certificate.instrument_checklist.map((instrument) => (
+                  <li
+                    key={instrument.name}
+                    className='flex items-center gap-2 p-3'
+                  >
+                    {instrument.used ? (
+                      <SquareCheck className='size-4 text-primary' />
+                    ) : (
+                      <Square className='size-4 text-muted-foreground' />
+                    )}
+                    <span
+                      className={
+                        instrument.used
+                          ? 'text-sm font-medium'
+                          : 'text-sm text-muted-foreground'
+                      }
+                    >
+                      {instrument.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <Separator />
@@ -122,36 +165,6 @@ export function CertificateViewDialog({
                 { label: 'On', value: formatDateTime(certificate.issued_at) },
               ]}
             />
-          </div>
-
-          <Separator />
-
-          <div className='space-y-3'>
-            <h3 className='text-sm font-medium'>Recent verifications</h3>
-
-            {isPending && <Skeleton className='h-16 w-full' />}
-
-            {!isPending && visits?.length === 0 && (
-              <p className='rounded-md border border-dashed p-4 text-sm text-muted-foreground'>
-                Nobody has checked this certificate yet.
-              </p>
-            )}
-
-            {visits && visits.length > 0 && (
-              <ul className='divide-y rounded-md border'>
-                {visits.map((visit) => (
-                  <li key={visit.id} className='p-3'>
-                    <div className='text-sm'>
-                      {formatDateTime(visit.accessed_at)}
-                    </div>
-                    <div className='text-xs break-all text-muted-foreground'>
-                      {visit.ip_address ?? 'Unknown address'} ·{' '}
-                      {visit.user_agent || 'No user agent'}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
         </DialogBody>
 

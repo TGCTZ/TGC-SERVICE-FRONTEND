@@ -23,8 +23,8 @@ describe('worklist configs', () => {
   })
 
   it('points each queue at the endpoint that owns it', () => {
-    expect(worklistConfigBySlug('registration')?.endpoint).toBe(
-      '/orders/worklist-registration'
+    expect(worklistConfigBySlug('identification')?.endpoint).toBe(
+      '/orders/worklist'
     )
     expect(worklistConfigBySlug('billing')?.endpoint).toBe('/bills/worklist')
     expect(worklistConfigBySlug('findings')?.endpoint).toBe(
@@ -38,7 +38,7 @@ describe('worklist configs', () => {
   it('knows which queues list orders and which list stones', () => {
     // The row kind selects the column array; getting it wrong would render
     // order columns against stone rows.
-    expect(worklistConfigBySlug('registration')?.rowKind).toBe('order')
+    expect(worklistConfigBySlug('identification')?.rowKind).toBe('order')
     expect(worklistConfigBySlug('billing')?.rowKind).toBe('order')
     expect(worklistConfigBySlug('findings')?.rowKind).toBe('stone')
     expect(worklistConfigBySlug('certification')?.rowKind).toBe('stone')
@@ -56,8 +56,8 @@ describe('worklist configs', () => {
     expect(worklistConfigBySlug('findings')?.permission).toBe(
       'identification.add_identificationreport'
     )
-    expect(worklistConfigBySlug('registration')?.permission).toBe(
-      'orders.view_order'
+    expect(worklistConfigBySlug('identification')?.permission).toBe(
+      'orders.add_stone'
     )
   })
 
@@ -68,5 +68,22 @@ describe('worklist configs', () => {
       expect(config.actionLabel).not.toBe('')
       expect(config.emptyMessage).not.toBe('')
     }
+  })
+
+  it('gives every queue a search box naming what it searches', () => {
+    // The endpoints search the row's own model, so the placeholder differs by
+    // row kind - an order is found by its reference or customer, a stone also
+    // by its label and type. A queue with no placeholder renders no box, so a
+    // missing one is a silently unsearchable queue.
+    for (const config of allWorklistConfigs()) {
+      expect(config.searchPlaceholder, config.slug).toBeTruthy()
+    }
+
+    expect(worklistConfigBySlug('billing')?.searchPlaceholder).toContain(
+      'reference'
+    )
+    expect(worklistConfigBySlug('findings')?.searchPlaceholder).toContain(
+      'label'
+    )
   })
 })

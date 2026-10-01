@@ -3,12 +3,11 @@ import {
   Boxes,
   ClipboardList,
   Contact,
+  FlaskConical,
   Gem,
-  Landmark,
   ListChecks,
   Microscope,
   Receipt,
-  ScanLine,
   ScrollText,
   ShieldCheck,
   Tags,
@@ -16,18 +15,25 @@ import {
   Users,
   Wallet,
 } from 'lucide-react'
+import { countQuery } from '@/lib/count-query'
 import { PERMISSIONS, perm } from '@/lib/permissions'
 import { allLookupConfigs } from '@/features/lookups/data/config'
 import { reportConfigs } from '@/features/reports/data/config'
-import { allWorklistConfigs } from '@/features/worklists/data/config'
+import { worklistConfig } from '@/features/worklists/data/config'
 import { type NavLink, type SidebarData } from '../types'
 
 /**
  * Sidebar navigation.
  *
- * The groups follow the stone's journey through the lab — reception, billing,
- * the bench, certification — then the reference data those stages draw on, then
- * administration. Each maps onto one of the API's `core.module_*` gates.
+ * Five groups following the stone's journey through the lab — reception, the
+ * two identification stages, billing, certification — while the work queues sit
+ * beside the screens they feed and the reference tables those stages draw on
+ * sit under Administration. Reports leads with the two read-only report pages.
+ *
+ * Identification holds both gemmological stages, because they are one person's
+ * work split by payment: identification types the stone and so
+ * fixes its price, then the bill is settled, then the findings
+ * records the findings.
  *
  * Two rules worth keeping when you edit this:
  *
@@ -36,11 +42,29 @@ import { type NavLink, type SidebarData } from '../types'
  *   once all its children are hidden, and drops a group once it is empty — so a
  *   heading only appears for someone who has something under it. That is why a
  *   receptionist sees no Certificates group without any extra wiring.
- * - Gate on the item, not the group: `NavGroup` carries no `permission` and
- *   `filterNavGroups` would not read one. The API grants every role its module
- *   gate alongside the matching model permissions, so the per-item `view` check
- *   is a faithful proxy for the gate.
+ * - Each section also sits behind its module gate (`core.module_*`), checked on
+ *   top of the items, never instead of them: the gate lets an admin hide a whole
+ *   section from a role on the Roles screen, and the item permissions still
+ *   decide what shows inside it. Administration holds three modules, so its
+ *   gates sit on its three collapsibles, and the group goes once all three do.
  */
+/*
+ * Queues, each listed in the group it belongs to rather than collected in one
+ * "Queues" menu — the sidebar then reads as the pipeline itself, and a queue
+ * sits beside the screen whose work it feeds.
+ *
+ * Read from the worklist configs rather than hard-coded, so a queue's title,
+ * route and permission stay in step with its definition.
+ *
+ * Every queue has an entry: the screens themselves are plain lists now, so the
+ * sidebar is the only place that answers "what is waiting?".
+ */
+const identificationQueue = worklistConfig('identification')
+const findingsQueue = worklistConfig('findings')
+const billingQueue = worklistConfig('billing')
+const certificationQueue = worklistConfig('certification')
+
+/** The whole navigation tree, unfiltered - `filterNavGroups` narrows it per user. */
 export const sidebarData: SidebarData = {
   navGroups: [
     {
@@ -61,30 +85,10 @@ export const sidebarData: SidebarData = {
       ],
     },
 
-    /* ---------------------------------------------------------------- */
-    /* The queues — generated from the worklist configs, so adding one is */
-    /* a single entry there. Each is gated on what its endpoint enforces,  */
-    /* which for billing and certification is the workflow verb rather     */
-    /* than a view permission.                                             */
-    /* ---------------------------------------------------------------- */
+    /* Reception's half of the pipeline: who came in, and what they left. */
     {
-      title: 'Queues',
-      items: [
-        {
-          title: 'Queues',
-          icon: ListChecks,
-          items: allWorklistConfigs().map((config) => ({
-            title: config.title,
-            url: `/worklists/${config.slug}` as NavLink['url'],
-            icon: ListChecks,
-            permission: config.permission,
-          })),
-        },
-      ],
-    },
-
-    {
-      title: 'Reception',
+      title: 'Operations',
+      permission: PERMISSIONS.moduleOrders,
       items: [
         {
           title: 'Customers',
@@ -98,38 +102,67 @@ export const sidebarData: SidebarData = {
           icon: ClipboardList,
           permission: perm('orders', 'view'),
         },
+      ],
+    },
+
+    /* ---------------------------------------------------------------- */
+    /* The bench. Each screen answers "what is waiting?" through its own  */
+    /* status filter, so the queues are not repeated as separate entries. */
+    /* ---------------------------------------------------------------- */
+    {
+      title: 'Gemmology Lab',
+      permission: PERMISSIONS.moduleIdentification,
+      items: [
+        {
+          title: identificationQueue.title,
+          url: `/worklists/${identificationQueue.slug}` as NavLink['url'],
+          icon: ListChecks,
+          permission: identificationQueue.permission,
+          count: countQuery(identificationQueue.endpoint),
+        },
+        {
+          // Order-shaped: identifying a stone is work done against an order,
+          // and what the bench needs is how many of each order are still to do.
+          title: 'Identification',
+          url: '/identification',
+          icon: Microscope,
+          permission: perm('orders', 'view'),
+        },
         {
           title: 'Stones',
           url: '/stones',
           icon: Gem,
           permission: perm('stones', 'view'),
         },
-      ],
-    },
-
-    /* ---------------------------------------------------------------- */
-    /* Reference data — generated from the lookup configs, so adding a    */
-    /* table is one entry there rather than an entry in two places.       */
-    /* ---------------------------------------------------------------- */
-    {
-      title: 'Reference data',
-      items: [
         {
-          title: 'Reference data',
-          icon: Boxes,
-          items: allLookupConfigs().map((config) => ({
-            title: config.title,
-            url: `/lookups/${config.slug}` as NavLink['url'],
-            icon: Tags,
-            permission: perm(config.resource, 'view'),
-          })),
+          title: findingsQueue.title,
+          url: `/worklists/${findingsQueue.slug}` as NavLink['url'],
+          icon: ListChecks,
+          permission: findingsQueue.permission,
+          count: countQuery(findingsQueue.endpoint),
+        },
+        {
+          title: 'Findings',
+          url: '/identification-reports',
+          icon: FlaskConical,
+          permission: perm('identification-reports', 'view'),
         },
       ],
     },
 
+    /* Billing and Certificates both lead with their queue: the work comes
+       before the record it produces. */
     {
       title: 'Billing',
+      permission: PERMISSIONS.moduleBilling,
       items: [
+        {
+          title: billingQueue.title,
+          url: `/worklists/${billingQueue.slug}` as NavLink['url'],
+          icon: ListChecks,
+          permission: billingQueue.permission,
+          count: countQuery(billingQueue.endpoint),
+        },
         {
           title: 'Bills',
           url: '/bills',
@@ -142,56 +175,44 @@ export const sidebarData: SidebarData = {
           icon: Wallet,
           permission: perm('payments', 'view'),
         },
-        {
-          title: 'Service providers',
-          url: '/service-providers',
-          icon: Landmark,
-          permission: perm('service-providers', 'view'),
-        },
-      ],
-    },
-
-    {
-      title: 'Identification',
-      items: [
-        {
-          title: 'Reports',
-          url: '/identification-reports',
-          icon: Microscope,
-          permission: perm('identification-reports', 'view'),
-        },
       ],
     },
 
     {
       title: 'Certificates',
+      permission: PERMISSIONS.moduleCertificates,
       items: [
         {
+          title: certificationQueue.title,
+          url: `/worklists/${certificationQueue.slug}` as NavLink['url'],
+          icon: ListChecks,
+          permission: certificationQueue.permission,
+          count: countQuery(certificationQueue.endpoint),
+        },
+        {
+          // An archive of what has been issued, which is why the queue leads:
+          // this screen cannot answer "what is waiting?".
           title: 'Certificates',
           url: '/certificates',
           icon: BadgeCheck,
           permission: perm('certificates', 'view'),
         },
-        {
-          title: 'Verification log',
-          url: '/certificate-access-logs',
-          icon: ScanLine,
-          permission: perm('certificate-access-logs', 'view'),
-        },
       ],
     },
 
     /* ---------------------------------------------------------------- */
-    /* Administration — the same in every project. Usually kept as-is.   */
+    /* Administration — users, logs, and the reference tables the lab    */
+    /* stages draw on.                                                   */
     /* ---------------------------------------------------------------- */
     {
       title: 'Administration',
       items: [
         {
-          // Collapsible parent: no `permission` of its own — filterNavGroups
-          // drops it automatically once every child is filtered out.
+          // A collapsible's `permission` is its module gate; filterNavGroups
+          // also drops it once every child is filtered out.
           title: 'Users',
           icon: Users,
+          permission: PERMISSIONS.moduleUser,
           items: [
             {
               title: 'All Users',
@@ -210,6 +231,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Logs',
           icon: ScrollText,
+          permission: PERMISSIONS.moduleAudit,
           items: [
             {
               title: 'Audit Logs',
@@ -224,6 +246,22 @@ export const sidebarData: SidebarData = {
               permission: PERMISSIONS.viewSystemLogs,
             },
           ],
+        },
+        /* ------------------------------------------------------------ */
+        /* Reference data — generated from the lookup configs, so adding */
+        /* a table is one entry there rather than an entry in two        */
+        /* places.                                                       */
+        /* ------------------------------------------------------------ */
+        {
+          title: 'Reference data',
+          icon: Boxes,
+          permission: PERMISSIONS.moduleReference,
+          items: allLookupConfigs().map((config) => ({
+            title: config.title,
+            url: `/lookups/${config.slug}` as NavLink['url'],
+            icon: Tags,
+            permission: perm(config.resource, 'view'),
+          })),
         },
       ],
     },

@@ -1,5 +1,4 @@
 import { formatDateTime, formatMoney } from '@/lib/format'
-import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
@@ -12,6 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { type RowAction } from '@/components/data-table'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
+import { StatusBadge } from '@/components/status-badge'
 import { ViewFooterActions } from '@/components/view-footer-actions'
 import { type Payment } from '../data/schema'
 
@@ -46,9 +46,9 @@ export function PaymentViewDialog({
           <DialogTitle className='flex items-center gap-2'>
             {payment.trx_id || 'Payment'}
             {payment.is_processed ? (
-              <Badge variant='outline'>Processed</Badge>
+              <StatusBadge tone='success'>Processed</StatusBadge>
             ) : (
-              <Badge variant='destructive'>Unprocessed</Badge>
+              <StatusBadge tone='warning'>Unprocessed</StatusBadge>
             )}
           </DialogTitle>
           <DialogDescription>

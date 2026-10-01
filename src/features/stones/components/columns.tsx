@@ -1,6 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
+import { LongText } from '@/components/long-text'
+import { StatusBadge } from '@/components/status-badge'
 import { WEIGHT_UNIT_SYMBOLS } from '../data/enums'
 import { type Stone } from '../data/schema'
 import { StonesRowActions } from './row-actions'
@@ -25,19 +26,34 @@ export const stonesDataColumns: ColumnDef<Stone>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Stone' />
     ),
-    cell: ({ row }) => (
-      <div className='min-w-32'>
-        <div className='flex items-center gap-2 font-medium'>
-          {row.original.label}
-          {row.original.deleted_at && (
-            <Badge variant='destructive'>Deleted</Badge>
+    // Same shape as the Order column on the Orders page: what it is, then whose
+    // it is. A reference number identifies the paperwork; the name identifies
+    // the visit, which is what anyone scanning the list is actually looking for.
+    cell: ({ row }) => {
+      const stone = row.original
+
+      return (
+        <div className='min-w-40'>
+          <div className='flex items-center gap-2 font-medium'>
+            {stone.label}
+            {stone.deleted_at && (
+              <StatusBadge tone='danger'>Deleted</StatusBadge>
+            )}
+          </div>
+          <div className='text-sm'>{stone.order_reference ?? '—'}</div>
+          {stone.customer_name && (
+            <>
+              <LongText className='max-w-48 text-xs'>
+                {stone.customer_name}
+              </LongText>
+              <div className='text-xs text-muted-foreground'>
+                {stone.customer_phone}
+              </div>
+            </>
           )}
         </div>
-        <div className='text-xs text-muted-foreground'>
-          {row.original.order_reference ?? '—'}
-        </div>
-      </div>
-    ),
+      )
+    },
   },
   {
     id: 'stone_type',

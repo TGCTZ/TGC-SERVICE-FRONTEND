@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { subjectTypes } from '@/lib/subject-types'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -13,9 +12,9 @@ import { StoneDeleteDialog } from './components/delete-dialog'
 import { StoneMutateDialog } from './components/mutate-dialog'
 import { StonesProvider, useStones } from './components/provider'
 import { StoneRestoreDialog } from './components/restore-dialog'
-import { StoneStatusHistorySheet } from './components/status-history-sheet'
 import { StonesTable, type StonesQueryState } from './components/table'
 import { StoneTransitionDialog } from './components/transition-dialog'
+import { StoneViewDialog } from './components/view-dialog'
 import { stonesQuery } from './data/api'
 import { useStoneActions } from './hooks/use-actions'
 
@@ -79,20 +78,17 @@ function StonesContent() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Stones</h2>
-          <p className='text-muted-foreground'>
-            Every stone in the lab. New stones are registered from their order,
-            which owns the label sequence.
-          </p>
-        </div>
+        <PageHeading
+          title='Stones'
+          description='Every stone in the lab, what it was typed as, and where it has got to. Stones are typed on the Identification screen and weighed with the findings.'
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
@@ -111,32 +107,27 @@ function StonesContent() {
         )}
       </Main>
 
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
       {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.stones}
-          subjectId={currentRow.id}
-          title={currentRow.label}
-          open={open === 'history'}
+        <StoneViewDialog
+          key={`stone-view-${currentRow.id}`}
+          open={open === 'view'}
           onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
           }}
-        />
-      )}
-
-      {currentRow && (
-        <StoneStatusHistorySheet
           stone={currentRow}
-          open={open === 'statuses'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
-          }}
+          onRequestEdit={() => setOpen('update')}
+          actions={actions}
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
       <StoneMutateDialog
         key={currentRow ? `stone-${currentRow.id}` : 'none'}
-        open={open === 'view' || open === 'update'}
+        open={open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
@@ -144,9 +135,6 @@ function StonesContent() {
           }
         }}
         currentRow={currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={actions}
       />
 
       {currentRow && (

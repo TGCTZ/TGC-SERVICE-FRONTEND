@@ -3,10 +3,10 @@ import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
 import { perm } from '@/lib/permissions'
+import { cn } from '@/lib/utils'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -38,17 +38,10 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Can } from '@/components/can'
-import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
 import { PasswordInput } from '@/components/password-input'
-import { ViewFooterActions } from '@/components/view-footer-actions'
 import { rolesQuery } from '@/features/roles/data/api'
-import {
-  createUser,
-  gendersQuery,
-  updateUser,
-  userStatusesQuery,
-} from '../data/api'
+import { gendersQuery, updateUser, userStatusesQuery } from '../data/api'
 import { type User } from '../data/schema'
 
 const NONE = 'none'
@@ -95,21 +88,12 @@ type UserMutateDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   currentRow?: User | null
-  /** Render the same form as a read-only view. */
-  readOnly?: boolean
-  /** Switches a read-only view into edit mode, when the user may edit. */
-  onRequestEdit?: () => void
-  /** The record's row actions, shown in the footer of the read-only view. */
-  actions?: RowAction[]
 }
 
 export function UserMutateDialog({
   open,
   onOpenChange,
   currentRow,
-  readOnly = false,
-  onRequestEdit,
-  actions = [],
 }: UserMutateDialogProps) {
   const isEdit = Boolean(currentRow)
   const queryClient = useQueryClient()
@@ -118,7 +102,7 @@ export function UserMutateDialog({
   const { data: statuses = [] } = useQuery(userStatusesQuery())
   const { data: genders = [] } = useQuery(gendersQuery())
   const { data: rolesPage } = useQuery(rolesQuery({ perPage: 100 }))
-  const roles = rolesPage?.items ?? []
+  const allRoles = rolesPage?.items ?? []
 
   const form = useForm<FormValues>({
     resolver: zodResolver(buildSchema(isEdit)),
@@ -164,9 +148,9 @@ export function UserMutateDialog({
         delete (payload as Record<string, unknown>).password_confirmation
       }
 
-      return currentRow
-        ? updateUser(currentRow.id, payload)
-        : createUser(payload)
+      // Creating has its own dialog (create-dialog.tsx); this one only edits.
+      if (!currentRow) throw new Error('The edit dialog needs a user.')
+      return updateUser(currentRow.id, payload)
     },
     onSuccess: (user) => {
       toast.success(
@@ -196,6 +180,13 @@ export function UserMutateDialog({
   })
 
   const selectedRoles = form.watch('roles') ?? []
+  // Only roles the requester outranks can be handed out. One they cannot assign
+  // but this account already holds - a manager's own role, when editing
+  // themselves - stays listed, checked and locked, rather than vanishing as if
+  // it had been removed.
+  const roles = allRoles.filter(
+    (role) => role.can_assign || selectedRoles.includes(role.name)
+  )
 
   function toggleRole(name: string, checked: boolean) {
     const next = checked
@@ -210,18 +201,14 @@ export function UserMutateDialog({
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-2xl'>
         <DialogHeader className='text-start'>
           <DialogTitle>
-            {readOnly
-              ? currentRow?.full_name || currentRow?.email
-              : isEdit
-                ? 'Edit user'
-                : 'Add user'}
+            {isEdit
+              ? `Edit ${currentRow?.full_name || currentRow?.email}`
+              : 'Add user'}
           </DialogTitle>
           <DialogDescription>
-            {readOnly
-              ? 'Viewing the account. Choose Edit to make changes.'
-              : isEdit
-                ? 'Update the account details below.'
-                : 'Create a new account and assign its access.'}
+            {isEdit
+              ? 'Update the account details below.'
+              : 'Create a new account and assign its access.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -238,10 +225,7 @@ export function UserMutateDialog({
                 that sits outside react-hook-form - the parts a per-field
                 `disabled` prop would miss. `contents` keeps the grid intact.
               */}
-              <fieldset
-                disabled={readOnly}
-                className='grid gap-4 sm:grid-cols-2'
-              >
+              <fieldset className='grid gap-4 sm:grid-cols-2'>
                 <TextField
                   control={form.control}
                   name='first_name'
@@ -394,10 +378,21 @@ export function UserMutateDialog({
                         return (
                           <label
                             key={role.id}
-                            className='flex cursor-pointer items-center gap-2'
+                            className={cn(
+                              'flex items-center gap-2',
+                              role.can_assign
+                                ? 'cursor-pointer'
+                                : 'cursor-not-allowed opacity-60'
+                            )}
+                            title={
+                              role.can_assign
+                                ? undefined
+                                : 'Only a role ranked above this one can assign or remove it'
+                            }
                           >
                             <Checkbox
                               checked={checked}
+                              disabled={!role.can_assign}
                               onCheckedChange={(value) =>
                                 toggleRole(role.name, Boolean(value))
                               }
@@ -420,38 +415,16 @@ export function UserMutateDialog({
         </DialogBody>
 
         <DialogFooter>
-          {readOnly ? (
-            <ViewFooterActions
-              actions={actions}
-              primary={
-                onRequestEdit && (
-                  <Can permission={perm('users', 'change')}>
-                    <Button onClick={onRequestEdit}>
-                      <Pencil className='me-1 size-4' />
-                      Edit
-                    </Button>
-                  </Can>
-                )
-              }
-            />
-          ) : (
-            <>
-              <Button
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={mutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                form='user-form'
-                disabled={mutation.isPending}
-              >
-                {mutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </>
-          )}
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button type='submit' form='user-form' disabled={mutation.isPending}>
+            {mutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

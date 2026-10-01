@@ -1,15 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
-import { perm } from '@/lib/permissions'
-import { subjectTypes } from '@/lib/subject-types'
-import { Button } from '@/components/ui/button'
-import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { RecordHistorySheet } from '@/components/record-history-sheet'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
@@ -18,6 +13,7 @@ import { CustomerMutateDialog } from './components/mutate-dialog'
 import { CustomersProvider, useCustomers } from './components/provider'
 import { CustomerRestoreDialog } from './components/restore-dialog'
 import { CustomersTable, type CustomersQueryState } from './components/table'
+import { CustomerViewDialog } from './components/view-dialog'
 import { customersQuery } from './data/api'
 import { useCustomerActions } from './hooks/use-actions'
 
@@ -78,7 +74,7 @@ function CustomersContent() {
   return (
     <>
       <Header fixed>
-        <Search className='me-auto' />
+        <Search />
         <ThemeSwitch />
         <ConfigDrawer />
         <ProfileDropdown />
@@ -86,24 +82,10 @@ function CustomersContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Customers</h2>
-            <p className='text-muted-foreground'>
-              The people and companies that submit stones for identification.
-            </p>
-          </div>
-
-          <Can permission={perm('customers', 'add')}>
-            <Button
-              onClick={() => {
-                setCurrentRow(null)
-                setOpen('create')
-              }}
-            >
-              Add customer
-              <Plus className='ms-1 size-4' />
-            </Button>
-          </Can>
+          <PageHeading
+            title='Customers'
+            description='The people and companies that submit stones for identification. New ones are registered while receiving an order.'
+          />
         </div>
 
         {isError ? (
@@ -123,32 +105,34 @@ function CustomersContent() {
         )}
       </Main>
 
+      {/* Viewing and editing are separate components: a record is read as a
+          definition list, not as a form nobody may type into. */}
       {currentRow && (
-        <RecordHistorySheet
-          subjectType={subjectTypes.customers}
-          subjectId={currentRow.id}
-          title={currentRow.full_name}
-          open={open === 'history'}
+        <CustomerViewDialog
+          key={`customer-view-${currentRow.id}`}
+          open={open === 'view'}
           onOpenChange={(isOpen) => {
-            if (!isOpen) setOpen(null)
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
           }}
+          customer={currentRow}
+          onRequestEdit={() => setOpen('update')}
+          actions={actions}
         />
       )}
 
-      {/* View and Edit share one dialog; `readOnly` decides which. */}
       <CustomerMutateDialog
-        key={currentRow ? `customer-${currentRow.id}` : 'create'}
-        open={open === 'view' || open === 'create' || open === 'update'}
+        key={currentRow ? `customer-${currentRow.id}` : 'none'}
+        open={open === 'update'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setOpen(null)
             setCurrentRow(null)
           }
         }}
-        currentRow={open === 'create' ? null : currentRow}
-        readOnly={open === 'view'}
-        onRequestEdit={() => setOpen('update')}
-        actions={actions}
+        currentRow={currentRow}
       />
 
       {currentRow && (

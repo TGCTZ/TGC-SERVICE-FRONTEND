@@ -7,6 +7,9 @@ import { worklistConfigBySlug } from '@/features/worklists/data/config'
 const worklistSearchSchema = z.object({
   page: z.number().optional().catch(1),
   pageSize: z.number().optional().catch(10),
+  // In the URL rather than in component state so a queue a colleague is asked
+  // to look at survives being linked, and a reload keeps the parcel on screen.
+  search: z.string().optional().catch(''),
 })
 
 export const Route = createFileRoute('/_authenticated/worklists/$slug/')({

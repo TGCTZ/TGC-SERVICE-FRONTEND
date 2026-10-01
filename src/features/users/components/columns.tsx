@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
+import { StatusBadge } from '@/components/status-badge'
 import { type User } from '../data/schema'
 import { UsersRowActions } from './row-actions'
 
@@ -33,10 +34,13 @@ export const usersColumns: ColumnDef<User>[] = [
           </Avatar>
           <div>
             <LongText className='max-w-48 font-medium'>
-              {user.full_name}
+              {user.full_name || user.email}
             </LongText>
-            <div className='text-xs text-muted-foreground'>
+            <div className='flex items-center gap-2 text-xs text-muted-foreground'>
               @{user.username}
+              {(user.must_change_password || user.must_complete_profile) && (
+                <StatusBadge tone='warning'>Awaiting first login</StatusBadge>
+              )}
             </div>
           </div>
         </div>
@@ -81,9 +85,9 @@ export const usersColumns: ColumnDef<User>[] = [
     ),
     cell: ({ row }) =>
       row.original.is_active ? (
-        <Badge variant='outline'>Active</Badge>
+        <StatusBadge tone='success'>Active</StatusBadge>
       ) : (
-        <Badge variant='destructive'>Inactive</Badge>
+        <StatusBadge tone='danger'>Inactive</StatusBadge>
       ),
   },
   {

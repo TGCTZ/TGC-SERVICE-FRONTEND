@@ -3,13 +3,25 @@ import { z } from 'zod'
 /** A reference row expanded alongside its id. */
 const relatedSchema = z.object({ id: z.number(), name: z.string() }).loose()
 
-/** One instrument used during a report, with its reading. */
+/**
+ * Someone who may be named as the second gemmologist.
+ *
+ * Deliberately not a `User`: the endpoint behind it returns only a name and an
+ * id, because the bench holds no permission to read the user list.
+ */
+export const gemmologistCandidateSchema = z.object({
+  id: z.number(),
+  label: z.string(),
+})
+
+export type GemmologistCandidate = z.infer<typeof gemmologistCandidateSchema>
+
+/** One instrument used during a report. */
 export const instrumentUsedSchema = z.object({
   id: z.number(),
   report: z.number(),
   instrument: z.number(),
   instrument_detail: relatedSchema.nullable().default(null),
-  reading: z.string().default(''),
 })
 
 export type InstrumentUsed = z.infer<typeof instrumentUsedSchema>
@@ -29,7 +41,20 @@ export const reportSchema = z.object({
   id: z.number(),
   stone: z.number(),
   stone_label: z.string().nullable().default(null),
+  /**
+   * The stone's weight, mirrored here read-only.
+   *
+   * Weight is measured at the bench with the other readings, so it belongs on
+   * this form — but it lives on the Stone, which is what a certificate
+   * snapshots. The API takes `weight`/`weight_unit` write-only and hands them
+   * on, and reflects them back under `stone_*`.
+   */
+  stone_weight: z.string().nullable().default(null),
+  stone_weight_unit: z.string().default('carat'),
   order_reference: z.string().nullable().default(null),
+  /** The customer whose visit this stone came in on. */
+  customer_name: z.string().nullable().default(null),
+  customer_phone: z.string().nullable().default(null),
   report_number: z.string(),
 
   species: z.number().nullable().default(null),
@@ -48,7 +73,6 @@ export const reportSchema = z.object({
   treatment: z.string().default(''),
   optic_character: z.string().default(''),
 
-  dimensions: z.string().default(''),
   refractive_index: z.string().default(''),
   // A decimal, so it crosses the wire as a string.
   specific_gravity: z.string().nullable().default(null),
@@ -60,6 +84,15 @@ export const reportSchema = z.object({
   is_finalized: z.boolean().default(false),
   identified_by: z.number().nullable().default(null),
   identified_by_label: z.string().nullable().default(null),
+  /**
+   * The second gemmologist, named beside the first on the certificate.
+   *
+   * Nullable: a report can be closed when only one person saw the stone, and
+   * the certificate then prints a single name. Set at finalize time, not while
+   * the findings are being written — it is a sign-off, not a finding.
+   */
+  verified_by: z.number().nullable().default(null),
+  verified_by_label: z.string().nullable().default(null),
   identified_at: z.string().nullable().default(null),
 
   created_at: z.string().nullable().default(null),

@@ -5,14 +5,7 @@ import { type Stone } from '../data/schema'
  * `statuses` is the stone's own status trail — the domain ledger — as opposed
  * to `history`, which is the generic audit log every record has.
  */
-type StonesDialogType =
-  | 'view'
-  | 'history'
-  | 'statuses'
-  | 'transition'
-  | 'update'
-  | 'delete'
-  | 'restore'
+type StonesDialogType = 'view' | 'transition' | 'update' | 'delete' | 'restore'
 
 type StonesContextType = {
   open: StonesDialogType | null

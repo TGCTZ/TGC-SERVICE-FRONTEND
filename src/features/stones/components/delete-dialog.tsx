@@ -43,7 +43,7 @@ export function StoneDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Delete stone'
-      desc={`Delete ${currentRow.label}? The order still expects it, so the registration slot stays open.`}
+      desc={`Delete ${currentRow.label}? The order still expects it, so the slot stays open.`}
       confirmText={mutation.isPending ? 'Deleting...' : 'Delete'}
       destructive
       disabled={mutation.isPending}

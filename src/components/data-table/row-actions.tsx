@@ -1,11 +1,5 @@
 import { hasAnyPermission } from '@/lib/authz'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 
 /**
  * One action available on a table row.
@@ -17,8 +11,9 @@ import {
  * @example
  * const actions: RowAction[] = [
  *   { label: 'Edit', icon: Pencil, permission: perm('customers', 'change'), onSelect: openEdit },
+ *   { label: 'Generate bill', icon: FileText, tone: 'advance', onSelect: openBill },
  *   { label: 'Delete', icon: Trash, permission: perm('customers', 'delete'),
- *     variant: 'destructive', separatorBefore: true, onSelect: confirmDelete },
+ *     tone: 'destructive', separatorBefore: true, onSelect: confirmDelete },
  * ]
  */
 export type RowAction = {
@@ -27,12 +22,34 @@ export type RowAction = {
   onSelect: () => void
   /** Permission(s) required; the user needs at least one. Omit to always show. */
   permission?: string | string[]
-  variant?: 'default' | 'destructive'
+  /**
+   * What kind of thing this action is, which decides how loudly it is drawn.
+   *
+   * - `neutral` (default) — looking or editing. Outlined and quiet.
+   * - `advance` — moves the record to its next stage: identify, bill,
+   *   finalize, issue. **Solid blue**, and there should be at most one visible
+   *   per row, because it is the thing you came to that row to do.
+   * - `document` — hands over a finished document. **Solid green**.
+   * - `destructive` — deletes, revokes, cancels. Red, but outlined rather than
+   *   filled so it does not compete with the row's actual headline.
+   *
+   * Colour is rationed on purpose. Every button coloured is every button
+   * shouting, and a row of five equals means the eye has nowhere to land.
+   */
+  tone?: 'neutral' | 'advance' | 'document' | 'destructive'
   /** Draws a divider before this action, to fence destructive ones off. */
   separatorBefore?: boolean
   /** Hide entirely regardless of permission (e.g. Restore on a live record). */
   hidden?: boolean
 }
+
+/** How each tone is drawn. Solid reads as "this one"; outlined as "also available". */
+const TONE_VARIANT = {
+  neutral: 'outline',
+  advance: 'default',
+  document: 'success',
+  destructive: 'destructive-outline',
+} as const
 
 /**
  * Drop actions the user cannot perform or that do not apply to this row.
@@ -53,12 +70,21 @@ function visibleActions(actions: RowAction[]) {
 /**
  * Row actions, rendered inline in the table cell.
  *
- * Icons rather than a dropdown: with at most four actions visible at once
- * (Delete and Restore are mutually exclusive) there is room to show them, and
- * a menu costs two clicks plus a guess at what the row can do.
+ * **Labelled**, not icon-only. A row of bare icons asks the user to decode a
+ * pictogram before every click: a document glyph could be "view", "generate
+ * bill" or "certificate", and the same icon means different things on
+ * different screens. Tooltips do not answer it either — they need a hover, so
+ * they do not exist on touch devices and are useless to anyone scanning the
+ * column. The label is the affordance; the icon only speeds up recognition
+ * once you already know what you are looking for.
  *
- * When the column gets tight the buttons **wrap** rather than shrink — a
- * half-size icon is harder to hit and no easier to read than a second line.
+ * Icons rather than a dropdown: with at most four or five actions visible at
+ * once (Delete and Restore are mutually exclusive) there is room to show them,
+ * and a menu costs two clicks plus a guess at what the row can do.
+ *
+ * The buttons **wrap** rather than shrink or truncate, so a narrow column makes
+ * the row taller instead of hiding what it can do. That is the deliberate
+ * trade: vertical space is cheap, a misread action is not.
  *
  * Actions are declared as data rather than JSX so each table lists its full
  * capability in one place, and so the same list can be reused by the record's
@@ -71,32 +97,25 @@ export function DataTableRowActions({ actions }: { actions: RowAction[] }) {
   if (visible.length === 0) return null
 
   return (
-    <div className='flex flex-wrap items-center justify-end gap-0.5'>
+    // The max-width is what makes `flex-wrap` mean anything. A table cell sizes
+    // to its content, so without a cap the buttons would sit on one ever-wider
+    // line and push the whole table into horizontal scroll instead of wrapping.
+    <div className='ms-auto flex max-w-80 flex-wrap items-center justify-end gap-1'>
       {visible.map((action, index) => (
         <div key={action.label} className='flex items-center'>
           {/* Never lead with a divider, however the list filtered down. */}
           {action.separatorBefore && index > 0 && (
-            <span className='mx-1 h-4 w-px shrink-0 bg-border' />
+            <span className='me-1 h-4 w-px shrink-0 bg-border' />
           )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='ghost'
-                size='icon'
-                className={cn(
-                  'size-8',
-                  action.variant === 'destructive' &&
-                    'text-destructive hover:bg-destructive/10 hover:text-destructive'
-                )}
-                // Icon-only controls are unusable without this.
-                aria-label={action.label}
-                onClick={action.onSelect}
-              >
-                <action.icon className='size-4' />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{action.label}</TooltipContent>
-          </Tooltip>
+          <Button
+            variant={TONE_VARIANT[action.tone ?? 'neutral']}
+            size='sm'
+            className='h-8 gap-1.5 px-2.5'
+            onClick={action.onSelect}
+          >
+            <action.icon className='size-4 shrink-0' />
+            {action.label}
+          </Button>
         </div>
       ))}
     </div>
@@ -127,7 +146,7 @@ export function RowActionButtons({
         <Button
           key={action.label}
           type='button'
-          variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
+          variant={TONE_VARIANT[action.tone ?? 'neutral']}
           size='sm'
           className={className}
           onClick={action.onSelect}

@@ -1,5 +1,5 @@
-import { Eye, History, Pencil, RotateCcw, Trash2 } from 'lucide-react'
-import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
+import { Eye, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useCustomers } from '../components/provider'
 import { type Customer } from '../data/schema'
@@ -13,9 +13,7 @@ import { type Customer } from '../data/schema'
 export function useCustomerActions(customer: Customer | null): RowAction[] {
   const { setOpen, setCurrentRow } = useCustomers()
 
-  function select(
-    dialog: 'view' | 'history' | 'update' | 'delete' | 'restore'
-  ) {
+  function select(dialog: 'view' | 'update' | 'delete' | 'restore') {
     setCurrentRow(customer)
     setOpen(dialog)
   }
@@ -40,12 +38,6 @@ export function useCustomerActions(customer: Customer | null): RowAction[] {
       hidden: isDeleted,
     },
     {
-      label: 'History',
-      icon: History,
-      permission: PERMISSIONS.viewActivityLogs,
-      onSelect: () => select('history'),
-    },
-    {
       label: 'Restore',
       icon: RotateCcw,
       permission: restorePerm('customers'),
@@ -58,7 +50,7 @@ export function useCustomerActions(customer: Customer | null): RowAction[] {
       icon: Trash2,
       permission: perm('customers', 'delete'),
       onSelect: () => select('delete'),
-      variant: 'destructive',
+      tone: 'destructive',
       hidden: isDeleted,
       separatorBefore: true,
     },

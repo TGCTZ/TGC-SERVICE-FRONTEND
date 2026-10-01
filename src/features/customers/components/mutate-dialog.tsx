@@ -3,10 +3,9 @@ import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
-import { perm } from '@/lib/permissions'
+import { isRegion } from '@/lib/regions'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,10 +26,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Can } from '@/components/can'
-import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
-import { ViewFooterActions } from '@/components/view-footer-actions'
+import { RegionSelect } from '@/components/region-select'
 import { createCustomer, updateCustomer } from '../data/api'
 import { type Customer } from '../data/schema'
 
@@ -47,7 +44,14 @@ const customerFormSchema = z.object({
   phone: z.string().min(1, 'Phone is required.'),
   email: z.union([z.literal(''), z.email('Enter a valid email.')]).optional(),
   company_name: z.string().optional(),
-  region: z.string().optional(),
+  // Free text from before regions were a list stays in the field, visible, until
+  // someone picks the region it meant - or clears it.
+  region: z
+    .string()
+    .optional()
+    .refine((value) => !value || isRegion(value), {
+      message: 'Pick a region from the list, or clear it.',
+    }),
   id_number: z.string().optional(),
   address: z.string().optional(),
 })
@@ -58,21 +62,12 @@ type CustomerMutateDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   currentRow?: Customer | null
-  /** Render the same form as a read-only view. */
-  readOnly?: boolean
-  /** Switches a read-only view into edit mode, when the user may edit. */
-  onRequestEdit?: () => void
-  /** The record's row actions, shown in the footer of the read-only view. */
-  actions?: RowAction[]
 }
 
 export function CustomerMutateDialog({
   open,
   onOpenChange,
   currentRow,
-  readOnly = false,
-  onRequestEdit,
-  actions = [],
 }: CustomerMutateDialogProps) {
   const isEdit = Boolean(currentRow)
   const queryClient = useQueryClient()
@@ -135,16 +130,10 @@ export function CustomerMutateDialog({
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-2xl'>
         <DialogHeader className='text-start'>
           <DialogTitle>
-            {readOnly
-              ? currentRow?.full_name
-              : isEdit
-                ? 'Edit customer'
-                : 'Add customer'}
+            {isEdit ? `Edit ${currentRow?.full_name}` : 'Add customer'}
           </DialogTitle>
           <DialogDescription>
-            {readOnly
-              ? 'Viewing the customer. Choose Edit to make changes.'
-              : 'Who submitted the stones, and how to reach them.'}
+            Who submitted the stones, and how to reach them.
           </DialogDescription>
         </DialogHeader>
 
@@ -155,11 +144,7 @@ export function CustomerMutateDialog({
               onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
               className='px-1'
             >
-              {/* One fieldset disables every control, Radix triggers included. */}
-              <fieldset
-                disabled={readOnly}
-                className='grid gap-4 sm:grid-cols-2'
-              >
+              <fieldset className='grid gap-4 sm:grid-cols-2'>
                 <TextField
                   control={form.control}
                   name='first_name'
@@ -197,10 +182,22 @@ export function CustomerMutateDialog({
                   name='company_name'
                   label='Company'
                 />
-                <TextField
+                <FormField
                   control={form.control}
                   name='region'
-                  label='Region'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Region</FormLabel>
+                      <FormControl>
+                        <RegionSelect
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
                 <TextField
                   control={form.control}
@@ -220,38 +217,20 @@ export function CustomerMutateDialog({
         </DialogBody>
 
         <DialogFooter>
-          {readOnly ? (
-            <ViewFooterActions
-              actions={actions}
-              primary={
-                onRequestEdit && (
-                  <Can permission={perm('customers', 'change')}>
-                    <Button onClick={onRequestEdit}>
-                      <Pencil className='me-1 size-4' />
-                      Edit
-                    </Button>
-                  </Can>
-                )
-              }
-            />
-          ) : (
-            <>
-              <Button
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={mutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                form='customer-form'
-                disabled={mutation.isPending}
-              >
-                {mutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </>
-          )}
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type='submit'
+            form='customer-form'
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

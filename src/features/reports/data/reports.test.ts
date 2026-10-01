@@ -37,9 +37,10 @@ describe('report navigation', () => {
         (item) => item.title
       )
     ).toEqual(['Operational reports'])
-    expect(
-      sidebarData.navGroups.some((group) => group.title === 'Queues')
-    ).toBe(true)
+    const queueLinks = sidebarData.navGroups
+      .flatMap((group) => group.items)
+      .filter((item) => item.url?.startsWith('/worklists/'))
+    expect(queueLinks).toHaveLength(4)
   })
 })
 

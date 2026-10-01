@@ -271,7 +271,7 @@ function Sidebar({
   )
 }
 
-/** Toggles the sidebar. In `offcanvas` mode place one outside the sidebar too, or a closed sidebar cannot be reopened. */
+/** Toggles the sidebar. Place it outside the sidebar, or an `offcanvas` sidebar takes its own trigger away with it and cannot be reopened. */
 function SidebarTrigger({
   className,
   onClick,

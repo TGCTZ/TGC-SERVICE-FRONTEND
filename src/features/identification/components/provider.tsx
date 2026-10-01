@@ -3,7 +3,6 @@ import { type IdentificationReport } from '../data/schema'
 
 type ReportsDialogType =
   | 'view'
-  | 'history'
   | 'create'
   | 'update'
   | 'delete'

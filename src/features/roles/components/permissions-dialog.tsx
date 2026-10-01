@@ -1,10 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { handleServerError } from '@/lib/handle-server-error'
-import { perm } from '@/lib/permissions'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,11 +15,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
 import { Switch } from '@/components/ui/switch'
-import { Can } from '@/components/can'
-import { type RowAction } from '@/components/data-table'
 import { DialogBody } from '@/components/dialog-body'
-import { ViewFooterActions } from '@/components/view-footer-actions'
 import { groupedPermissionsQuery, roleQuery, updateRole } from '../data/api'
 import { type Role } from '../data/schema'
 
@@ -29,12 +25,6 @@ type RolePermissionsDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   role: Role
-  /** Render the matrix as a read-only view of what the role may do. */
-  readOnly?: boolean
-  /** Switches a read-only view into edit mode, when the user may edit. */
-  onRequestEdit?: () => void
-  /** The role's row actions, shown in the footer of the read-only view. */
-  actions?: RowAction[]
 }
 
 /**
@@ -46,7 +36,7 @@ type RolePermissionsDialogProps = {
  * with nothing to tell the rows apart. A fully qualified label is tolerated too,
  * since the same helper is handy wherever a permission is shown.
  */
-function actionLabel(permission: string): string {
+export function actionLabel(permission: string): string {
   const codename = permission.includes('.')
     ? permission.slice(permission.indexOf('.') + 1)
     : permission
@@ -68,9 +58,6 @@ export function RolePermissionsDialog({
   open,
   onOpenChange,
   role,
-  readOnly = false,
-  onRequestEdit,
-  actions = [],
 }: RolePermissionsDialogProps) {
   const queryClient = useQueryClient()
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -168,9 +155,10 @@ export function RolePermissionsDialog({
     })
   }
 
-  // A protected role always holds everything and the API rejects changes to
-  // it, so it is read-only whether or not the caller asked for that.
-  const locked = readOnly || role.is_protected
+  // A protected role always holds everything, and a role at or above the
+  // requester's own is theirs to read but not to change; the API refuses both,
+  // so the matrix stays locked even for someone who may otherwise edit roles.
+  const locked = !role.can_manage
 
   const isLoading = loadingGroups || loadingRole
 
@@ -187,8 +175,8 @@ export function RolePermissionsDialog({
           <DialogDescription>
             {role.is_protected
               ? 'This role is protected and always holds every permission.'
-              : readOnly
-                ? 'What this role may do. Choose Edit to change it.'
+              : locked
+                ? 'Only a role ranked above this one can change its permissions.'
                 : 'Choose what this role may do. Changes apply to every user holding it.'}
           </DialogDescription>
         </DialogHeader>
@@ -234,15 +222,26 @@ export function RolePermissionsDialog({
                       </span>
                       <span
                         className={cn(
-                          'text-xs',
+                          'text-xs tabular-nums',
                           someChecked && !allChecked
                             ? 'font-medium text-primary'
                             : 'text-muted-foreground'
                         )}
                       >
-                        {permissions.filter((p) => selected.has(p)).length}/
+                        {permissions.filter((p) => selected.has(p)).length} of{' '}
                         {permissions.length}
                       </span>
+                      {/* A Switch has no indeterminate state, so the bar is
+                          what carries the partial case at a glance - the
+                          counts beside it say exactly how partial. */}
+                      <Progress
+                        value={
+                          permissions.filter((p) => selected.has(p)).length
+                        }
+                        max={permissions.length}
+                        label={`${group} permissions granted`}
+                        className='ms-2 h-1.5 w-20'
+                      />
                     </label>
 
                     <div className='mt-3 grid gap-2 sm:grid-cols-3'>
@@ -271,39 +270,18 @@ export function RolePermissionsDialog({
         </DialogBody>
 
         <DialogFooter className='items-center'>
-          {readOnly ? (
-            // The "N selected" count moves into the title row here, so the
-            // start of the footer is free for the destructive action.
-            <ViewFooterActions
-              actions={actions}
-              primary={
-                onRequestEdit &&
-                !role.is_protected && (
-                  <Can permission={perm('roles', 'change')}>
-                    <Button onClick={onRequestEdit}>
-                      <Pencil className='me-1 size-4' />
-                      Edit
-                    </Button>
-                  </Can>
-                )
-              }
-            />
-          ) : (
-            <>
-              <span className='text-sm text-muted-foreground sm:me-auto'>
-                {selected.size} selected
-              </span>
-              <Button variant='outline' onClick={() => onOpenChange(false)}>
-                {locked ? 'Close' : 'Cancel'}
-              </Button>
-              <Button
-                onClick={() => mutation.mutate()}
-                disabled={mutation.isPending || role.is_protected}
-              >
-                {mutation.isPending ? 'Saving...' : 'Save permissions'}
-              </Button>
-            </>
-          )}
+          <span className='text-sm text-muted-foreground sm:me-auto'>
+            {selected.size} selected
+          </span>
+          <Button variant='outline' onClick={() => onOpenChange(false)}>
+            {locked ? 'Close' : 'Cancel'}
+          </Button>
+          <Button
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending || locked}
+          >
+            {mutation.isPending ? 'Saving...' : 'Save permissions'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

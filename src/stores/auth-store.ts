@@ -32,6 +32,18 @@ export interface AuthUser {
   is_active: boolean
   roles: string[]
   permissions: string[]
+  /** First login, step one: the temporary password is still in use. */
+  must_change_password: boolean
+  /** First login, step two: the profile has not been completed yet. */
+  must_complete_profile: boolean
+}
+
+/**
+ * Whether the user still has their first login to finish. Until they do, the
+ * API refuses everything but those steps, so the app sends them there.
+ */
+export function needsFirstLogin(user: AuthUser | null | undefined): boolean {
+  return Boolean(user?.must_change_password || user?.must_complete_profile)
 }
 
 interface AuthState {

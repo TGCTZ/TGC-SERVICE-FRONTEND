@@ -2,23 +2,24 @@ import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { perm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Can } from '@/components/can'
 import { formatWeight } from '@/features/stones/components/columns'
 import { StoneStatusBadge } from '@/features/stones/components/status-badge'
 import { orderStonesQuery } from '@/features/stones/data/api'
-import { isFullyRegistered, type Order } from '../data/schema'
+import { isFullyIdentified, type Order } from '../data/schema'
 
 type OrderStonesPanelProps = {
   order: Order
-  /** Opens the registration dialog; omitted in read-only contexts. */
+  /** Opens the identification dialog; omitted in read-only contexts. */
   onRegister?: () => void
 }
 
 /**
- * The stones registered against one order, read-only.
+ * The stones identified against one order, read-only.
  *
- * Registration itself is not inline: it goes through `POST /orders/{id}/stones/`
+ * Identification itself is not inline: it goes through `POST /orders/{id}/stones/`
  * so the service allocates the next label and enforces the cap at
  * `stone_count`. This panel only shows what that has produced so far.
  */
@@ -28,23 +29,32 @@ export function OrderStonesPanel({ order, onRegister }: OrderStonesPanelProps) {
     isPending,
     isError,
   } = useQuery(orderStonesQuery(order.id))
-  const isFull = isFullyRegistered(order)
+  const isFull = isFullyIdentified(order)
 
   return (
     <div className='space-y-3'>
       <div className='flex flex-wrap items-center justify-between gap-2'>
-        <div>
-          <h3 className='text-sm font-medium'>Stones</h3>
-          <p className='text-xs text-muted-foreground'>
-            {order.identified_count} of {order.stone_count} registered
-          </p>
+        <div className='min-w-48 flex-1 space-y-1.5'>
+          <div className='flex items-center justify-between gap-2'>
+            <h3 className='text-sm font-medium'>Stones</h3>
+            <p className='text-xs text-muted-foreground tabular-nums'>
+              {order.identified_count} of {order.stone_count} identified
+              {!isFull &&
+                ` · ${order.stone_count - order.identified_count} to go`}
+            </p>
+          </div>
+          <Progress
+            value={order.identified_count}
+            max={order.stone_count}
+            label='Identification progress'
+          />
         </div>
 
         {onRegister && !isFull && (
           <Can permission={perm('stones', 'add')}>
             <Button size='sm' variant='outline' onClick={onRegister}>
               <Plus className='me-1 size-4' />
-              Register stone
+              Identify stone
             </Button>
           </Can>
         )}
@@ -58,7 +68,7 @@ export function OrderStonesPanel({ order, onRegister }: OrderStonesPanelProps) {
 
       {!isPending && !isError && stones?.length === 0 && (
         <p className='rounded-md border border-dashed p-4 text-sm text-muted-foreground'>
-          No stones registered yet.
+          No stones identified yet.
         </p>
       )}
 

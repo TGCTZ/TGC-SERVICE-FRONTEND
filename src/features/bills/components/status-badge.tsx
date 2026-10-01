@@ -1,19 +1,20 @@
-import { Badge } from '@/components/ui/badge'
+import { createStatusBadge, type StatusTone } from '@/components/status-badge'
 import { BILL_STATUS_LABELS } from '../data/schema'
 
 /**
- * A bill's payment state.
+ * Money owed reads as a warning; money settled as success.
  *
- * `paid` is the only settled outcome, so it gets the solid badge; `cancelled`
- * is destructive; everything in between is money still owed.
+ * `partially_paid` is deliberately a warning rather than a success: a bill that
+ * is 90% paid is still a bill nobody can act on, and the stones stay billed
+ * until the balance lands.
  */
-export function BillStatusBadge({ status }: { status: string }) {
-  const variant =
-    status === 'paid'
-      ? ('default' as const)
-      : status === 'cancelled'
-        ? ('destructive' as const)
-        : ('secondary' as const)
-
-  return <Badge variant={variant}>{BILL_STATUS_LABELS[status] ?? status}</Badge>
+const TONES: Record<string, StatusTone> = {
+  pending: 'warning',
+  partially_paid: 'warning',
+  paid: 'success',
+  cancelled: 'danger',
+  expired: 'danger',
 }
+
+/** A bill's payment state. */
+export const BillStatusBadge = createStatusBadge(BILL_STATUS_LABELS, TONES)

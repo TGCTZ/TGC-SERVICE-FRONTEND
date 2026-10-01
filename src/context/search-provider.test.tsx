@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, type RenderResult } from 'vitest-browser-react'
 import { userEvent } from 'vitest/browser'
 import { useAuthStore } from '@/stores/auth-store'
-import { perm } from '@/lib/permissions'
+import { PERMISSIONS, perm } from '@/lib/permissions'
 import { SearchProvider } from '@/context/search-provider'
 
 const COMMAND_MENU_PLACEHOLDER = 'Type a command or search...'
@@ -36,6 +36,8 @@ function signIn(
     perm('orders', 'view'),
     perm('stone-types', 'view'),
     perm('users', 'view'),
+    PERMISSIONS.moduleOrders,
+    PERMISSIONS.moduleUser,
   ]
 ) {
   useAuthStore.getState().auth.setUser({
@@ -48,6 +50,8 @@ function signIn(
     avatar: null,
     is_active: true,
     roles: ['admin'],
+    must_change_password: false,
+    must_complete_profile: false,
     permissions,
   })
 }

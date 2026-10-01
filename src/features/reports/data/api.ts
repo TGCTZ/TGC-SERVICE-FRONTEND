@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { toPaginated } from '@/lib/api-query'
+import { saveBlob } from '@/lib/download'
 import { type ReportKind } from './config'
 import { reportResultSchema, type ReportSearch } from './schema'
 
@@ -48,12 +49,8 @@ export async function downloadReport(
     params: { ...reportParams(search), file_type: fileType },
     responseType: 'blob',
   })
-  const url = URL.createObjectURL(response.data as Blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = `${kind}-reports-${search.from}-${search.to}.${fileType}`
-  document.body.append(anchor)
-  anchor.click()
-  anchor.remove()
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  saveBlob(
+    response.data as Blob,
+    `${kind}-reports-${search.from}-${search.to}.${fileType}`
+  )
 }

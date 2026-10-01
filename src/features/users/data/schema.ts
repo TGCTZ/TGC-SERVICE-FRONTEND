@@ -27,6 +27,11 @@ export const userSchema = z.object({
   middle_name: z.string().nullable().default(null),
   last_name: z.string(),
   full_name: z.string(),
+  /**
+   * Whether the requester may edit or delete this account: their own, or one
+   * ranked below their highest role. Fails closed.
+   */
+  can_manage: z.boolean().default(false),
   username: z.string(),
   email: z.string(),
   phone_number: z.string().nullable().default(null),
@@ -58,6 +63,10 @@ export const userSchema = z.object({
   gender_detail: lookupSchema.nullable().default(null),
 
   roles: z.array(z.string()).default([]),
+  /** Created from the Users screen and not yet signed in to set a password. */
+  must_change_password: z.boolean().default(false),
+  /** Signed in, password set, profile not yet completed. */
+  must_complete_profile: z.boolean().default(false),
   permissions: z.array(z.string()).default([]),
 
   created_at: z.string().nullable().default(null),

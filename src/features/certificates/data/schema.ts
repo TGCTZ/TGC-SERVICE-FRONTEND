@@ -10,8 +10,8 @@ export const CERTIFICATE_STATUS_LABELS: Record<string, string> = {
  * A certificate as the lab sees it.
  *
  * Write-once: everything but `stone` is minted by the issuing service — the
- * number, the verification token and the four snapshots have to be created
- * together or the document does not mean anything.
+ * number and every snapshot have to be created together or the document does
+ * not mean anything.
  *
  * The snapshots are copies, not joins, and that is the point: a certificate
  * must keep saying what it said on the day it was issued, even if the stone
@@ -23,21 +23,54 @@ export const certificateSchema = z.object({
   stone_label: z.string().nullable().default(null),
   order_reference: z.string().nullable().default(null),
   customer_name: z.string().nullable().default(null),
+  customer_phone: z.string().nullable().default(null),
   report: z.number().nullable().default(null),
   report_number: z.string().nullable().default(null),
 
   certificate_number: z.string(),
-  /** 64 hex characters. The only thing needed to verify the document. */
-  verification_token: z.string(),
 
   stone_type_snapshot: z.string().nullable().default(''),
   weight_snapshot: z.string().nullable().default(''),
+  weight_unit_snapshot: z.string().nullable().default('carat'),
   color_snapshot: z.string().nullable().default(''),
   origin_snapshot: z.string().nullable().default(''),
-  gemmologist: z.string().nullable().default(''),
 
-  qr_code: z.string().nullable().default(null),
-  pdf_file: z.string().nullable().default(null),
+  /*
+   * The rest of what the printed document states, frozen at issue.
+   *
+   * Every one is a plain string on the wire, including specific gravity — a
+   * decimal crosses as text to keep its precision. `instruments_snapshot` is a
+   * JSON list of {name, used}, not a relation. Certificates from
+   * before the checklist list only the instruments used, with no `used` key.
+   */
+  species_snapshot: z.string().nullable().default(''),
+  variety_snapshot: z.string().nullable().default(''),
+  shape_cut_snapshot: z.string().nullable().default(''),
+  transparency_snapshot: z.string().nullable().default(''),
+  optic_character_snapshot: z.string().nullable().default(''),
+  treatment_snapshot: z.string().nullable().default(''),
+  nature_type_snapshot: z.string().nullable().default(''),
+  refractive_index_snapshot: z.string().nullable().default(''),
+  specific_gravity_snapshot: z.string().nullable().default(''),
+  comments_snapshot: z.string().nullable().default(''),
+  instruments_snapshot: z
+    .array(
+      z.object({
+        name: z.string().default(''),
+        used: z.boolean().default(true),
+      })
+    )
+    .default([]),
+  /** The lab's full instrument list with this certificate's ticks, as the PDF prints it. */
+  instrument_checklist: z
+    .array(z.object({ name: z.string(), used: z.boolean() }))
+    .default([]),
+  report_number_snapshot: z.string().nullable().default(''),
+  /** Absolute URL of the photograph as it was at issue, or null. */
+  photo_snapshot: z.string().nullable().default(null),
+
+  gemmologist: z.string().nullable().default(''),
+  gemmologist_two: z.string().nullable().default(''),
 
   status: z.string(),
   issued_by: z.number().nullable().default(null),
@@ -50,14 +83,3 @@ export const certificateSchema = z.object({
 })
 
 export type Certificate = z.infer<typeof certificateSchema>
-
-/** One public verification hit. An append-only ledger. */
-export const accessLogSchema = z.object({
-  id: z.number(),
-  certificate: z.number(),
-  accessed_at: z.string(),
-  ip_address: z.string().nullable().default(null),
-  user_agent: z.string().nullable().default(''),
-})
-
-export type CertificateAccessLog = z.infer<typeof accessLogSchema>

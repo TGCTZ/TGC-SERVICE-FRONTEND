@@ -3,11 +3,11 @@ import { type User } from '../data/schema'
 
 type UsersDialogType =
   | 'view'
-  | 'history'
   | 'create'
   | 'update'
   | 'delete'
   | 'restore'
+  | 'reset-password'
 
 type UsersContextType = {
   open: UsersDialogType | null
