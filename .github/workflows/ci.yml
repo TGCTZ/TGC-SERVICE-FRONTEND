@@ -53,3 +53,67 @@ jobs:
 
       - name: Build the project
         run: pnpm build
+
+  deploy:
+    needs: install-lint-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: frontend-production
+      cancel-in-progress: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build production frontend
+        run: pnpm build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          umask 077
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$HOME/.ssh/tgc-actions"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > "$HOME/.ssh/known_hosts"
+
+      - name: Upload frontend build
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          rsync \
+            --archive \
+            --compress \
+            --delete \
+            --delay-updates \
+            --rsh="ssh -i $HOME/.ssh/tgc-actions -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15" \
+            dist/ \
+            "$SSH_USER@$SSH_HOST:/var/www/tgc/service/frontend/dist/"
+
+      - name: Check production frontend
+        run: |
+          for attempt in {1..6}; do
+            if curl --fail --silent --show-error --output /dev/null https://tgc.mtakati.online/; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Production frontend did not respond successfully." >&2
+          exit 1
