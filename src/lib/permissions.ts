@@ -124,8 +124,6 @@ export const PERMISSIONS = {
   viewActivityLogs: 'auditlog.view_logentry',
   /** Application-level events such as sign-ins and failures. */
   viewSystemLogs: 'audit.view_systemlog',
-  /** The Management tab's statistics: revenue, turnaround, market mix. */
-  viewStatistics: 'analytics.view_statistics',
 
   // Workflow verbs.
   transitionStone: 'orders.transition_stone',

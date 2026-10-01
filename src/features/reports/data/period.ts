@@ -11,7 +11,7 @@ export const dateRangePresets = [
   { value: 'last-financial-year', label: 'Last financial year' },
 ] as const
 
-export type DateRangePreset = (typeof dateRangePresets)[number]['value']
+type DateRangePreset = (typeof dateRangePresets)[number]['value']
 type PeriodPreset =
   | DateRangePreset
   | 'last-7-days'

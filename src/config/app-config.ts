@@ -29,6 +29,3 @@ export const appConfig = {
   /** Public URL of the deployed app (used for links and metadata). */
   url: 'http://localhost:5173',
 } as const
-
-/** Shape of {@link appConfig}. Literal types, so values are readonly. */
-export type AppConfig = typeof appConfig
