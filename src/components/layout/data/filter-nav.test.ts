@@ -64,6 +64,8 @@ describe('sidebar module gates', () => {
       perm('customers', 'view'),
       perm('orders', 'view'),
       PERMISSIONS.moduleOrders,
+      PERMISSIONS.moduleReports,
+      PERMISSIONS.operationalReports,
     ]
 
     expect(

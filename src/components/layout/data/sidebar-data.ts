@@ -69,18 +69,21 @@ export const sidebarData: SidebarData = {
   navGroups: [
     {
       title: 'Reports',
+      permission: PERMISSIONS.moduleReports,
       items: [
         {
           title: 'Financial reports',
           url: '/reports/financial',
           icon: Receipt,
           permission: reportConfigs.financial.permissions,
+          gate: reportConfigs.financial.gate,
         },
         {
           title: 'Operational reports',
           url: '/reports/operational',
           icon: ClipboardList,
           permission: reportConfigs.operational.permissions,
+          gate: reportConfigs.operational.gate,
         },
       ],
     },

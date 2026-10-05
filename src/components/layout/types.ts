@@ -14,6 +14,8 @@ type BaseNavItem = {
    * list the API enforces, so the sidebar never offers a page that would 403.
    */
   permission?: string | string[]
+  /** Additional permission required alongside one of `permission`. */
+  gate?: string
   /**
    * A live count shown beside the title — used for the queues, so the sidebar
    * says how much work is waiting without opening each one. Rendered on links
