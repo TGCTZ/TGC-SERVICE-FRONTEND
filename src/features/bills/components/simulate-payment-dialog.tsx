@@ -59,7 +59,7 @@ export function SimulatePaymentDialog({
   const mutation = useMutation({
     mutationFn: () =>
       simulateBillPayment(bill.id, amount.trim() === '' ? undefined : amount),
-    onSuccess: (updated) => {
+    onSuccess: async (updated) => {
       const settled = updated.status === 'paid'
       toast.success(
         settled
@@ -75,11 +75,14 @@ export function SimulatePaymentDialog({
               )} still outstanding. The stones stay billed until it is settled.`,
         }
       )
-      queryClient.invalidateQueries({ queryKey: ['bills'] })
-      queryClient.invalidateQueries({ queryKey: ['payments'] })
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
-      queryClient.invalidateQueries({ queryKey: ['stones'] })
-      queryClient.invalidateQueries({ queryKey: ['worklist'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['bills'] }),
+        queryClient.invalidateQueries({ queryKey: ['payments'] }),
+        queryClient.invalidateQueries({ queryKey: ['orders'] }),
+        queryClient.invalidateQueries({ queryKey: ['stones'] }),
+        queryClient.invalidateQueries({ queryKey: ['worklist'] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
+      ])
       onOpenChange(false)
     },
     onError: (error) =>
@@ -154,6 +157,7 @@ export function SimulatePaymentDialog({
             Cancel
           </Button>
           <Button
+            variant='success'
             onClick={() => mutation.mutate()}
             disabled={!isValid || mutation.isPending}
           >

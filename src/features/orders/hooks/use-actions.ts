@@ -66,7 +66,7 @@ export function useOrderActions(order: Order | null): RowAction[] {
       // Same dialog either way; once every stone is in, all that is left to do
       // in it is retype one, so the label and the permission say that.
       label: isFull ? 'Edit identification' : 'Identify stone',
-      // Not solid once full: Generate bill is then the row's next step, and a
+      // Not solid once full: requesting a control number is then the next step, and a
       // row has one headline action.
       tone: isFull ? undefined : 'advance',
       icon: isFull ? Pencil : Plus,
@@ -80,7 +80,7 @@ export function useOrderActions(order: Order | null): RowAction[] {
       separatorBefore: true,
     },
     {
-      label: 'Generate bill',
+      label: 'Request control number',
       tone: 'advance',
       icon: FileText,
       permission: PERMISSIONS.generateBill,

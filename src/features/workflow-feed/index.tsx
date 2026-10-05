@@ -3,13 +3,6 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Can } from '@/components/can'
 import { DataTable, type TableQueryState } from '@/components/data-table'
 import { type WorkflowRow } from './data/api'
@@ -33,6 +26,8 @@ type Props = {
   labelForRow?: (row: WorkflowRow) => string
   renderAction?: (row: WorkflowRow) => ReactNode
   renderStatus?: (row: WorkflowRow) => ReactNode
+  renderProgress?: (row: WorkflowRow) => ReactNode
+  progressHeader?: string
   onAction?: (row: WorkflowRow) => void
   onRowClick?: (row: WorkflowRow) => void
 }
@@ -50,6 +45,8 @@ export function WorkflowFeedTable({
   labelForRow,
   renderAction,
   renderStatus,
+  renderProgress,
+  progressHeader = 'Progress',
   onAction,
   onRowClick,
 }: Props) {
@@ -67,7 +64,16 @@ export function WorkflowFeedTable({
     () => [
       { accessorKey: 'reference', header: 'Reference' },
       { accessorKey: 'customer', header: 'Customer' },
-      { accessorKey: 'type', header: 'Type' },
+      ...(renderProgress
+        ? [
+            {
+              id: 'progress',
+              header: progressHeader,
+              cell: ({ row }: { row: { original: WorkflowRow } }) =>
+                renderProgress(row.original),
+            } satisfies ColumnDef<WorkflowRow>,
+          ]
+        : []),
       {
         accessorKey: 'status',
         header: 'Status',
@@ -114,40 +120,13 @@ export function WorkflowFeedTable({
       actionPermission,
       labelForRow,
       renderAction,
+      renderProgress,
+      progressHeader,
       renderStatus,
       onAction,
       permissionForRow,
     ]
   )
-
-  const typeOptions = [
-    ...new Set([
-      'Order',
-      'Bill',
-      'Findings',
-      'Stone findings',
-      'Certificate',
-      'Stone certification',
-      ...rows.map((row) => row.type),
-    ]),
-  ]
-  const statusOptions = [
-    ...new Set([
-      'Identifying',
-      'Ready to bill',
-      'Billing attention',
-      'Draft',
-      'Finalized',
-      'Awaiting findings',
-      'issued',
-      'revoked',
-      'pending',
-      'partially_paid',
-      'paid',
-      'cancelled',
-      ...rows.map((row) => row.status),
-    ]),
-  ]
 
   const toolbar = (
     <>
@@ -160,63 +139,6 @@ export function WorkflowFeedTable({
           onStateChange({ search: event.target.value, page: 1 })
         }
       />
-      <Select
-        value={state.source ?? 'all'}
-        onValueChange={(value) =>
-          onStateChange({
-            source: value === 'all' ? undefined : value,
-            page: 1,
-          })
-        }
-      >
-        <SelectTrigger className='h-8 w-36'>
-          <SelectValue placeholder='Work status' />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value='all'>All records</SelectItem>
-          <SelectItem value='waiting'>Waiting</SelectItem>
-          <SelectItem value='records'>Completed work</SelectItem>
-        </SelectContent>
-      </Select>
-      <Select
-        value={state.type ?? 'all'}
-        onValueChange={(value) =>
-          onStateChange({ type: value === 'all' ? undefined : value, page: 1 })
-        }
-      >
-        <SelectTrigger className='h-8 w-40'>
-          <SelectValue placeholder='Type' />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value='all'>All types</SelectItem>
-          {typeOptions.map((type) => (
-            <SelectItem key={type} value={type}>
-              {type}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
-        value={state.status ?? 'all'}
-        onValueChange={(value) =>
-          onStateChange({
-            status: value === 'all' ? undefined : value,
-            page: 1,
-          })
-        }
-      >
-        <SelectTrigger className='h-8 w-40'>
-          <SelectValue placeholder='Status' />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value='all'>All statuses</SelectItem>
-          {statusOptions.map((status) => (
-            <SelectItem key={status} value={status}>
-              {status}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
     </>
   )
 

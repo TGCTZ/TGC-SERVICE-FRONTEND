@@ -254,9 +254,12 @@ export function ReportMutateDialog({
         ? updateReport(row.id, { ...payload, stone })
         : createReport({ ...payload, stone })
     },
-    onSuccess: (report) => {
-      queryClient.invalidateQueries({ queryKey: ['identification-reports'] })
-      queryClient.invalidateQueries({ queryKey: ['worklist'] })
+    onSuccess: async (report) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['identification-reports'] }),
+        queryClient.invalidateQueries({ queryKey: ['worklist'] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
+      ])
 
       if (isEdit) {
         toast.success('Findings saved')

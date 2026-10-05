@@ -89,13 +89,16 @@ export function FinalizeReportDialog({
       finalizeReport(currentRow.id, {
         verified_by: verifiedBy === NONE ? null : Number(verifiedBy),
       }),
-    onSuccess: (report) => {
+    onSuccess: async (report) => {
       toast.success(`Report ${report.report_number} has been finalized`, {
         description:
           'It can no longer be edited, and the stone is ready for certification.',
       })
-      queryClient.invalidateQueries({ queryKey: ['identification-reports'] })
-      queryClient.invalidateQueries({ queryKey: ['worklist'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['identification-reports'] }),
+        queryClient.invalidateQueries({ queryKey: ['worklist'] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
+      ])
       onOpenChange(false)
     },
     onError: (error) =>

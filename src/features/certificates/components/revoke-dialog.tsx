@@ -27,9 +27,12 @@ export function RevokeCertificateDialog({
 
   const mutation = useMutation({
     mutationFn: () => revokeCertificate(currentRow.id),
-    onSuccess: (certificate) => {
+    onSuccess: async (certificate) => {
       toast.success(`${certificate.certificate_number} revoked`)
-      queryClient.invalidateQueries({ queryKey: ['certificates'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['certificates'] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
+      ])
       onOpenChange(false)
     },
     onError: (error) =>

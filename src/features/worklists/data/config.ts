@@ -68,7 +68,7 @@ const worklistConfigs: WorklistConfig[] = [
       'Orders with every stone identified and no bill raised against them.',
     endpoint: '/bills/worklist',
     rowKind: 'order',
-    actionLabel: 'Generate bill',
+    actionLabel: 'Request control number',
     permission: PERMISSIONS.generateBill,
     emptyMessage: 'Nothing is waiting to be billed.',
     searchPlaceholder: 'Search reference, customer or phone...',

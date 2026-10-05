@@ -236,6 +236,7 @@ function StoneTypeRow({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
       return Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
         queryClient.invalidateQueries({ queryKey: ['stones'] }),
         queryClient.invalidateQueries({ queryKey: ['orders'] }),
       ])

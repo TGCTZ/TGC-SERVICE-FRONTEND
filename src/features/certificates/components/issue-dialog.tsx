@@ -66,11 +66,14 @@ export function IssueCertificateDialog({
 
   const mutation = useMutation({
     mutationFn: () => issueCertificate(Number(stone)),
-    onSuccess: (certificate) => {
+    onSuccess: async (certificate) => {
       toast.success(`Issued ${certificate.certificate_number}`)
-      queryClient.invalidateQueries({ queryKey: ['certificates'] })
-      queryClient.invalidateQueries({ queryKey: ['stones'] })
-      queryClient.invalidateQueries({ queryKey: ['worklist'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['certificates'] }),
+        queryClient.invalidateQueries({ queryKey: ['stones'] }),
+        queryClient.invalidateQueries({ queryKey: ['worklist'] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
+      ])
       close()
     },
     onError: (error) =>

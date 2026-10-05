@@ -54,14 +54,17 @@ export function GenerateBillDialog({
 
   const mutation = useMutation({
     mutationFn: () => generateBill(order.id),
-    onSuccess: (bill) => {
+    onSuccess: async (bill) => {
       toast.success(`Bill ${bill.bill_number} has been created`, {
         description: `Raised against ${order.reference_number}. It is now awaiting payment.`,
       })
-      queryClient.invalidateQueries({ queryKey: ['bills'] })
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
-      queryClient.invalidateQueries({ queryKey: ['stones'] })
-      queryClient.invalidateQueries({ queryKey: ['worklist'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['bills'] }),
+        queryClient.invalidateQueries({ queryKey: ['orders'] }),
+        queryClient.invalidateQueries({ queryKey: ['stones'] }),
+        queryClient.invalidateQueries({ queryKey: ['worklist'] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
+      ])
       onOpenChange(false)
     },
     onError: (error) => {
@@ -86,7 +89,7 @@ export function GenerateBillDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-lg'>
         <DialogHeader className='text-start'>
-          <DialogTitle>Generate bill</DialogTitle>
+          <DialogTitle>Request control number</DialogTitle>
           <DialogDescription>
             Check what the customer will be charged. Billing cannot be undone —
             the stones lock to their current types and the bill goes to GePG for
@@ -200,10 +203,10 @@ export function GenerateBillDialog({
                 before committing should be the figure you are committing to.
                 Falls back to the plain verb while the price is unknown. */}
             {mutation.isPending
-              ? 'Generating...'
+              ? 'Requesting...'
               : canBill
-                ? `Bill ${money(preview?.total ?? null)}`
-                : 'Generate bill'}
+                ? `Request control number · ${money(preview?.total ?? null)}`
+                : 'Request control number'}
           </Button>
         </DialogFooter>
       </DialogContent>

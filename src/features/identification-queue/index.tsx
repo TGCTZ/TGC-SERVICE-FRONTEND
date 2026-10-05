@@ -4,6 +4,7 @@ import { getRouteApi } from '@tanstack/react-router'
 import { Pencil, Plus } from 'lucide-react'
 import { getCurrentPermissions } from '@/lib/authz'
 import { perm } from '@/lib/permissions'
+import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { DataTableRowActions, type RowAction } from '@/components/data-table'
@@ -155,6 +156,23 @@ export function IdentificationQueue() {
                       <StatusBadge tone={ORDER_STAGE_TONES[order.stage]}>
                         {row.status}
                       </StatusBadge>
+                    )
+                  }}
+                  progressHeader='Stones identified'
+                  renderProgress={(row) => {
+                    const order = orderSchema.parse(row.detail)
+                    return (
+                      <div className='min-w-40 space-y-1.5'>
+                        <div className='text-xs tabular-nums'>
+                          {order.identified_count} of {order.stone_count}{' '}
+                          identified
+                        </div>
+                        <Progress
+                          value={order.identified_count}
+                          max={order.stone_count}
+                          label={`Identification progress for ${order.reference_number}`}
+                        />
+                      </div>
                     )
                   }}
                   renderAction={(row) => {

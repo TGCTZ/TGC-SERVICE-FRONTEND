@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { FileText } from 'lucide-react'
+import { formatMoney } from '@/lib/format'
+import { Progress } from '@/components/ui/progress'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { DataTableRowActions, type RowAction } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
@@ -132,6 +134,45 @@ function BillsContent() {
                 </StatusBadge>
               )
             }
+            progressHeader='Payment / identification'
+            renderProgress={(row) => {
+              if (row.kind === 'bill') {
+                const bill = billSchema.parse(row.detail)
+                const total = Number(bill.total_amount ?? 0)
+                const paid = Number(bill.amount_paid ?? 0)
+                return (
+                  <div className='min-w-40 space-y-1.5 tabular-nums'>
+                    <div>{formatMoney(total, bill.currency)}</div>
+                    <Progress
+                      value={paid}
+                      max={total}
+                      label={`Payment progress for ${bill.bill_number}`}
+                    />
+                    <div className='text-xs text-muted-foreground'>
+                      {paid > 0
+                        ? `${formatMoney(paid, bill.currency)} paid`
+                        : 'Nothing paid'}
+                    </div>
+                  </div>
+                )
+              }
+              if (row.kind === 'order') {
+                const order = orderSchema.parse(row.detail)
+                return (
+                  <div className='min-w-40 space-y-1.5'>
+                    <div className='text-xs tabular-nums'>
+                      {order.identified_count} of {order.stone_count} identified
+                    </div>
+                    <Progress
+                      value={order.identified_count}
+                      max={order.stone_count}
+                      label={`Identification progress for ${order.reference_number}`}
+                    />
+                  </div>
+                )
+              }
+              return null
+            }}
             renderAction={(row) => {
               if (row.kind === 'bill') {
                 return (
@@ -142,7 +183,7 @@ function BillsContent() {
               }
               if (row.kind !== 'order') return null
               const action: RowAction = {
-                label: 'Generate bill',
+                label: 'Request control number',
                 icon: FileText,
                 tone: 'advance',
                 permission: 'billing.generate_bill',
