@@ -16,11 +16,8 @@ interface SignOutDialogProps {
  * see the previous one's data flash before a refetch, and the current location
  * is preserved as `redirect` so signing back in returns you where you were.
  *
- * Known gap: `logout()` clears the local auth store in a `finally`, so the
- * token is always dropped, but it still rethrows a failed revoke — and this
- * handler does not catch it, so a network error leaves the cache unpurged and
- * the user on the current page rather than at sign-in. Wrap the call in a
- * `try/catch` if you need sign-out to complete offline.
+ * `logout()` clears local auth before the revoke request. If that request
+ * fails, the cache and navigation still need to finish locally.
  *
  * @param props.open - Whether the dialog is shown
  * @param props.onOpenChange - Called when it is dismissed
@@ -31,8 +28,12 @@ export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
   const queryClient = useQueryClient()
 
   const handleSignOut = async () => {
-    // Revokes the token server-side; local state is cleared either way.
-    await logout()
+    // Local credentials are already gone even if the revoke request fails.
+    try {
+      await logout()
+    } catch {
+      // Continue clearing cached data and leave the protected page.
+    }
 
     // Drop every cached query so the next user never sees the previous
     // user's data flash on screen before a refetch.

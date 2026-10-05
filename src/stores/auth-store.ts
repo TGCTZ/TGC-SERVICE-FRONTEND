@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
+import { clearIdleSession } from '@/features/auth/idle-session'
 
 const ACCESS_TOKEN = 'tgc_access_token'
 const REFRESH_TOKEN = 'tgc_refresh_token'
@@ -123,6 +124,7 @@ export const useAuthStore = create<AuthState>()((set) => {
         }),
       reset: () =>
         set((state) => {
+          clearIdleSession()
           removeCookie(ACCESS_TOKEN)
           removeCookie(REFRESH_TOKEN)
           return {

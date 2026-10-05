@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { queryOptions } from '@tanstack/react-query'
 import { useAuthStore, type AuthUser } from '@/stores/auth-store'
 import { api } from '@/lib/api'
+import { recordLocalInteraction } from '@/features/auth/idle-session'
 
 /**
  * Subset of the API's UserResource that the client actually relies on.
@@ -52,6 +53,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthUser> {
   const parsed = loginResponseSchema.parse(res.data)
 
   const { auth } = useAuthStore.getState()
+  recordLocalInteraction()
   auth.setTokens(parsed.access, parsed.refresh)
   auth.setUser(parsed.user as AuthUser)
 
@@ -59,23 +61,19 @@ export async function login(credentials: LoginCredentials): Promise<AuthUser> {
 }
 
 /**
- * Blacklist the refresh token server-side, then clear local state.
+ * Clear local state immediately, then revoke this login server-side.
  *
- * Only the refresh token can be revoked: access tokens are stateless JWTs the
- * server never stores, so one already issued stays valid until it expires. This
- * is why the access lifetime is kept short.
+ * The API blacklists the refresh token and marks its login session revoked.
+ * Its authentication class then rejects already-issued access tokens too.
  *
- * The local reset runs even if the request fails - a user asking to sign out
- * must always end up signed out on this device.
+ * Clearing before the network request prevents an older logout response from
+ * erasing a new login completed while that request was in flight.
  */
 export async function logout(): Promise<void> {
-  const { refreshToken } = useAuthStore.getState().auth
-  try {
-    if (refreshToken) {
-      await api.post('/auth/logout', { refresh: refreshToken })
-    }
-  } finally {
-    useAuthStore.getState().auth.reset()
+  const { refreshToken, reset } = useAuthStore.getState().auth
+  reset()
+  if (refreshToken) {
+    await api.post('/auth/logout', { refresh: refreshToken })
   }
 }
 
@@ -130,6 +128,7 @@ export async function setFirstPassword(
   const parsed = loginResponseSchema.parse(res.data)
 
   const { auth } = useAuthStore.getState()
+  recordLocalInteraction()
   auth.setTokens(parsed.access, parsed.refresh)
   auth.setUser(parsed.user as AuthUser)
   return parsed.user as AuthUser
