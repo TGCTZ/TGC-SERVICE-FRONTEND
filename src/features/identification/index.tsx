@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
@@ -5,21 +6,31 @@ import { perm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
+import { DataTableRowActions, type RowAction } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
+import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
+import {
+  WorkflowFeedTable,
+  type WorkflowListState,
+} from '@/features/workflow-feed'
+import {
+  workflowFeedQuery,
+  type WorkflowRow,
+} from '@/features/workflow-feed/data/api'
 import { ReportDeleteDialog } from './components/delete-dialog'
 import { FinalizeReportDialog } from './components/finalize-dialog'
 import { ReportMutateDialog } from './components/mutate-dialog'
 import { ReportsProvider, useReports } from './components/provider'
 import { ReportRestoreDialog } from './components/restore-dialog'
-import { ReportsTable, type ReportsQueryState } from './components/table'
+import { ReportsRowActions } from './components/row-actions'
 import { ReportViewDialog } from './components/view-dialog'
-import { reportsQuery } from './data/api'
+import { reportSchema, type IdentificationReport } from './data/schema'
 import { useReportActions } from './hooks/use-actions'
 
 const route = getRouteApi('/_authenticated/identification-reports/')
@@ -36,33 +47,36 @@ function IdentificationContent() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const { open, setOpen, currentRow, setCurrentRow } = useReports()
+  const [initialStone, setInitialStone] = useState<number | undefined>()
 
   // The same list the table cell renders.
   const actions = useReportActions(currentRow)
 
-  const state: ReportsQueryState = {
+  const state: WorkflowListState = {
     page: search.page ?? 1,
     perPage: search.pageSize ?? 10,
     search: search.search ?? '',
     sortBy: search.sortBy,
     sortDir: search.sortDir,
-    finalized: search.finalized,
-    showDeleted: search.showDeleted,
+    status: search.status,
+    type: search.type,
+    source: search.source,
   }
 
   const { data, isPending, isError, isFetching } = useQuery(
-    reportsQuery({
+    workflowFeedQuery('/identification-reports/workflow-feed', {
       page: state.page,
-      perPage: state.perPage,
+      pageSize: state.perPage,
       search: state.search,
       sortBy: state.sortBy,
       sortDir: state.sortDir,
-      filters: { is_finalized: state.finalized },
-      trashed: state.showDeleted ? 'with' : undefined,
+      status: state.status,
+      type: state.type,
+      source: state.source,
     })
   )
 
-  function handleStateChange(next: Partial<ReportsQueryState>) {
+  function handleStateChange(next: Partial<WorkflowListState>) {
     navigate({
       search: (prev) => ({
         ...prev,
@@ -71,9 +85,12 @@ function IdentificationContent() {
         search: next.search !== undefined ? next.search : prev.search,
         sortBy: 'sortBy' in next ? next.sortBy : prev.sortBy,
         sortDir: 'sortDir' in next ? next.sortDir : prev.sortDir,
-        finalized: 'finalized' in next ? next.finalized : prev.finalized,
-        showDeleted:
-          'showDeleted' in next ? next.showDeleted : prev.showDeleted,
+        status: 'status' in next ? next.status : prev.status,
+        type: 'type' in next ? next.type : prev.type,
+        source:
+          'source' in next
+            ? (next.source as 'waiting' | 'records' | undefined)
+            : prev.source,
       }),
       replace: true,
     })
@@ -111,15 +128,51 @@ function IdentificationContent() {
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
         ) : (
-          <ReportsTable
-            data={data?.items ?? []}
-            meta={data?.meta}
+          <WorkflowFeedTable
+            rows={data?.results ?? []}
+            count={data?.count ?? 0}
             isFetching={isPending || isFetching}
             state={state}
             onStateChange={handleStateChange}
-            onRowClick={(report) => {
-              setCurrentRow(report)
-              setOpen('view')
+            renderStatus={(row) =>
+              row.kind === 'report' ? (
+                <StatusBadge
+                  tone={row.status === 'Finalized' ? 'success' : 'neutral'}
+                >
+                  {row.status}
+                </StatusBadge>
+              ) : (
+                <StatusBadge tone='info'>{row.status}</StatusBadge>
+              )
+            }
+            renderAction={(row: WorkflowRow) => {
+              if (row.kind === 'stone') {
+                const action: RowAction = {
+                  label: 'Record findings',
+                  icon: Plus,
+                  tone: 'advance',
+                  permission: perm('identification-reports', 'add'),
+                  onSelect: () => {
+                    setInitialStone(row.record_id)
+                    setCurrentRow(null)
+                    setOpen('create')
+                  },
+                }
+                return <DataTableRowActions actions={[action]} />
+              }
+              if (row.kind !== 'report') return null
+              const report = reportSchema.parse(
+                row.detail
+              ) as IdentificationReport
+              return <ReportsRowActions report={report} />
+            }}
+            onRowClick={(row: WorkflowRow) => {
+              if (row.kind === 'report') {
+                setCurrentRow(
+                  reportSchema.parse(row.detail) as IdentificationReport
+                )
+                setOpen('view')
+              }
             }}
           />
         )}
@@ -153,6 +206,7 @@ function IdentificationContent() {
           }
         }}
         currentRow={open === 'create' ? null : currentRow}
+        initialStone={initialStone}
       />
 
       {currentRow && (

@@ -18,17 +18,18 @@ import { StoneViewDialog } from './components/view-dialog'
 import { stonesQuery } from './data/api'
 import { useStoneActions } from './hooks/use-actions'
 
-const route = getRouteApi('/_authenticated/stones/')
+const route = getRouteApi('/_authenticated/identification/')
 
-export function Stones() {
+export function Stones({ embedded = false }: { embedded?: boolean }) {
   return (
     <StonesProvider>
-      <StonesContent />
+      <StonesContent embedded={embedded} />
     </StonesProvider>
   )
 }
 
-function StonesContent() {
+function StonesContent({ embedded }: { embedded: boolean }) {
+  const Content = embedded ? 'div' : Main
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const { open, setOpen, currentRow, setCurrentRow } = useStones()
@@ -37,13 +38,13 @@ function StonesContent() {
   const actions = useStoneActions(currentRow)
 
   const state: StonesQueryState = {
-    page: search.page ?? 1,
-    perPage: search.pageSize ?? 10,
-    search: search.search ?? '',
-    sortBy: search.sortBy,
-    sortDir: search.sortDir,
-    status: search.status,
-    showDeleted: search.showDeleted,
+    page: embedded ? (search.stonesPage ?? 1) : (search.page ?? 1),
+    perPage: embedded ? (search.stonesPageSize ?? 10) : (search.pageSize ?? 10),
+    search: embedded ? (search.stonesSearch ?? '') : (search.search ?? ''),
+    sortBy: embedded ? search.stonesSortBy : search.sortBy,
+    sortDir: embedded ? search.stonesSortDir : search.sortDir,
+    status: embedded ? search.stonesStatus : search.status,
+    showDeleted: embedded ? search.stonesShowDeleted : undefined,
   }
 
   const { data, isPending, isError, isFetching } = useQuery(
@@ -62,14 +63,30 @@ function StonesContent() {
     navigate({
       search: (prev) => ({
         ...prev,
-        page: next.page ?? prev.page,
-        pageSize: next.perPage ?? prev.pageSize,
-        search: next.search !== undefined ? next.search : prev.search,
-        sortBy: 'sortBy' in next ? next.sortBy : prev.sortBy,
-        sortDir: 'sortDir' in next ? next.sortDir : prev.sortDir,
-        status: 'status' in next ? next.status : prev.status,
-        showDeleted:
-          'showDeleted' in next ? next.showDeleted : prev.showDeleted,
+        ...(embedded
+          ? {
+              stonesPage: next.page ?? prev.stonesPage,
+              stonesPageSize: next.perPage ?? prev.stonesPageSize,
+              stonesSearch:
+                next.search !== undefined ? next.search : prev.stonesSearch,
+              stonesSortBy: 'sortBy' in next ? next.sortBy : prev.stonesSortBy,
+              stonesSortDir:
+                'sortDir' in next ? next.sortDir : prev.stonesSortDir,
+              stonesStatus: 'status' in next ? next.status : prev.stonesStatus,
+              stonesShowDeleted:
+                'showDeleted' in next
+                  ? next.showDeleted
+                  : prev.stonesShowDeleted,
+            }
+          : {
+              page: next.page ?? prev.page,
+              pageSize: next.perPage ?? prev.pageSize,
+              search: next.search !== undefined ? next.search : prev.search,
+              sortBy: 'sortBy' in next ? next.sortBy : prev.sortBy,
+              sortDir: 'sortDir' in next ? next.sortDir : prev.sortDir,
+              status: 'status' in next ? next.status : prev.status,
+              showDeleted: undefined,
+            }),
       }),
       replace: true,
     })
@@ -77,18 +94,26 @@ function StonesContent() {
 
   return (
     <>
-      <Header fixed>
-        <Search />
-        <ThemeSwitch />
-        <ConfigDrawer />
-        <ProfileDropdown />
-      </Header>
+      {!embedded && (
+        <Header fixed>
+          <Search />
+          <ThemeSwitch />
+          <ConfigDrawer />
+          <ProfileDropdown />
+        </Header>
+      )}
 
-      <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <PageHeading
-          title='Stones'
-          description='Every stone in the lab, what it was typed as, and where it has got to. Stones are typed on the Identification screen and weighed with the findings.'
-        />
+      <Content
+        className={
+          embedded ? 'space-y-4' : 'flex flex-1 flex-col gap-4 sm:gap-6'
+        }
+      >
+        {!embedded && (
+          <PageHeading
+            title='Stones'
+            description='Every stone in the lab, what it was typed as, and where it has got to. Stones are typed on the Identification screen and weighed with the findings.'
+          />
+        )}
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
@@ -105,7 +130,7 @@ function StonesContent() {
             }}
           />
         )}
-      </Main>
+      </Content>
 
       {/* Viewing and editing are separate components: a record is read as a
           definition list, not as a form nobody may type into. */}

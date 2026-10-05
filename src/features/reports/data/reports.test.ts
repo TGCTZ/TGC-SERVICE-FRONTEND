@@ -66,10 +66,15 @@ describe('report navigation', () => {
         ]
       )[0].items.map((item) => item.title)
     ).toEqual(['Operational reports'])
-    const queueLinks = sidebarData.navGroups
+    const mainPageBadges = sidebarData.navGroups
       .flatMap((group) => group.items)
-      .filter((item) => item.url?.startsWith('/worklists/'))
-    expect(queueLinks).toHaveLength(4)
+      .filter((item) => item.count)
+    expect(mainPageBadges.map((item) => item.url)).toEqual([
+      '/identification',
+      '/identification-reports',
+      '/bills',
+      '/certificates',
+    ])
   })
 })
 
