@@ -3,8 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { perm } from '@/lib/permissions'
-import { Button } from '@/components/ui/button'
-import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { DataTableRowActions, type RowAction } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
@@ -106,24 +104,10 @@ function IdentificationContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <PageHeading
-            title='Findings'
-            description="What the bench found, per stone — the findings recorded after payment. A report can only be opened once the stone's bill is settled."
-          />
-
-          <Can permission={perm('identification-reports', 'add')}>
-            <Button
-              onClick={() => {
-                setCurrentRow(null)
-                setOpen('create')
-              }}
-            >
-              Record findings
-              <Plus className='ms-1 size-4' />
-            </Button>
-          </Can>
-        </div>
+        <PageHeading
+          title='Findings'
+          description="What the bench found, per stone — the findings recorded after payment. A report can only be opened once the stone's bill is settled."
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

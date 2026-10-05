@@ -90,10 +90,13 @@ export function FinalizeReportDialog({
         verified_by: verifiedBy === NONE ? null : Number(verifiedBy),
       }),
     onSuccess: async (report) => {
-      toast.success(`Report ${report.report_number} has been finalized`, {
-        description:
-          'It can no longer be edited, and the stone is ready for certification.',
-      })
+      toast.success(
+        `Report ${report.report_number} finalized and certificate issued`,
+        {
+          description:
+            'The findings are locked and the certificate has been issued.',
+        }
+      )
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['identification-reports'] }),
         queryClient.invalidateQueries({ queryKey: ['worklist'] }),
@@ -116,8 +119,8 @@ export function FinalizeReportDialog({
         <DialogHeader className='text-start'>
           <DialogTitle>Finalize {currentRow.report_number}</DialogTitle>
           <DialogDescription>
-            The findings and the instruments used are locked afterwards, and the
-            stone becomes eligible for certification. This cannot be undone.
+            The findings and instruments are locked, and the certificate is
+            issued automatically. This cannot be undone.
           </DialogDescription>
         </DialogHeader>
 

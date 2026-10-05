@@ -56,9 +56,6 @@ const findingsFeed = countQuery('/identification-reports/workflow-feed', {
   source: 'waiting',
 })
 const billingFeed = countQuery('/bills/workflow-feed', { source: 'waiting' })
-const certificationFeed = countQuery('/certificates/workflow-feed', {
-  source: 'waiting',
-})
 
 /** The whole navigation tree, unfiltered - `filterNavGroups` narrows it per user. */
 export const sidebarData: SidebarData = {
@@ -126,7 +123,7 @@ export const sidebarData: SidebarData = {
       ],
     },
 
-    /* Billing and certificates carry their pending counts on the main item. */
+    /* Billing carries its pending count on the main item. */
     {
       title: 'Billing',
       permission: PERMISSIONS.moduleBilling,
@@ -156,7 +153,6 @@ export const sidebarData: SidebarData = {
           url: '/certificates',
           icon: BadgeCheck,
           permission: perm('certificates', 'view'),
-          count: certificationFeed,
         },
       ],
     },

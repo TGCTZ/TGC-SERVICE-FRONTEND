@@ -1,12 +1,6 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { BadgeCheck, Plus } from 'lucide-react'
-import { PERMISSIONS } from '@/lib/permissions'
-import { Button } from '@/components/ui/button'
-import { Can } from '@/components/can'
 import { ConfigDrawer } from '@/components/config-drawer'
-import { DataTableRowActions, type RowAction } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
@@ -23,7 +17,6 @@ import {
   workflowFeedQuery,
   type WorkflowRow,
 } from '@/features/workflow-feed/data/api'
-import { IssueCertificateDialog } from './components/issue-dialog'
 import { CertificatePreviewDialog } from './components/preview-dialog'
 import { CertificatesProvider, useCertificates } from './components/provider'
 import { RevokeCertificateDialog } from './components/revoke-dialog'
@@ -47,7 +40,6 @@ function CertificatesContent() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const { open, setOpen, currentRow, setCurrentRow } = useCertificates()
-  const [initialStone, setInitialStone] = useState<number | undefined>()
 
   // The same list the table cell renders.
   const actions = useCertificateActions(currentRow)
@@ -111,18 +103,6 @@ function CertificatesContent() {
             title='Certificates'
             description='The documents the lab stands behind. Each downloads as a PDF for printing, and can be withdrawn, but never edited.'
           />
-
-          <Can permission={PERMISSIONS.issueCertificate}>
-            <Button
-              onClick={() => {
-                setCurrentRow(null)
-                setOpen('issue')
-              }}
-            >
-              Issue certificate
-              <Plus className='ms-1 size-4' />
-            </Button>
-          </Can>
         </div>
 
         {isError ? (
@@ -153,24 +133,7 @@ function CertificatesContent() {
                   />
                 )
               }
-              if (row.kind !== 'stone') return null
-              const action: RowAction = {
-                label: 'Issue certificate',
-                icon: BadgeCheck,
-                tone: 'advance',
-                permission: PERMISSIONS.issueCertificate,
-                onSelect: () => {
-                  setInitialStone(row.record_id)
-                  setOpen('issue')
-                },
-              }
-              return <DataTableRowActions actions={[action]} />
-            }}
-            onAction={(row: WorkflowRow) => {
-              if (row.kind === 'stone') {
-                setInitialStone(row.record_id)
-                setOpen('issue')
-              }
+              return null
             }}
             onRowClick={(row: WorkflowRow) => {
               if (row.kind === 'certificate') {
@@ -183,17 +146,6 @@ function CertificatesContent() {
           />
         )}
       </Main>
-
-      <IssueCertificateDialog
-        open={open === 'issue'}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setOpen(null)
-            setInitialStone(undefined)
-          }
-        }}
-        initialStone={initialStone}
-      />
 
       {currentRow && (
         <CertificateViewDialog
