@@ -22,7 +22,6 @@ import {
   NATURE_TYPES,
   OPTIC_CHARACTERS,
   TRANSPARENCIES,
-  TREATMENTS,
   type EnumOption,
 } from '../data/enums'
 import { type IdentificationReport } from '../data/schema'
@@ -133,7 +132,7 @@ export function ReportViewDialog({
                 },
                 {
                   label: 'Treatment',
-                  value: enumLabel(TREATMENTS, report.treatment),
+                  value: report.treatment_detail?.name ?? null,
                 },
               ]}
             />

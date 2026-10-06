@@ -67,10 +67,11 @@ export const reportSchema = z.object({
   shape_cut_detail: relatedSchema.nullable().default(null),
   color: z.number().nullable().default(null),
   color_detail: relatedSchema.nullable().default(null),
+  treatment: z.number().nullable().default(null),
+  treatment_detail: relatedSchema.nullable().default(null),
 
   nature_type: z.string().default(''),
   transparency: z.string().default(''),
-  treatment: z.string().default(''),
   optic_character: z.string().default(''),
 
   refractive_index: z.string().default(''),

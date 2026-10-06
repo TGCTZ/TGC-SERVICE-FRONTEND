@@ -47,6 +47,42 @@ export async function createLookupRow(
   return lookupRowSchema.parse(res.data)
 }
 
+/** Reuse an exact active match before creating a user-entered lookup value. */
+export async function createOrGetLookupRow(
+  resource: PermissionResource,
+  name: string,
+  extra: LookupPayload = {}
+): Promise<LookupRow> {
+  const trimmed = name.trim()
+  const findExisting = async () => {
+    const res = await api.get(`/${resource}`, {
+      params: {
+        search: trimmed,
+        page_size: 100,
+        'filter[is_active]': 1,
+        ...(extra.species ? { 'filter[species]': extra.species } : {}),
+      },
+    })
+    const results = paginatedSchema(lookupRowSchema).parse(res.data).results
+    return results.find(
+      (row) =>
+        row.name.trim().toLocaleLowerCase() === trimmed.toLocaleLowerCase()
+    )
+  }
+
+  const existing = await findExisting()
+  if (existing) return existing
+
+  try {
+    return await createLookupRow(resource, { ...extra, name: trimmed })
+  } catch (error) {
+    // A concurrent entry can win the unique-name insert after our search.
+    const raced = await findExisting()
+    if (raced) return raced
+    throw error
+  }
+}
+
 export async function updateLookupRow(
   resource: string,
   id: number,
@@ -86,6 +122,27 @@ async function fetchLookupOptions(
 ): Promise<LookupOption[]> {
   const res = await api.get(`/${resource}`, {
     params: { page_size: 100, 'filter[is_active]': 1, ordering: 'name' },
+  })
+
+  return paginatedSchema(lookupOptionSchema).parse(res.data).results
+}
+
+/** Search beyond the initial option page as lookup tables grow. */
+export async function searchLookupOptions(
+  resource: PermissionResource,
+  search: string,
+  filters: Record<string, number> = {}
+): Promise<LookupOption[]> {
+  const res = await api.get(`/${resource}`, {
+    params: {
+      search,
+      page_size: 100,
+      'filter[is_active]': 1,
+      ...Object.fromEntries(
+        Object.entries(filters).map(([key, value]) => [`filter[${key}]`, value])
+      ),
+      ordering: 'name',
+    },
   })
 
   return paginatedSchema(lookupOptionSchema).parse(res.data).results

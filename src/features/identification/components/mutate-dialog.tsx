@@ -10,8 +10,9 @@ import {
 } from '@tanstack/react-query'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
 import { fieldErrors, serverMessageOr } from '@/lib/handle-server-error'
-import { type PermissionResource } from '@/lib/permissions'
+import { perm, type PermissionResource } from '@/lib/permissions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
@@ -58,14 +59,17 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { DialogBody } from '@/components/dialog-body'
 import { StatusBadge } from '@/components/status-badge'
-import { lookupOptionsQuery } from '@/features/lookups/data/api'
+import {
+  createOrGetLookupRow,
+  lookupOptionsQuery,
+  searchLookupOptions,
+} from '@/features/lookups/data/api'
 import { WEIGHT_UNITS } from '@/features/stones/data/enums'
 import { createReport, findingsWorklistQuery, updateReport } from '../data/api'
 import {
   NATURE_TYPES,
   OPTIC_CHARACTERS,
   TRANSPARENCIES,
-  TREATMENTS,
   type EnumOption,
 } from '../data/enums'
 import { FINALIZE_REQUIRED_NAMES } from '../data/finalize-rules'
@@ -175,17 +179,49 @@ const RELATED: {
   label: string
   resource: PermissionResource
   searchable?: boolean
+  creatable?: boolean
 }[] = [
-  { name: 'species', label: 'Species', resource: 'species' },
-  { name: 'variety', label: 'Variety', resource: 'varieties' },
+  {
+    name: 'species',
+    label: 'Species',
+    resource: 'species',
+    searchable: true,
+    creatable: true,
+  },
+  {
+    name: 'variety',
+    label: 'Variety',
+    resource: 'varieties',
+    searchable: true,
+    creatable: true,
+  },
   {
     name: 'color',
     label: 'Colour',
     resource: 'colors',
     searchable: true,
   },
-  { name: 'origin', label: 'Origin', resource: 'origins' },
-  { name: 'shape_cut', label: 'Shape / cut', resource: 'shape-cuts' },
+  {
+    name: 'origin',
+    label: 'Origin',
+    resource: 'origins',
+    searchable: true,
+    creatable: true,
+  },
+  {
+    name: 'shape_cut',
+    label: 'Shape / cut',
+    resource: 'shape-cuts',
+    searchable: true,
+    creatable: true,
+  },
+  {
+    name: 'treatment',
+    label: 'Treatment',
+    resource: 'treatments',
+    searchable: true,
+    creatable: true,
+  },
 ]
 
 /**
@@ -312,6 +348,7 @@ export function ReportMutateDialog({
    * needed - it is the stone that carries the image.
    */
   const watchedStone = useWatch({ control: form.control, name: 'stone' })
+  const watchedSpecies = useWatch({ control: form.control, name: 'species' })
   const selectedStone = watchedStone ? Number(watchedStone) : null
 
   useEffect(() => {
@@ -326,7 +363,7 @@ export function ReportMutateDialog({
       shape_cut: row?.shape_cut ? String(row.shape_cut) : '',
       nature_type: row?.nature_type ?? '',
       transparency: row?.transparency ?? '',
-      treatment: row?.treatment ?? '',
+      treatment: row?.treatment ? String(row.treatment) : '',
       optic_character: row?.optic_character ?? '',
       refractive_index: row?.refractive_index ?? '',
       specific_gravity: row?.specific_gravity ?? '',
@@ -350,7 +387,7 @@ export function ReportMutateDialog({
         // `blank=True, default=""` rather than nullable.
         nature_type: values.nature_type ?? '',
         transparency: values.transparency ?? '',
-        treatment: values.treatment ?? '',
+        treatment: idOrNull(values.treatment),
         optic_character: values.optic_character ?? '',
 
         refractive_index: values.refractive_index ?? '',
@@ -505,12 +542,20 @@ export function ReportMutateDialog({
                   <h3 className='text-sm font-medium'>Classification</h3>
                   <div className='grid gap-4 sm:grid-cols-2'>
                     {RELATED.map((entry, index) => {
-                      const options = (related[index]?.data ?? []).map(
-                        (row) => ({
+                      const lookupRows = related[index]?.data ?? []
+                      const selectedSpecies = watchedSpecies
+                        ? Number(watchedSpecies)
+                        : null
+                      const options = lookupRows
+                        .filter(
+                          (lookupRow) =>
+                            entry.name !== 'variety' ||
+                            lookupRow.species === selectedSpecies
+                        )
+                        .map((row) => ({
                           value: String(row.id),
                           label: row.name,
-                        })
-                      )
+                        }))
 
                       if (entry.name === 'color') {
                         options.sort(
@@ -529,6 +574,22 @@ export function ReportMutateDialog({
                           label={entry.label}
                           options={options}
                           searchable={entry.searchable}
+                          resource={entry.resource}
+                          creatable={entry.creatable}
+                          createExtra={
+                            entry.name === 'variety'
+                              ? { species: selectedSpecies }
+                              : undefined
+                          }
+                          onSelection={
+                            entry.name === 'species'
+                              ? (value) => {
+                                  if (value !== form.getValues('species')) {
+                                    form.setValue('variety', '')
+                                  }
+                                }
+                              : undefined
+                          }
                           loading={related[index]?.isPending ?? false}
                           loadError={related[index]?.isError ?? false}
                         />
@@ -546,12 +607,6 @@ export function ReportMutateDialog({
                       name='transparency'
                       label='Transparency'
                       options={TRANSPARENCIES}
-                    />
-                    <OptionField
-                      control={form.control}
-                      name='treatment'
-                      label='Treatment'
-                      options={TREATMENTS}
                     />
                     <OptionField
                       control={form.control}
@@ -823,15 +878,75 @@ function OptionField({
   label,
   options,
   searchable = false,
+  resource,
+  creatable = false,
+  createExtra,
+  onSelection,
   loading = false,
   loadError = false,
 }: FieldProps & {
   options: EnumOption[]
   searchable?: boolean
+  resource?: PermissionResource
+  creatable?: boolean
+  createExtra?: Record<string, unknown>
+  onSelection?: (value: string) => void
   loading?: boolean
   loadError?: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const queryClient = useQueryClient()
+  const permissions = useAuthStore(
+    (state) => state.auth.user?.permissions ?? []
+  )
+  const canCreate = Boolean(
+    creatable && resource && permissions.includes(perm(resource, 'add'))
+  )
+  const trimmedSearch = searchTerm.trim()
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setDebouncedSearch(trimmedSearch),
+      200
+    )
+    return () => window.clearTimeout(timeout)
+  }, [trimmedSearch])
+  const searchResults = useQuery({
+    queryKey: ['lookup-search', resource, name, debouncedSearch, createExtra],
+    queryFn: () =>
+      searchLookupOptions(
+        resource!,
+        debouncedSearch,
+        name === 'variety' && createExtra?.species
+          ? { species: Number(createExtra.species) }
+          : {}
+      ),
+    enabled: Boolean(
+      searchable && open && resource && debouncedSearch.length >= 2
+    ),
+    staleTime: 30_000,
+  })
+  const visibleOptions = [
+    ...options,
+    ...(searchResults.data ?? []).map((option) => ({
+      value: String(option.id),
+      label: option.name,
+    })),
+  ].filter(
+    (option, index, all) =>
+      all.findIndex((candidate) => candidate.value === option.value) === index
+  )
+  const hasExactOption = visibleOptions.some(
+    (option) =>
+      option.label.trim().toLocaleLowerCase() ===
+      trimmedSearch.toLocaleLowerCase()
+  )
+  const canCreateNow =
+    canCreate &&
+    Boolean(trimmedSearch) &&
+    !hasExactOption &&
+    (name !== 'variety' || Boolean(createExtra?.species))
 
   return (
     <FormField
@@ -846,7 +961,14 @@ function OptionField({
           <FormItem>
             <FieldLabel name={name} label={label} />
             {searchable ? (
-              <Popover open={open} onOpenChange={setOpen} modal>
+              <Popover
+                open={open}
+                onOpenChange={(nextOpen) => {
+                  setOpen(nextOpen)
+                  if (!nextOpen) setSearchTerm('')
+                }}
+                modal
+              >
                 <PopoverTrigger asChild>
                   <FormControl {...unansweredProps(name, field.value)}>
                     <Button
@@ -861,7 +983,9 @@ function OptionField({
                       )}
                     >
                       <span className='flex min-w-0 items-center gap-2'>
-                        {selected && <ColorSwatch name={selected.label} />}
+                        {name === 'color' && selected && (
+                          <ColorSwatch name={selected.label} />
+                        )}
                         <span className='truncate'>
                           {selected?.label ?? 'Not recorded'}
                         </span>
@@ -879,14 +1003,23 @@ function OptionField({
                 >
                   <Command>
                     <CommandInput
-                      placeholder={`Search ${label.toLowerCase()}…`}
+                      placeholder={
+                        creatable
+                          ? `Search or add ${label.toLowerCase()}…`
+                          : `Search ${label.toLowerCase()}…`
+                      }
+                      value={searchTerm}
+                      onValueChange={setSearchTerm}
                     />
                     <CommandList id={`${name}-options`}>
-                      <CommandEmpty>No matching colors.</CommandEmpty>
+                      <CommandEmpty>
+                        No matching {label.toLowerCase()}.
+                      </CommandEmpty>
                       <CommandGroup>
                         <CommandItem
                           value='Not recorded'
                           onSelect={() => {
+                            onSelection?.('')
                             field.onChange('')
                             setOpen(false)
                           }}
@@ -900,11 +1033,12 @@ function OptionField({
                           />
                           <span>Not recorded</span>
                         </CommandItem>
-                        {options.map((option) => (
+                        {visibleOptions.map((option) => (
                           <CommandItem
                             key={option.value}
                             value={option.label}
                             onSelect={() => {
+                              onSelection?.(option.value)
                               field.onChange(option.value)
                               setOpen(false)
                             }}
@@ -918,10 +1052,56 @@ function OptionField({
                               )}
                               aria-hidden
                             />
-                            <ColorSwatch name={option.label} />
+                            {name === 'color' && (
+                              <ColorSwatch name={option.label} />
+                            )}
                             <span>{option.label}</span>
                           </CommandItem>
                         ))}
+                        {canCreateNow && resource && (
+                          <CommandItem
+                            value={`Create ${trimmedSearch}`}
+                            onSelect={async () => {
+                              try {
+                                const created = await createOrGetLookupRow(
+                                  resource,
+                                  trimmedSearch,
+                                  createExtra
+                                )
+                                queryClient.setQueryData(
+                                  ['lookup', resource],
+                                  (
+                                    current: { id: number; name: string }[] = []
+                                  ) =>
+                                    current.some(
+                                      (item) => item.id === created.id
+                                    )
+                                      ? current
+                                      : [...current, created]
+                                )
+                                await queryClient.invalidateQueries({
+                                  queryKey: ['lookup', resource],
+                                })
+                                field.onChange(String(created.id))
+                                setSearchTerm('')
+                                setOpen(false)
+                              } catch {
+                                toast.error(
+                                  `Could not add this ${label.toLowerCase()}.`
+                                )
+                              }
+                            }}
+                          >
+                            <span className='text-muted-foreground'>
+                              Add “{trimmedSearch}”
+                            </span>
+                          </CommandItem>
+                        )}
+                        {name === 'variety' && !createExtra?.species && (
+                          <p className='px-2 py-1.5 text-sm text-muted-foreground'>
+                            Select a species before adding a variety.
+                          </p>
+                        )}
                       </CommandGroup>
                     </CommandList>
                   </Command>

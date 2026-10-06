@@ -160,6 +160,13 @@ const lookupConfigs: LookupConfig[] = [
     extraFields: [],
   },
   {
+    resource: 'treatments',
+    slug: 'treatments',
+    title: 'Treatments',
+    description: 'Treatments and enhancements recorded during identification.',
+    extraFields: [],
+  },
+  {
     resource: 'instruments',
     slug: 'instruments',
     title: 'Instruments',
@@ -259,6 +266,7 @@ export const lookupOptionSchema = z
   .object({
     id: z.number(),
     name: z.string(),
+    species: z.number().nullable().optional(),
     category_detail: z
       .object({
         id: z.number(),

@@ -46,6 +46,7 @@ const RESOURCE_MODELS = {
   colors: { app: 'gems', model: 'color' },
   origins: { app: 'gems', model: 'origin' },
   'shape-cuts': { app: 'gems', model: 'shapecut' },
+  treatments: { app: 'gems', model: 'treatment' },
   instruments: { app: 'gems', model: 'instrument' },
 
   // Reception.

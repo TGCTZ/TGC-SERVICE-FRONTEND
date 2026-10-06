@@ -25,18 +25,6 @@ export const TRANSPARENCIES: EnumOption[] = [
   { value: 'opaque', label: 'Opaque' },
 ]
 
-/** Enhancement applied to the stone, if any. */
-export const TREATMENTS: EnumOption[] = [
-  { value: 'none', label: 'None' },
-  { value: 'heated', label: 'Heated' },
-  { value: 'oiled', label: 'Oiled' },
-  { value: 'dyed', label: 'Dyed' },
-  { value: 'irradiated', label: 'Irradiated' },
-  { value: 'fracture_filled', label: 'Fracture filled' },
-  { value: 'bleached', label: 'Bleached' },
-  { value: 'impregnated', label: 'Impregnated' },
-]
-
 /**
  * Optical behaviour under polarised light.
  *
