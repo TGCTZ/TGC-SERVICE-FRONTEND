@@ -56,6 +56,8 @@ export const reportSchema = z.object({
   customer_name: z.string().nullable().default(null),
   customer_phone: z.string().nullable().default(null),
   report_number: z.string(),
+  stone_category_detail: relatedSchema.nullable().default(null),
+  stone_type_detail: relatedSchema.nullable().default(null),
 
   species: z.number().nullable().default(null),
   species_detail: relatedSchema.nullable().default(null),

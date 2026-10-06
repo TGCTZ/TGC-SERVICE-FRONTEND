@@ -55,12 +55,17 @@ export async function createOrGetLookupRow(
 ): Promise<LookupRow> {
   const trimmed = name.trim()
   const findExisting = async () => {
+    const relatedFilters = Object.fromEntries(
+      Object.entries(extra)
+        .filter(([, value]) => typeof value === 'number')
+        .map(([key, value]) => [`filter[${key}]`, value])
+    )
     const res = await api.get(`/${resource}`, {
       params: {
         search: trimmed,
         page_size: 100,
         'filter[is_active]': 1,
-        ...(extra.species ? { 'filter[species]': extra.species } : {}),
+        ...relatedFilters,
       },
     })
     const results = paginatedSchema(lookupRowSchema).parse(res.data).results

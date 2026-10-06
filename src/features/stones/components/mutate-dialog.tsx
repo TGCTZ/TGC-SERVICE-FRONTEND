@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { fieldErrors } from '@/lib/handle-server-error'
 import { zodResolver } from '@/lib/zod-resolver'
@@ -32,7 +32,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DialogBody } from '@/components/dialog-body'
-import { lookupOptionsQuery } from '@/features/lookups/data/api'
 import { updateStone } from '../data/api'
 import { WEIGHT_UNITS, isStoneLocked } from '../data/enums'
 import { type Stone } from '../data/schema'
@@ -45,7 +44,6 @@ import { StoneStatusBadge } from './status-badge'
  * in the form would offer edits that silently do nothing.
  */
 const stoneFormSchema = z.object({
-  stone_type: z.string().min(1, 'Stone type is required.'),
   weight: z.string().optional(),
   weight_unit: z.string().default('carat'),
 })
@@ -64,21 +62,19 @@ export function StoneMutateDialog({
   currentRow,
 }: StoneMutateDialogProps) {
   const queryClient = useQueryClient()
-  const { data: stoneTypes = [] } = useQuery(lookupOptionsQuery('stone-types'))
-  // A billed stone is settled by the service: its type is what priced the
-  // bill, so the form stays locked even for someone who may otherwise edit.
+  // Pricing categories lock after billing. Exact type is recorded on the
+  // findings form, where it can be matched to this category.
   const isLocked = isStoneLocked(currentRow)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(stoneFormSchema),
-    defaultValues: { stone_type: '', weight: '', weight_unit: 'carat' },
+    defaultValues: { weight: '', weight_unit: 'carat' },
   })
 
   useEffect(() => {
     if (!open) return
 
     form.reset({
-      stone_type: currentRow?.stone_type ? String(currentRow.stone_type) : '',
       weight: currentRow?.weight ?? '',
       weight_unit: currentRow?.weight_unit ?? 'carat',
     })
@@ -89,7 +85,6 @@ export function StoneMutateDialog({
       if (!currentRow) throw new Error('No stone selected')
 
       return updateStone(currentRow.id, {
-        stone_type: Number(values.stone_type),
         // The column is nullable, so a cleared weight must send an explicit
         // null rather than an empty string.
         weight: values.weight?.trim() ? values.weight.trim() : null,
@@ -146,34 +141,6 @@ export function StoneMutateDialog({
             >
               {/* One fieldset disables every control, Radix triggers included. */}
               <fieldset disabled={isLocked} className='space-y-4'>
-                <FormField
-                  control={form.control}
-                  name='stone_type'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Stone type</FormLabel>
-                      <Select
-                        value={field.value || undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger className='w-full'>
-                            <SelectValue placeholder='Select stone type' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {stoneTypes.map((type) => (
-                            <SelectItem key={type.id} value={String(type.id)}>
-                              {type.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <div className='grid grid-cols-[1fr_8rem] gap-3'>
                   <FormField
                     control={form.control}

@@ -45,7 +45,7 @@ export function ReportsTable({
   const toolbar = (
     <>
       <Input
-        placeholder='Search report, stone, order or conclusion...'
+        placeholder='Search report, stone, order or comments...'
         value={state.search}
         onChange={(e) => onStateChange({ search: e.target.value, page: 1 })}
         className='h-8 w-full max-w-80'

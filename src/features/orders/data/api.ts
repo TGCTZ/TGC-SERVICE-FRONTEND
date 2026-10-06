@@ -99,7 +99,7 @@ export async function restoreOrder(id: number): Promise<void> {
  * order is full.
  *
  * @param orderId - The order the stone belongs to.
- * @param payload - `stone_type`, and optionally `weight` and `weight_unit`.
+ * @param payload - `stone_category`; legacy clients may still send `stone_type`.
  * @returns The stone the service created, label included.
  */
 export async function addStone(

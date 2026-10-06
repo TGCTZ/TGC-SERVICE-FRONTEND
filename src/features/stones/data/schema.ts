@@ -1,11 +1,21 @@
 import { z } from 'zod'
 
+/** The pricing category on a stone or nested under its exact type. */
+const stoneCategorySchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+    price: z.string().nullable().default(null),
+  })
+  .loose()
+
 /** The expanded stone type shipped alongside its id. */
 const stoneTypeSchema = z
   .object({
     id: z.number(),
     name: z.string(),
     price: z.string().nullable().default(null),
+    category_detail: stoneCategorySchema.nullable().default(null),
   })
   .loose()
 
@@ -43,6 +53,8 @@ export const stoneSchema = z.object({
   customer_name: z.string().nullable().default(null),
   customer_phone: z.string().nullable().default(null),
   label: z.string(),
+  stone_category: z.number().nullable().default(null),
+  stone_category_detail: stoneCategorySchema.nullable().default(null),
   stone_type: z.number().nullable().default(null),
   stone_type_detail: stoneTypeSchema.nullable().default(null),
   weight: z.string().nullable().default(null),

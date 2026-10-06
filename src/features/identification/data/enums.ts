@@ -12,10 +12,8 @@ export type EnumOption = { value: string; label: string }
 /** Whether the stone is natural or man-made/altered. */
 export const NATURE_TYPES: EnumOption[] = [
   { value: 'natural', label: 'Natural' },
-  { value: 'synthetic', label: 'Synthetic' },
-  { value: 'treated', label: 'Treated' },
-  { value: 'enhanced', label: 'Enhanced' },
   { value: 'artificial', label: 'Artificial' },
+  { value: 'synthetic', label: 'Synthetic' },
 ]
 
 /** How light passes through the stone. */

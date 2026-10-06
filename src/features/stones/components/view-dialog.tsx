@@ -76,9 +76,7 @@ export function StoneViewDialog({
           </DialogTitle>
           <DialogDescription>
             {stone.order_reference ?? 'Unknown order'}
-            {stone.stone_type_detail
-              ? ` · ${stone.stone_type_detail.name}`
-              : ' · Untyped'}
+            {` · ${stone.stone_category_detail?.name ?? 'Uncategorized'}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -90,15 +88,19 @@ export function StoneViewDialog({
                 { label: 'Label', value: stone.label },
                 { label: 'Order', value: stone.order_reference },
                 {
+                  label: 'Category',
+                  value: stone.stone_category_detail?.name ?? null,
+                },
+                {
                   label: 'Type',
                   value: stone.stone_type_detail?.name ?? null,
                 },
                 { label: 'Weight', value: formatWeight(stone) },
                 { label: 'Status', value: statusLabel(stone.status) },
                 {
-                  label: 'Type editable',
+                  label: 'Category editable',
                   value: locked
-                    ? 'No — a bill has been priced from this stone'
+                    ? 'No — a bill has been priced from this category'
                     : 'Yes',
                 },
               ]}

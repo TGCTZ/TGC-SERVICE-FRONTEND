@@ -182,8 +182,15 @@ const RELATED: {
   creatable?: boolean
 }[] = [
   {
+    name: 'stone_type',
+    label: 'Stone type',
+    resource: 'stone-types',
+    searchable: true,
+    creatable: true,
+  },
+  {
     name: 'species',
-    label: 'Species',
+    label: 'Specie / Group',
     resource: 'species',
     searchable: true,
     creatable: true,
@@ -234,6 +241,7 @@ const RELATED: {
 const reportFormSchema = z.object({
   stone: z.string().min(1, 'Stone is required.'),
 
+  stone_type: z.string().optional(),
   species: z.string().optional(),
   variety: z.string().optional(),
   color: z.string().optional(),
@@ -311,7 +319,7 @@ export function ReportMutateDialog({
   const isEdit = Boolean(row)
   const queryClient = useQueryClient()
 
-  // One hook for all five reference lists; a hook cannot run inside `.map()`.
+  // One hook for all classification lookups; a hook cannot run inside `.map()`.
   const related = useQueries({
     queries: RELATED.map((entry) => ({
       ...lookupOptionsQuery(entry.resource),
@@ -350,12 +358,24 @@ export function ReportMutateDialog({
   const watchedStone = useWatch({ control: form.control, name: 'stone' })
   const watchedSpecies = useWatch({ control: form.control, name: 'species' })
   const selectedStone = watchedStone ? Number(watchedStone) : null
+  const selectedIntakeStone = selectable.find(
+    (stone) => stone.id === selectedStone
+  )
+  const selectedCategory = row
+    ? row.stone_category_detail?.id
+    : selectedIntakeStone?.stone_category
+  const selectedCategoryName = row
+    ? row.stone_category_detail?.name
+    : selectedIntakeStone?.stone_category_detail?.name
 
   useEffect(() => {
     if (!open) return
 
     form.reset({
       stone: row ? String(row.stone) : initialStone ? String(initialStone) : '',
+      stone_type: row?.stone_type_detail
+        ? String(row.stone_type_detail.id)
+        : '',
       species: row?.species ? String(row.species) : '',
       variety: row?.variety ? String(row.variety) : '',
       color: row?.color ? String(row.color) : '',
@@ -377,6 +397,7 @@ export function ReportMutateDialog({
   const mutation = useMutation({
     mutationFn: (values: FormValues) => {
       const payload = {
+        stone_type: idOrNull(values.stone_type),
         species: idOrNull(values.species),
         variety: idOrNull(values.variety),
         color: idOrNull(values.color),
@@ -499,7 +520,10 @@ export function ReportMutateDialog({
                         ) : (
                           <Select
                             value={field.value || undefined}
-                            onValueChange={field.onChange}
+                            onValueChange={(value) => {
+                              field.onChange(value)
+                              form.setValue('stone_type', '')
+                            }}
                           >
                             <FormControl>
                               <SelectTrigger className='w-full'>
@@ -513,7 +537,8 @@ export function ReportMutateDialog({
                                   value={String(stone.id)}
                                 >
                                   {stone.order_reference} · {stone.label} ·{' '}
-                                  {stone.stone_type_detail?.name ?? 'Untyped'}
+                                  {stone.stone_category_detail?.name ??
+                                    'Uncategorized'}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -549,8 +574,10 @@ export function ReportMutateDialog({
                       const options = lookupRows
                         .filter(
                           (lookupRow) =>
-                            entry.name !== 'variety' ||
-                            lookupRow.species === selectedSpecies
+                            (entry.name !== 'variety' ||
+                              lookupRow.species === selectedSpecies) &&
+                            (entry.name !== 'stone_type' ||
+                              lookupRow.category === selectedCategory)
                         )
                         .map((row) => ({
                           value: String(row.id),
@@ -572,14 +599,34 @@ export function ReportMutateDialog({
                           control={form.control}
                           name={entry.name}
                           label={entry.label}
+                          labelSuffix={
+                            entry.name === 'stone_type' && selectedCategoryName
+                              ? `(Category: ${selectedCategoryName})`
+                              : undefined
+                          }
                           options={options}
                           searchable={entry.searchable}
                           resource={entry.resource}
                           creatable={entry.creatable}
+                          searchFilters={
+                            entry.name === 'stone_type' && selectedCategory
+                              ? { category: selectedCategory }
+                              : undefined
+                          }
+                          disabled={
+                            entry.name === 'stone_type' && !selectedCategory
+                          }
+                          disabledMessage={
+                            entry.name === 'stone_type' && !selectedCategory
+                              ? 'Select a stone first to load types in its category.'
+                              : undefined
+                          }
                           createExtra={
                             entry.name === 'variety'
                               ? { species: selectedSpecies }
-                              : undefined
+                              : entry.name === 'stone_type' && selectedCategory
+                                ? { category: selectedCategory }
+                                : undefined
                           }
                           onSelection={
                             entry.name === 'species'
@@ -631,7 +678,7 @@ export function ReportMutateDialog({
                         name='weight'
                         render={({ field }) => (
                           <FormItem>
-                            <FieldLabel name='weight' label='Weight' />
+                          <FieldLabel label='Weight' />
                             <FormControl
                               {...unansweredProps('weight', field.value)}
                             >
@@ -728,24 +775,19 @@ export function ReportMutateDialog({
                 <Separator />
 
                 <section className='space-y-4'>
-                  <h3 className='text-sm font-medium'>
-                    Conclusion
-                    <span className='ms-1 text-xs font-normal text-muted-foreground'>
-                      (needed to finalize)
-                    </span>
-                  </h3>
+                  <h3 className='text-sm font-medium'>Comments</h3>
                   <FormField
                     control={form.control}
                     name='conclusion'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className='sr-only'>Conclusion</FormLabel>
+                        <FormLabel className='sr-only'>Comments</FormLabel>
                         <FormControl
                           {...unansweredProps('conclusion', field.value)}
                         >
                           <Textarea
                             rows={4}
-                            placeholder='What the stone is, in the words the certificate will carry.'
+                            placeholder='Add comments about the stone.'
                             {...field}
                             value={field.value ?? ''}
                           />
@@ -820,15 +862,7 @@ type FieldProps = {
 }
 
 /** A select whose blank choice means "not recorded", which is always allowed. */
-/**
- * A field's label, marked when the field is one finalize insists on.
- *
- * The form itself stays permissive - a sitting at the bench must be saveable
- * half-done - so this is not a validation message but a note about what is
- * still ahead: these four are what a certificate quotes. Showing it here means
- * the requirement is met while the stone is in hand rather than discovered
- * later at the sign-off gate.
- */
+/** Render a concise label for a findings field. */
 /**
  * `aria-invalid` for an unanswered field, or nothing at all.
  *
@@ -856,18 +890,17 @@ function needsAnswer(name: string, value: unknown): boolean {
   return !String(value ?? '').trim()
 }
 
-function FieldLabel({ name, label }: { name: string; label: string }) {
+function FieldLabel({
+  label,
+  suffix,
+}: {
+  label: string
+  suffix?: string
+}) {
   return (
     <FormLabel>
       {label}
-      {FINALIZE_REQUIRED_NAMES.has(name) && (
-        <span
-          className='ms-1 text-xs font-normal text-muted-foreground'
-          title='Needed before this report can be finalized'
-        >
-          (needed to finalize)
-        </span>
-      )}
+      {suffix && <span className='ms-1 font-normal'>{suffix}</span>}
     </FormLabel>
   )
 }
@@ -876,20 +909,28 @@ function OptionField({
   control,
   name,
   label,
+  labelSuffix,
   options,
   searchable = false,
   resource,
   creatable = false,
   createExtra,
+  searchFilters,
+  disabled = false,
+  disabledMessage,
   onSelection,
   loading = false,
   loadError = false,
 }: FieldProps & {
   options: EnumOption[]
+  labelSuffix?: string
   searchable?: boolean
   resource?: PermissionResource
   creatable?: boolean
   createExtra?: Record<string, unknown>
+  searchFilters?: Record<string, number>
+  disabled?: boolean
+  disabledMessage?: string
   onSelection?: (value: string) => void
   loading?: boolean
   loadError?: boolean
@@ -913,14 +954,22 @@ function OptionField({
     return () => window.clearTimeout(timeout)
   }, [trimmedSearch])
   const searchResults = useQuery({
-    queryKey: ['lookup-search', resource, name, debouncedSearch, createExtra],
+    queryKey: [
+      'lookup-search',
+      resource,
+      name,
+      debouncedSearch,
+      createExtra,
+      searchFilters,
+    ],
     queryFn: () =>
       searchLookupOptions(
         resource!,
         debouncedSearch,
-        name === 'variety' && createExtra?.species
-          ? { species: Number(createExtra.species) }
-          : {}
+        searchFilters ??
+          (name === 'variety' && createExtra?.species
+            ? { species: Number(createExtra.species) }
+            : {})
       ),
     enabled: Boolean(
       searchable && open && resource && debouncedSearch.length >= 2
@@ -959,7 +1008,7 @@ function OptionField({
 
         return (
           <FormItem>
-            <FieldLabel name={name} label={label} />
+            <FieldLabel label={label} suffix={labelSuffix} />
             {searchable ? (
               <Popover
                 open={open}
@@ -973,6 +1022,7 @@ function OptionField({
                   <FormControl {...unansweredProps(name, field.value)}>
                     <Button
                       type='button'
+                      disabled={disabled}
                       variant='outline'
                       role='combobox'
                       aria-expanded={open}
@@ -1099,7 +1149,7 @@ function OptionField({
                         )}
                         {name === 'variety' && !createExtra?.species && (
                           <p className='px-2 py-1.5 text-sm text-muted-foreground'>
-                            Select a species before adding a variety.
+                            Select a Specie / Group before adding a variety.
                           </p>
                         )}
                       </CommandGroup>
@@ -1115,7 +1165,7 @@ function OptionField({
                 }
               >
                 <FormControl {...unansweredProps(name, field.value)}>
-                  <SelectTrigger className='w-full'>
+                  <SelectTrigger className='w-full' disabled={disabled}>
                     <SelectValue placeholder='Not recorded' />
                   </SelectTrigger>
                 </FormControl>
@@ -1130,6 +1180,9 @@ function OptionField({
               </Select>
             )}
             {loading && <FormDescription>Loading choices…</FormDescription>}
+            {disabledMessage && (
+              <FormDescription>{disabledMessage}</FormDescription>
+            )}
             {loadError && (
               <p className='text-sm text-destructive' role='alert'>
                 Could not load choices. Close and reopen this dialog to retry.
@@ -1155,7 +1208,7 @@ function TextField({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FieldLabel name={name} label={label} />
+          <FieldLabel label={label} />
           <FormControl {...unansweredProps(name, field.value)}>
             <Input
               placeholder={placeholder}

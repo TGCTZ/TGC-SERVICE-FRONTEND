@@ -20,12 +20,12 @@ export const STONE_STATUS_LABELS: Record<string, string> = {
 }
 
 /**
- * Statuses in which a stone's **type** may still be corrected.
+ * Statuses in which a stone's **pricing category** may still be corrected.
  *
  * `received` is the working state; `on_hold` and `cancelled` are the two a
  * human parks a stone in precisely *to* fix something. Every other status means
- * a bill has been priced from this stone's type — and the type is the price, so
- * changing it afterwards would silently make an issued bill wrong.
+ * a bill has been priced from this stone's category, so changing it afterwards
+ * would silently make an issued bill wrong.
  *
  * An explicit set rather than a rank comparison over `STONE_STATUS_LABELS`:
  * relying on object key order for a business rule is a trap, and the two side
@@ -42,7 +42,7 @@ const RETYPEABLE_STATUSES = ['received', 'on_hold', 'cancelled']
  * Note this locks the **record's own screen**, not the stone outright: weight
  * arrives later than billing by design — the bench weighs the stone during the
  * findings, when it is already paid — and that is recorded on the findings
- * form, which stays open.
+ * form, which stays open. Exact type selection also happens on that form.
  *
  * @param stone - The stone to test, or null before a row is chosen.
  * @returns True once a bill has been priced from this stone.
@@ -74,10 +74,12 @@ export const TRANSITIONABLE_STATUSES = [
 export const WEIGHT_UNITS = [
   { value: 'carat', label: 'Carat (ct)' },
   { value: 'gram', label: 'Gram (g)' },
+  { value: 'kilogram', label: 'Kilogram (kg)' },
 ] as const
 
 /** Short symbol for a weight unit, for table cells. */
 export const WEIGHT_UNIT_SYMBOLS: Record<string, string> = {
   carat: 'ct',
   gram: 'g',
+  kilogram: 'kg',
 }

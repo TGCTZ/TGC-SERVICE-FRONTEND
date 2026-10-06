@@ -31,7 +31,7 @@ type GenerateBillDialogProps = {
  *
  * Was a bare confirmation, which asked the user to commit a customer to a
  * figure they could not see. Billing is not reversible — the stones transition
- * to `billed`, their types lock, and the bill goes to GePG — so the numbers
+ * to `billed`, their pricing categories lock, and the bill goes to GePG — so the numbers
  * belong on screen *before* the button, not in the toast afterwards.
  *
  * The figures come from `/bills/preview`, priced by the same service that
@@ -68,7 +68,7 @@ export function GenerateBillDialog({
       onOpenChange(false)
     },
     onError: (error) => {
-      // A partly identified order, an unpriced stone type or an existing bill are
+      // A partly identified order, an unpriced category or an existing bill are
       // all refused by name — show the API's sentence, not ours.
       toast.error('The bill was not created', {
         description: serverMessageOr(
@@ -91,7 +91,7 @@ export function GenerateBillDialog({
         <DialogHeader className='text-start'>
           <DialogTitle>Request control number</DialogTitle>
           <DialogDescription>
-            Review charges before sending the bill to GePG; stone types lock and
+            Review charges before sending the bill to GePG; pricing categories lock and
             billing cannot be undone.
           </DialogDescription>
         </DialogHeader>

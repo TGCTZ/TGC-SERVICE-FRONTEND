@@ -267,6 +267,8 @@ export const lookupOptionSchema = z
     id: z.number(),
     name: z.string(),
     species: z.number().nullable().optional(),
+    category: z.number().nullable().optional(),
+    price: z.string().nullable().optional(),
     category_detail: z
       .object({
         id: z.number(),

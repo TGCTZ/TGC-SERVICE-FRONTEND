@@ -82,7 +82,8 @@ export function OrderStonesPanel({ order, onRegister }: OrderStonesPanelProps) {
               <div>
                 <div className='font-medium'>{stone.label}</div>
                 <div className='text-xs text-muted-foreground'>
-                  {stone.stone_type_detail?.name ?? 'Untyped'} ·{' '}
+                  {stone.stone_category_detail?.name ?? 'Uncategorized'} ·{' '}
+                  {stone.stone_type_detail?.name ?? 'Type pending'} ·{' '}
                   {formatWeight(stone)}
                 </div>
               </div>

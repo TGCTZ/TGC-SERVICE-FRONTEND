@@ -36,14 +36,15 @@ type AddStoneDialogProps = {
   order: Order
 }
 
-type StoneTypeOption = {
+type StoneCategoryOption = {
   id: number
   name: string
+  price?: string | null
 }
 
 /**
  * Identify every stone on an order from one list: a row per stone, each with
- * its own type select, saved the moment a type is picked.
+ * its own category select, saved the moment a category is picked.
  *
  * **Rows exist for stones not yet created.** The order says how many stones
  * came in, so the desk sees the whole order at once rather than one stone at a
@@ -54,20 +55,21 @@ type StoneTypeOption = {
  * filed as C. Only the next row in line is enabled; the one after it opens as
  * soon as that stone exists.
  *
- * **Identified rows stay editable until billing**, to correct a slip in place.
- * The type is what priced the bill, so a billed stone's row is locked - the
- * API refuses the change regardless.
+ * **Categorized rows stay editable until billing**, to correct a slip in place.
+ * The category prices the bill, so a billed stone's row is locked. Exact types
+ * are recorded later with the findings.
  *
- * **No weight.** Identification records only the type, because the type is what
- * prices the bill. The stone is weighed at the bench and that weight is
- * recorded with the findings, after payment.
+ * **No type or weight.** Intake records the pricing category. The exact type and
+ * weight are recorded at the bench with the findings, after payment.
  */
 export function AddStoneDialog({
   open,
   onOpenChange,
   order,
 }: AddStoneDialogProps) {
-  const { data: stoneTypes = [] } = useQuery(lookupOptionsQuery('stone-types'))
+  const { data: stoneCategories = [] } = useQuery(
+    lookupOptionsQuery('stone-categories')
+  )
 
   // Live reads rather than the row snapshot the caller handed over: every pick
   // writes, so the rows and the progress have to move with the server.
@@ -105,11 +107,10 @@ export function AddStoneDialog({
 
   const remaining = Math.max(0, current.stone_count - current.identified_count)
 
-  // What the customer is committed to so far: the fee comes from each type's
-  // tier. Summed from the lookup, which carries the tier with the type.
+  // The category is the fee tier, so intake can preview fees before exact types
+  // are known.
   const fees = stones.map((stone) => {
-    const option = stoneTypes.find((type) => type.id === stone.stone_type)
-    const price = option?.category_detail?.price
+    const price = stone.stone_category_detail?.price
     return price === null || price === undefined ? null : Number(price)
   })
   const total = fees.reduce<number>((sum, fee) => sum + (fee ?? 0), 0)
@@ -148,16 +149,16 @@ export function AddStoneDialog({
             const locked = stone ? isStoneLocked(stone) : false
             const waiting = !stone && label !== nextLabel
             return (
-              <StoneTypeRow
+              <StoneCategoryRow
                 key={label}
                 orderId={order.id}
                 label={label}
                 stone={stone}
-                stoneTypes={stoneTypes}
+                stoneCategories={stoneCategories}
                 disabled={stone ? !canChange || locked : !canAdd || waiting}
                 disabledHint={
                   locked
-                    ? 'Billed - its type priced the bill'
+                    ? 'Billed - its category priced the bill'
                     : waiting
                       ? `After stone ${nextLabel}`
                       : undefined
@@ -193,43 +194,44 @@ export function AddStoneDialog({
   )
 }
 
-type StoneTypeRowProps = {
+type StoneCategoryRowProps = {
   orderId: number
   label: string
   /** The recorded stone, or null for one not yet identified. */
   stone: Stone | null
-  stoneTypes: StoneTypeOption[]
+  stoneCategories: StoneCategoryOption[]
   disabled: boolean
   /** Why the row is disabled, when that is not just a missing permission. */
   disabledHint?: string
 }
 
 /**
- * One stone's type select. Picking a type saves it: creating the stone on an
- * empty row, retyping it on an identified one.
+ * One stone's category select. Picking a category saves it: creating the stone
+ * on an empty row, reclassifying it on an identified one.
  */
-function StoneTypeRow({
+function StoneCategoryRow({
   orderId,
   label,
   stone,
-  stoneTypes,
+  stoneCategories,
   disabled,
   disabledHint,
-}: StoneTypeRowProps) {
+}: StoneCategoryRowProps) {
   const queryClient = useQueryClient()
-  // The type being saved, shown in the select until the server answers - so
-  // the choice does not appear to snap back while the request is in flight.
-  const [pendingType, setPendingType] = useState<string | null>(null)
+  // Keep the chosen category visible until the server refetch completes.
+  const [pendingCategory, setPendingCategory] = useState<string | null>(null)
 
-  const saved = stone?.stone_type ? String(stone.stone_type) : undefined
+  const saved = stone?.stone_category
+    ? String(stone.stone_category)
+    : undefined
 
   const mutation = useMutation({
-    mutationFn: (typeId: string) =>
+    mutationFn: (categoryId: string) =>
       stone
-        ? updateStone(stone.id, { stone_type: Number(typeId) })
-        : addStone(orderId, { stone_type: Number(typeId) }),
+        ? updateStone(stone.id, { stone_category: Number(categoryId) })
+        : addStone(orderId, { stone_category: Number(categoryId) }),
     // Returned, so the mutation stays pending until the rows have refetched.
-    // Clearing the pending value any earlier would flash the old type (or an
+    // Clearing the pending value any earlier would flash the old category (or an
     // empty select) for the moment before the new data lands.
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['worklist'] })
@@ -252,34 +254,34 @@ function StoneTypeRow({
         }
       ),
     // On failure this is what reverts the select to the saved type.
-    onSettled: () => setPendingType(null),
+    onSettled: () => setPendingCategory(null),
   })
 
-  function pick(typeId: string) {
-    if (typeId === saved) return
-    setPendingType(typeId)
-    mutation.mutate(typeId)
+  function pick(categoryId: string) {
+    if (categoryId === saved) return
+    setPendingCategory(categoryId)
+    mutation.mutate(categoryId)
   }
 
   return (
     <li className='flex items-center gap-3 p-2.5 text-sm'>
       <span className='w-16 shrink-0 font-medium'>Stone {label}</span>
       <Select
-        value={pendingType ?? saved}
+        value={pendingCategory ?? saved}
         onValueChange={pick}
         disabled={disabled || mutation.isPending}
       >
         <SelectTrigger
           className='h-8 min-w-0 flex-1'
-          aria-label={`Stone type for stone ${label}`}
+          aria-label={`Stone category for stone ${label}`}
           title={disabledHint}
         >
-          <SelectValue placeholder={disabledHint ?? 'Select stone type'} />
+          <SelectValue placeholder={disabledHint ?? 'Select stone category'} />
         </SelectTrigger>
         <SelectContent>
-          {stoneTypes.map((type) => (
-            <SelectItem key={type.id} value={String(type.id)}>
-              {type.name}
+          {stoneCategories.map((category) => (
+            <SelectItem key={category.id} value={String(category.id)}>
+              {category.name}
             </SelectItem>
           ))}
         </SelectContent>

@@ -94,11 +94,11 @@ export function ReportViewDialog({
           {/* The conclusion leads: it is the sentence the certificate carries,
               and the reason anyone opens a finished report. */}
           <div className='space-y-2 rounded-md border p-3'>
-            <h3 className='text-sm font-medium'>Conclusion</h3>
+            <h3 className='text-sm font-medium'>Comments</h3>
             <p className='text-sm'>
               {report.conclusion || (
                 <span className='text-muted-foreground'>
-                  No conclusion recorded yet.
+                  No comments recorded yet.
                 </span>
               )}
             </p>
@@ -109,7 +109,11 @@ export function ReportViewDialog({
             <DefinitionList
               items={[
                 {
-                  label: 'Species',
+                  label: 'Stone type',
+                  value: report.stone_type_detail?.name ?? null,
+                },
+                {
+                  label: 'Specie / Group',
                   value: report.species_detail?.name ?? null,
                 },
                 {
