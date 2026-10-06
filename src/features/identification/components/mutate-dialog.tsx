@@ -8,12 +8,22 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
+import { Check, ChevronsUpDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { fieldErrors, serverMessageOr } from '@/lib/handle-server-error'
 import { type PermissionResource } from '@/lib/permissions'
+import { cn } from '@/lib/utils'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import {
   Dialog,
   DialogContent,
@@ -32,6 +42,11 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -61,15 +76,117 @@ import { StonePhotoPanel } from './stone-photo-panel'
 /** Radix forbids an empty-string SelectItem value, so "not recorded" needs one. */
 const NONE = 'none'
 
+/** The lab's hue progression; non-hue colors follow the circular sequence. */
+const COLOR_HUE_ORDER = [
+  'Violet',
+  'Bluish violet',
+  'Violetish blue',
+  'Blue',
+  'Very slightly greenish blue',
+  'Greenish blue',
+  'Very strongly greenish blue',
+  'Green blue or blue green',
+  'Strongly bluish green',
+  'Slightly bluish green',
+  'Very slightly bluish green',
+  'Green',
+  'Slightly yellowish green',
+  'Yellowish green',
+  'Strongly yellowish green',
+  'Yellow green or green yellow',
+  'Greenish yellow',
+  'Yellow',
+  'Orange yellow',
+  'Yellowish orange',
+  'Orange',
+  'Reddish orange',
+  'Red orange or orange red',
+  'Orangy red',
+  'Red',
+  'Slightly purplish red',
+  'Strongly purplish red',
+  'Purple red or red purple',
+  'Reddish purple',
+  'Purple',
+  'Bluish purple',
+  'Colorless',
+  'Brown',
+  'Black',
+  'Pink',
+  'Grey',
+] as const
+const COLOR_HUE_RANK = new Map<string, number>(
+  COLOR_HUE_ORDER.map((name, index) => [name, index])
+)
+
+/** Approximate display swatches for the lab's named color choices. */
+const COLOR_SWATCHES: Record<string, string> = {
+  Colorless: '#f8fafc',
+  Black: '#171717',
+  Grey: '#808080',
+  Violet: '#7c3aed',
+  'Bluish violet': '#6045cd',
+  Purple: '#9333ea',
+  'Bluish purple': '#7c4dff',
+  'Reddish purple': '#ad2a76',
+  'Orangy red': '#ed4e33',
+  Red: '#dc2626',
+  'Slightly purplish red': '#ca315c',
+  'Strongly purplish red': '#b42363',
+  'Purple red or red purple': '#bd245b',
+  Pink: '#ec4899',
+  'Greenish yellow': '#b4c63b',
+  Yellow: '#f2d22b',
+  'Orange yellow': '#f5b52e',
+  'Yellowish orange': '#efa32c',
+  Orange: '#ed7d24',
+  'Reddish orange': '#e95b2d',
+  'Red orange or orange red': '#e94b26',
+  'Strongly bluish green': '#008b76',
+  'Slightly bluish green': '#3a9b63',
+  'Very slightly bluish green': '#49a65d',
+  Green: '#2e8b45',
+  'Slightly yellowish green': '#6aa543',
+  'Yellowish green': '#85ac33',
+  'Strongly yellowish green': '#9faf23',
+  'Yellow green or green yellow': '#91b72d',
+  'Violetish blue': '#4f5fd0',
+  Blue: '#2563eb',
+  'Very slightly greenish blue': '#318ab7',
+  'Greenish blue': '#219b9b',
+  'Very strongly greenish blue': '#178c86',
+  'Green blue or blue green': '#189e91',
+  Brown: '#8b5a2b',
+}
+
+function ColorSwatch({ name }: { name: string }) {
+  return (
+    <span
+      aria-hidden='true'
+      className='h-5 w-3 shrink-0 rounded-sm border border-black/15 dark:border-white/20'
+      style={{ backgroundColor: COLOR_SWATCHES[name] ?? '#94a3b8' }}
+    />
+  )
+}
+
 /** The reference tables the classification section draws on. */
-const RELATED: { name: string; label: string; resource: PermissionResource }[] =
-  [
-    { name: 'species', label: 'Species', resource: 'species' },
-    { name: 'variety', label: 'Variety', resource: 'varieties' },
-    { name: 'color', label: 'Colour', resource: 'colors' },
-    { name: 'origin', label: 'Origin', resource: 'origins' },
-    { name: 'shape_cut', label: 'Shape / cut', resource: 'shape-cuts' },
-  ]
+const RELATED: {
+  name: string
+  label: string
+  resource: PermissionResource
+  searchable?: boolean
+}[] = [
+  { name: 'species', label: 'Species', resource: 'species' },
+  { name: 'variety', label: 'Variety', resource: 'varieties' },
+  {
+    name: 'color',
+    label: 'Colour',
+    resource: 'colors',
+    searchable: true,
+  },
+  { name: 'origin', label: 'Origin', resource: 'origins' },
+  { name: 'shape_cut', label: 'Shape / cut', resource: 'shape-cuts' },
+]
 
 /**
  * Everything is optional except the stone.
@@ -387,20 +504,36 @@ export function ReportMutateDialog({
                 <section className='space-y-4'>
                   <h3 className='text-sm font-medium'>Classification</h3>
                   <div className='grid gap-4 sm:grid-cols-2'>
-                    {RELATED.map((entry, index) => (
-                      <OptionField
-                        key={entry.name}
-                        control={form.control}
-                        name={entry.name}
-                        label={entry.label}
-                        options={(related[index]?.data ?? []).map((row) => ({
+                    {RELATED.map((entry, index) => {
+                      const options = (related[index]?.data ?? []).map(
+                        (row) => ({
                           value: String(row.id),
                           label: row.name,
-                        }))}
-                        loading={related[index]?.isPending ?? false}
-                        loadError={related[index]?.isError ?? false}
-                      />
-                    ))}
+                        })
+                      )
+
+                      if (entry.name === 'color') {
+                        options.sort(
+                          (left, right) =>
+                            (COLOR_HUE_RANK.get(left.label) ?? Infinity) -
+                              (COLOR_HUE_RANK.get(right.label) ?? Infinity) ||
+                            left.label.localeCompare(right.label)
+                        )
+                      }
+
+                      return (
+                        <OptionField
+                          key={entry.name}
+                          control={form.control}
+                          name={entry.name}
+                          label={entry.label}
+                          options={options}
+                          searchable={entry.searchable}
+                          loading={related[index]?.isPending ?? false}
+                          loadError={related[index]?.isError ?? false}
+                        />
+                      )
+                    })}
 
                     <OptionField
                       control={form.control}
@@ -689,49 +822,143 @@ function OptionField({
   name,
   label,
   options,
+  searchable = false,
   loading = false,
   loadError = false,
 }: FieldProps & {
   options: EnumOption[]
+  searchable?: boolean
   loading?: boolean
   loadError?: boolean
 }) {
+  const [open, setOpen] = useState(false)
+
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FieldLabel name={name} label={label} />
-          <Select
-            value={field.value ? String(field.value) : NONE}
-            onValueChange={(value) =>
-              field.onChange(value === NONE ? '' : value)
-            }
-          >
-            <FormControl {...unansweredProps(name, field.value)}>
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Not recorded' />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value={NONE}>Not recorded</SelectItem>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {loading && <FormDescription>Loading choices…</FormDescription>}
-          {loadError && (
-            <p className='text-sm text-destructive' role='alert'>
-              Could not load choices. Close and reopen this dialog to retry.
-            </p>
-          )}
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        const selected = options.find(
+          (option) => option.value === String(field.value ?? '')
+        )
+
+        return (
+          <FormItem>
+            <FieldLabel name={name} label={label} />
+            {searchable ? (
+              <Popover open={open} onOpenChange={setOpen} modal>
+                <PopoverTrigger asChild>
+                  <FormControl {...unansweredProps(name, field.value)}>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      role='combobox'
+                      aria-expanded={open}
+                      aria-controls={`${name}-options`}
+                      className={cn(
+                        'w-full justify-between font-normal',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      <span className='flex min-w-0 items-center gap-2'>
+                        {selected && <ColorSwatch name={selected.label} />}
+                        <span className='truncate'>
+                          {selected?.label ?? 'Not recorded'}
+                        </span>
+                      </span>
+                      <ChevronsUpDown
+                        className='opacity-50'
+                        aria-hidden='true'
+                      />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent
+                  align='start'
+                  className='w-(--radix-popover-trigger-width) min-w-60 p-0'
+                >
+                  <Command>
+                    <CommandInput
+                      placeholder={`Search ${label.toLowerCase()}…`}
+                    />
+                    <CommandList id={`${name}-options`}>
+                      <CommandEmpty>No matching colors.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value='Not recorded'
+                          onSelect={() => {
+                            field.onChange('')
+                            setOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              'size-4',
+                              !field.value ? 'opacity-100' : 'opacity-0'
+                            )}
+                            aria-hidden
+                          />
+                          <span>Not recorded</span>
+                        </CommandItem>
+                        {options.map((option) => (
+                          <CommandItem
+                            key={option.value}
+                            value={option.label}
+                            onSelect={() => {
+                              field.onChange(option.value)
+                              setOpen(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'size-4',
+                                option.value === String(field.value ?? '')
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                              aria-hidden
+                            />
+                            <ColorSwatch name={option.label} />
+                            <span>{option.label}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <Select
+                value={field.value ? String(field.value) : NONE}
+                onValueChange={(value) =>
+                  field.onChange(value === NONE ? '' : value)
+                }
+              >
+                <FormControl {...unansweredProps(name, field.value)}>
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='Not recorded' />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value={NONE}>Not recorded</SelectItem>
+                  {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {loading && <FormDescription>Loading choices…</FormDescription>}
+            {loadError && (
+              <p className='text-sm text-destructive' role='alert'>
+                Could not load choices. Close and reopen this dialog to retry.
+              </p>
+            )}
+            <FormMessage />
+          </FormItem>
+        )
+      }}
     />
   )
 }

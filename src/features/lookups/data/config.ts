@@ -75,6 +75,7 @@ const COLOR_GROUPS = [
   { value: 'orange_yellow', label: 'Orange / Yellow' },
   { value: 'green', label: 'Green' },
   { value: 'blue', label: 'Blue' },
+  { value: 'brown', label: 'Brown' },
 ]
 
 /**
