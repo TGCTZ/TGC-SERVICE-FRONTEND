@@ -153,6 +153,9 @@ export function AddStoneDialog({
                 key={label}
                 orderId={order.id}
                 label={label}
+                stoneReference={
+                  stone?.stone_reference ?? `${current.reference_number}-${label}`
+                }
                 stone={stone}
                 stoneCategories={stoneCategories}
                 disabled={stone ? !canChange || locked : !canAdd || waiting}
@@ -197,6 +200,7 @@ export function AddStoneDialog({
 type StoneCategoryRowProps = {
   orderId: number
   label: string
+  stoneReference: string
   /** The recorded stone, or null for one not yet identified. */
   stone: Stone | null
   stoneCategories: StoneCategoryOption[]
@@ -212,6 +216,7 @@ type StoneCategoryRowProps = {
 function StoneCategoryRow({
   orderId,
   label,
+  stoneReference,
   stone,
   stoneCategories,
   disabled,
@@ -265,7 +270,12 @@ function StoneCategoryRow({
 
   return (
     <li className='flex items-center gap-3 p-2.5 text-sm'>
-      <span className='w-16 shrink-0 font-medium'>Stone {label}</span>
+      <span className='flex w-44 shrink-0 flex-col font-medium'>
+        <span>Stone {label}</span>
+        <span className='truncate text-xs font-normal text-muted-foreground'>
+          {stoneReference}
+        </span>
+      </span>
       <Select
         value={pendingCategory ?? saved}
         onValueChange={pick}

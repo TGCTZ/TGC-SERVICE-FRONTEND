@@ -17,7 +17,11 @@ export function useDownloadCertificatePdf() {
     mutationFn: async (certificate: Certificate) => {
       const blob = await fetchCertificatePdf(certificate.id)
       const suffix = certificate.status === 'revoked' ? '-revoked' : ''
-      saveBlob(blob, `${certificate.certificate_number}${suffix}.pdf`)
+      // Slash is only a display separator; keep the downloaded filename safe.
+      saveBlob(
+        blob,
+        `${certificate.certificate_number.replace(/\//g, '')}${suffix}.pdf`
+      )
     },
     onError: () => toast.error('Could not download the certificate.'),
   })
