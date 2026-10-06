@@ -111,7 +111,7 @@ function StonesContent({ embedded }: { embedded: boolean }) {
         {!embedded && (
           <PageHeading
             title='Stones'
-            description='Every stone in the lab, what it was typed as, and where it has got to. Stones are typed on the Identification screen and weighed with the findings.'
+            description='Lab stones, their types, and current status.'
           />
         )}
 

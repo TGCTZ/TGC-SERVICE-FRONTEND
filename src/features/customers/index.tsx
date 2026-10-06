@@ -82,10 +82,7 @@ function CustomersContent() {
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
-          <PageHeading
-            title='Customers'
-            description='The people and companies that submit stones for identification. New ones are registered while receiving an order.'
-          />
+          <PageHeading title='Customers' />
         </div>
 
         {isError ? (

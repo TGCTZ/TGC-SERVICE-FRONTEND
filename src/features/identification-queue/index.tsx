@@ -122,7 +122,7 @@ export function IdentificationQueue() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='Identification'
-          description='Identify stones, review completed orders, and manage the stones registered in the lab.'
+          description='Orders waiting for stone identification.'
         />
         <Tabs
           value={selectedTab}

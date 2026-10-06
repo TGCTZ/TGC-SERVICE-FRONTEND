@@ -49,7 +49,7 @@ export function CustomerDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Delete customer'
-      desc={`Delete ${currentRow.full_name}? This is a soft delete — turn on "Show deleted" to find and restore them.`}
+      desc={`Delete ${currentRow.full_name}? Restore them later from Show deleted.`}
       confirmText={mutation.isPending ? 'Deleting...' : 'Delete'}
       destructive
       disabled={mutation.isPending}

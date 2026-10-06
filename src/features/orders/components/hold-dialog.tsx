@@ -79,8 +79,8 @@ export function HoldOrderDialog({
         <DialogHeader className='text-start'>
           <DialogTitle>Hold {order.reference_number}</DialogTitle>
           <DialogDescription>
-            Pause or withdraw the whole visit. Nothing is undone — the stones
-            keep their statuses and any bill stands.
+            Pauses or withdraws the visit; stone statuses and bills stay
+            unchanged.
           </DialogDescription>
         </DialogHeader>
 

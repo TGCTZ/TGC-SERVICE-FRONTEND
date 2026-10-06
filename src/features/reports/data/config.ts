@@ -4,15 +4,13 @@ import { PERMISSIONS, perm } from '@/lib/permissions'
 export const reportConfigs = {
   financial: {
     title: 'Financial reports',
-    description:
-      'Bills issued, payments collected, and balances still owed today.',
+    description: 'Bills, payments, and outstanding balances.',
     permissions: [perm('bills', 'view'), perm('payments', 'view')],
     gate: PERMISSIONS.financialReports,
   },
   operational: {
     title: 'Operational reports',
-    description:
-      'Orders received, stones registered, findings finalized, and certificates issued.',
+    description: 'Orders, findings, and certificates.',
     permissions: [
       perm('orders', 'view'),
       perm('stones', 'view'),

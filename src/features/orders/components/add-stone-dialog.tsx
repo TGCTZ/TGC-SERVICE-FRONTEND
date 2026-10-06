@@ -122,11 +122,9 @@ export function AddStoneDialog({
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-y-auto sm:max-w-md'>
         <DialogHeader className='text-start'>
           <DialogTitle>Identify stones</DialogTitle>
-          {/* Saving on pick means there is no Save button to look for, so the
-              dialog says so rather than leaving the user hunting for one. */}
           <DialogDescription>
-            {current.reference_number} — each stone saves as soon as you pick
-            its type. Labels are allocated in order and cannot be changed.
+            {current.reference_number} · Saves on selection; labels are assigned
+            in order and cannot be changed.
           </DialogDescription>
         </DialogHeader>
 

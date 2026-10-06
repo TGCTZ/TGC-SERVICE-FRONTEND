@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -132,9 +131,6 @@ export function CustomerMutateDialog({
           <DialogTitle>
             {isEdit ? `Edit ${currentRow?.full_name}` : 'Add customer'}
           </DialogTitle>
-          <DialogDescription>
-            Who submitted the stones, and how to reach them.
-          </DialogDescription>
         </DialogHeader>
 
         <DialogBody>
@@ -170,7 +166,7 @@ export function CustomerMutateDialog({
                         <Input {...field} value={field.value ?? ''} />
                       </FormControl>
                       <FormDescription>
-                        Must be unique across customers.
+                        Phone number must be unique.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

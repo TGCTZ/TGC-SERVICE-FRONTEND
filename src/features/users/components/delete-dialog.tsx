@@ -40,7 +40,7 @@ export function UserDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Delete user'
-      desc={`Are you sure you want to delete ${currentRow.full_name}? This is a soft delete, so the account can be restored from the API.`}
+      desc={`Delete ${currentRow.full_name}? The account can be restored later.`}
       confirmText={mutation.isPending ? 'Deleting...' : 'Delete'}
       destructive
       disabled={mutation.isPending}

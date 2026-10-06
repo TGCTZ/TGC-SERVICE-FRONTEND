@@ -95,7 +95,7 @@ function OrdersContent() {
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <PageHeading
             title='Orders'
-            description='Each visit a customer makes, and the stones they left behind.'
+            description='Customer visits and their registered stones.'
           />
 
           <Can permission={perm('orders', 'add')}>

@@ -172,13 +172,13 @@ export function RolePermissionsDialog({
               {role.name}
             </Badge>
           </DialogTitle>
-          <DialogDescription>
-            {role.is_protected
-              ? 'This role is protected and always holds every permission.'
-              : locked
-                ? 'Only a role ranked above this one can change its permissions.'
-                : 'Choose what this role may do. Changes apply to every user holding it.'}
-          </DialogDescription>
+          {(role.is_protected || locked) && (
+            <DialogDescription>
+              {role.is_protected
+                ? 'Protected: its permissions cannot be changed.'
+                : 'Only a higher-ranked role can change these permissions.'}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <Input

@@ -49,8 +49,7 @@ const worklistConfigs: WorklistConfig[] = [
   {
     slug: 'identification',
     title: 'Identification queue',
-    description:
-      "Orders with stones still to be typed. A stone's type is what prices it, so nothing here can be billed yet.",
+    description: 'Orders with stones that still need a type.',
     endpoint: '/orders/worklist',
     rowKind: 'order',
     actionLabel: 'Identify stone',
@@ -63,8 +62,7 @@ const worklistConfigs: WorklistConfig[] = [
   {
     slug: 'billing',
     title: 'Ready to bill',
-    description:
-      'Orders with every stone identified and no bill raised against them.',
+    description: 'Identified orders without a bill.',
     endpoint: '/bills/worklist',
     rowKind: 'order',
     actionLabel: 'Request control number',
@@ -75,8 +73,7 @@ const worklistConfigs: WorklistConfig[] = [
   {
     slug: 'findings',
     title: 'Findings queue',
-    description:
-      'Paid stones on the bench, whose findings has not been finalized yet.',
+    description: 'Paid stones awaiting findings.',
     endpoint: '/identification-reports/worklist',
     rowKind: 'stone',
     actionLabel: 'Record findings',

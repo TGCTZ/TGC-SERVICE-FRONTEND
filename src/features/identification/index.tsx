@@ -106,7 +106,7 @@ function IdentificationContent() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='Findings'
-          description="What the bench found, per stone — the findings recorded after payment. A report can only be opened once the stone's bill is settled."
+          description='Record findings for paid stones.'
         />
 
         {isError ? (

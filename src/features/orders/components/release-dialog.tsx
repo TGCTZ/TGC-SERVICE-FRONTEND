@@ -51,7 +51,7 @@ export function ReleaseOrderDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Release order'
-      desc={`Return ${order.reference_number} to active work? It picks up exactly where it left off${order.hold_reason ? `, and the reason on file ("${order.hold_reason}") is cleared` : ''}.`}
+      desc={`Resume ${order.reference_number} where it paused${order.hold_reason ? '; the saved reason will be cleared' : ''}.`}
       confirmText={mutation.isPending ? 'Releasing...' : 'Release'}
       disabled={mutation.isPending}
       handleConfirm={() => mutation.mutate()}

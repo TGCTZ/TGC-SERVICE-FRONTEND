@@ -72,8 +72,7 @@ export function PasswordStep() {
                 />
               </FormControl>
               <FormDescription>
-                At least 8 characters, not the temporary password from your
-                email.
+                Use 8+ characters; don’t reuse the temporary password.
               </FormDescription>
               <FormMessage />
             </FormItem>

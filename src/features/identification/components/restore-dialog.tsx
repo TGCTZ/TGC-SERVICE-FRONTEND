@@ -49,7 +49,7 @@ export function ReportRestoreDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Restore report'
-      desc={`Bring ${currentRow.report_number} back?`}
+      desc={`Restore ${currentRow.report_number}?`}
       confirmText={mutation.isPending ? 'Restoring...' : 'Restore'}
       disabled={mutation.isPending}
       handleConfirm={() => mutation.mutate()}

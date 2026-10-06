@@ -76,7 +76,7 @@ export function AuditLogs() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='Audit log'
-          description='Every change, sign-in and permission grant recorded by the API. Filter by event to isolate sign-ins or permission changes.'
+          description='API-recorded changes, sign-ins, and permission grants.'
         />
 
         {isError ? (

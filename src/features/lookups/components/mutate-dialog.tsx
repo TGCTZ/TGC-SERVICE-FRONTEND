@@ -228,7 +228,9 @@ export function LookupMutateDialog({
           <DialogTitle>
             {`${isEdit ? 'Edit' : 'Add'} ${config.title.toLowerCase()}`}
           </DialogTitle>
-          <DialogDescription>{config.description}</DialogDescription>
+          {config.description && (
+            <DialogDescription>{config.description}</DialogDescription>
+          )}
         </DialogHeader>
 
         <DialogBody>

@@ -113,7 +113,9 @@ export function LookupViewDialog({
             <BoolBadge value={row.is_active} />
             {row.deleted_at && <StatusBadge tone='danger'>Deleted</StatusBadge>}
           </DialogTitle>
-          <DialogDescription>{config.description}</DialogDescription>
+          {config.description && (
+            <DialogDescription>{config.description}</DialogDescription>
+          )}
         </DialogHeader>
 
         <DialogBody className='space-y-5'>

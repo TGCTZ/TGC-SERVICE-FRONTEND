@@ -119,8 +119,7 @@ export function FinalizeReportDialog({
         <DialogHeader className='text-start'>
           <DialogTitle>Finalize {currentRow.report_number}</DialogTitle>
           <DialogDescription>
-            The findings and instruments are locked, and the certificate is
-            issued automatically. This cannot be undone.
+            Locks findings and issues the certificate. This cannot be undone.
           </DialogDescription>
         </DialogHeader>
 

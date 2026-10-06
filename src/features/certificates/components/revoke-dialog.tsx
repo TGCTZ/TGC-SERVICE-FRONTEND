@@ -46,7 +46,7 @@ export function RevokeCertificateDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Revoke certificate'
-      desc={`Revoke ${currentRow.certificate_number}? It will keep downloading, watermarked REVOKED, so whoever holds a printed copy learns it has been withdrawn.`}
+      desc={`Revoke ${currentRow.certificate_number}? It remains downloadable with a REVOKED watermark.`}
       confirmText={mutation.isPending ? 'Revoking...' : 'Revoke'}
       destructive
       disabled={mutation.isPending}

@@ -94,8 +94,7 @@ export function PasswordForm() {
                 <PasswordInput autoComplete='current-password' {...field} />
               </FormControl>
               <FormDescription>
-                Required even though you are signed in — a borrowed session
-                should not be enough to lock you out of your own account.
+                Confirm your identity before changing your password.
               </FormDescription>
               <FormMessage />
             </FormItem>

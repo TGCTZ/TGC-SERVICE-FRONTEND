@@ -133,8 +133,7 @@ export function ProfileForm() {
                 <Input {...field} />
               </FormControl>
               <FormDescription>
-                Your unique sign-in name. It can be changed once it is not
-                already taken.
+                Unique sign-in name; change it while the new name is available.
               </FormDescription>
               <FormMessage />
             </FormItem>

@@ -103,9 +103,7 @@ export function SimulatePaymentDialog({
             Simulate payment
           </DialogTitle>
           <DialogDescription>
-            Feeds a fabricated GePG notification through the same handler the
-            live gateway calls — so this exercises the real path: a payment is
-            recorded, the bill settles, and the stones transition.
+            Sends a test GePG notification through the live payment handler.
           </DialogDescription>
         </DialogHeader>
 

@@ -105,9 +105,7 @@ export function NotificationsForm() {
                     <FormLabel className='text-base'>
                       Communication emails
                     </FormLabel>
-                    <FormDescription>
-                      Receive emails about your account activity.
-                    </FormDescription>
+                    <FormDescription>Account activity updates.</FormDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -128,7 +126,7 @@ export function NotificationsForm() {
                       Marketing emails
                     </FormLabel>
                     <FormDescription>
-                      Receive emails about new products, features, and more.
+                      Product and feature updates.
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -148,7 +146,7 @@ export function NotificationsForm() {
                   <div className='space-y-0.5'>
                     <FormLabel className='text-base'>Social emails</FormLabel>
                     <FormDescription>
-                      Receive emails for friend requests, follows, and more.
+                      Friend and follow updates.
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -168,7 +166,7 @@ export function NotificationsForm() {
                   <div className='space-y-0.5'>
                     <FormLabel className='text-base'>Security emails</FormLabel>
                     <FormDescription>
-                      Receive emails about your account activity and security.
+                      Security alerts are always sent.
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -200,7 +198,7 @@ export function NotificationsForm() {
                   Use different settings for my mobile devices
                 </FormLabel>
                 <FormDescription>
-                  You can manage your mobile notifications in the{' '}
+                  Manage notifications on the{' '}
                   <Link
                     to='/settings'
                     className='underline decoration-dashed underline-offset-4 hover:decoration-solid'

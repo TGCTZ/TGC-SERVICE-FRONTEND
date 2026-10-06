@@ -111,7 +111,7 @@ function BillsContent() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='Bills'
-          description='What each order was charged, what GePG has collected, and which orders are ready to bill.'
+          description='Charges, payment status, and orders ready to bill.'
         />
 
         {isError ? (

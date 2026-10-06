@@ -43,7 +43,7 @@ export function StoneRestoreDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Restore stone'
-      desc={`Bring ${currentRow.label} back into its order?`}
+      desc={`Restore ${currentRow.label} to its order?`}
       confirmText={mutation.isPending ? 'Restoring...' : 'Restore'}
       disabled={mutation.isPending}
       handleConfirm={() => mutation.mutate()}

@@ -370,7 +370,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
           open={open === 'delete'}
           onOpenChange={(isOpen) => !isOpen && setOpen(null)}
           title='Delete'
-          desc={`Delete "${currentRow.name}"? This is a soft delete — turn on "Show deleted" to find and restore it.`}
+          desc={`Delete "${currentRow.name}"? Restore it later from Show deleted.`}
           confirmText={deleteMutation.isPending ? 'Deleting...' : 'Delete'}
           destructive
           disabled={deleteMutation.isPending}
@@ -384,7 +384,7 @@ function LookupsContent({ config }: { config: LookupConfig }) {
           open={open === 'restore'}
           onOpenChange={(isOpen) => !isOpen && setOpen(null)}
           title='Restore'
-          desc={`Bring "${currentRow.name}" back?`}
+          desc={`Restore "${currentRow.name}"?`}
           confirmText={restoreMutation.isPending ? 'Restoring...' : 'Restore'}
           disabled={restoreMutation.isPending}
           handleConfirm={() => restoreMutation.mutate(currentRow)}

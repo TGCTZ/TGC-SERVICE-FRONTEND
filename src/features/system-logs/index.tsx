@@ -241,7 +241,7 @@ export function SystemLogs() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='System log'
-          description='Application errors and warnings written by the API. Credentials are redacted before they leave the server.'
+          description='API errors and warnings; credentials are redacted.'
         />
 
         {isError ? (

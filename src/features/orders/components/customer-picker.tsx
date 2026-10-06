@@ -242,7 +242,7 @@ function ExistingCustomerSearch({
 
       {!canSearch && (
         <p className='text-xs text-muted-foreground'>
-          Type at least two characters to search customers on file.
+          Type 2+ characters to search customers.
         </p>
       )}
 

@@ -91,9 +91,8 @@ export function GenerateBillDialog({
         <DialogHeader className='text-start'>
           <DialogTitle>Request control number</DialogTitle>
           <DialogDescription>
-            Check what the customer will be charged. Billing cannot be undone —
-            the stones lock to their current types and the bill goes to GePG for
-            a control number.
+            Review charges before sending the bill to GePG; stone types lock and
+            billing cannot be undone.
           </DialogDescription>
         </DialogHeader>
 

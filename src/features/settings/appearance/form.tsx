@@ -11,7 +11,6 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -76,9 +75,6 @@ export function AppearanceForm() {
                 </FormControl>
                 <ChevronDownIcon className='absolute inset-e-3 top-2.5 h-4 w-4 opacity-50' />
               </div>
-              <FormDescription className='font-manrope'>
-                Set the font you want to use in the dashboard.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -89,9 +85,6 @@ export function AppearanceForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Theme</FormLabel>
-              <FormDescription>
-                Select the theme for the dashboard.
-              </FormDescription>
               <FormMessage />
               <RadioGroup
                 onValueChange={field.onChange}

@@ -101,7 +101,7 @@ function CertificatesContent() {
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <PageHeading
             title='Certificates'
-            description='The documents the lab stands behind. Each downloads as a PDF for printing, and can be withdrawn, but never edited.'
+            description='Issued certificates can be downloaded; revoked certificates remain in history.'
           />
         </div>
 

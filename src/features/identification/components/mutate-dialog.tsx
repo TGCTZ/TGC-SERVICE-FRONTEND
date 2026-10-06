@@ -314,7 +314,7 @@ export function ReportMutateDialog({
           <DialogDescription>
             {row
               ? `Stone ${row.stone_label} · ${row.order_reference}`
-              : 'Only paid stones without finished findings can be opened.'}
+              : 'Select a paid stone awaiting findings.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -367,13 +367,12 @@ export function ReportMutateDialog({
                         )}
                         {isEdit ? (
                           <FormDescription>
-                            A report cannot be moved to another stone.
+                            A report stays linked to its stone.
                           </FormDescription>
                         ) : (
                           worklist.length === 0 && (
                             <FormDescription>
-                              Nothing is waiting — a stone appears here once its
-                              bill is settled.
+                              Paid stones appear here when ready for findings.
                             </FormDescription>
                           )
                         )}

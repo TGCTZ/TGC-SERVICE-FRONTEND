@@ -44,7 +44,7 @@ export function ReportDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Delete report'
-      desc={`Delete ${currentRow.report_number}? This is a soft delete — turn on "Show deleted" to find and restore it. The stone returns to the findings queue, and can be reported on again; once it has been, this report can no longer be restored.`}
+      desc={`Delete ${currentRow.report_number}? It returns to findings and can be restored until a new report is filed for the stone.`}
       confirmText={mutation.isPending ? 'Deleting...' : 'Delete'}
       destructive
       disabled={mutation.isPending}

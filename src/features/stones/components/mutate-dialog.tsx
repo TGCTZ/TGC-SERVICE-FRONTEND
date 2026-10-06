@@ -128,13 +128,13 @@ export function StoneMutateDialog({
             {currentRow?.label ?? 'Stone'}
             {currentRow && <StoneStatusBadge status={currentRow.status} />}
           </DialogTitle>
-          <DialogDescription>
-            {isLocked
-              ? 'Billed, so its type can no longer change — that type is what priced the bill. Weight is recorded with the findings.'
-              : currentRow?.order_reference
-                ? `Identified under ${currentRow.order_reference}.`
-                : 'A stone in an order.'}
-          </DialogDescription>
+          {(isLocked || currentRow?.order_reference) && (
+            <DialogDescription>
+              {isLocked
+                ? 'Billed stones keep their type; record weight with findings.'
+                : `Identified under ${currentRow?.order_reference}.`}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <DialogBody>
