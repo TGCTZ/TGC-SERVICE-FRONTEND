@@ -5,21 +5,17 @@ import { useTheme } from '@/context/theme-provider'
 /**
  * How long a toast stays on screen, in milliseconds.
  *
- * Well above sonner's 4s default: these messages confirm what happened to a
- * physical stone or an order and often name the next step, and reception reads
- * them while still handling the customer. A message missed is a question asked.
- * Paired with `closeButton`, so a toast this long never becomes an obstruction.
+ * Five seconds gives users time to read a confirmation without leaving it on
+ * screen long enough to obstruct the workflow.
  */
-const TOAST_DURATION_MS = 16_000
+const TOAST_DURATION_MS = 5_000
 
 /**
  * App-wide toast host.
  *
  * Toasts sit bottom-right, sonner's default. They stack away from the page
- * header and the dialogs most actions are triggered from, so a confirmation
- * never lands on top of the thing you are still reading — and with a 16s
- * duration and a close button, one that outlives its welcome can be dismissed
- * rather than waited out.
+ * header and the dialogs most actions are triggered from. The five-second
+ * duration and close button keep confirmations easy to dismiss.
  *
  * Watch the sticky pagination bar every table renders: it shares this corner,
  * and `offset` is the lever if the two start to collide.

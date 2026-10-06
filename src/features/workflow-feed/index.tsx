@@ -27,6 +27,8 @@ type Props = {
   renderAction?: (row: WorkflowRow) => ReactNode
   renderStatus?: (row: WorkflowRow) => ReactNode
   renderProgress?: (row: WorkflowRow) => ReactNode
+  renderControlNumber?: (row: WorkflowRow) => ReactNode
+  showDate?: boolean
   progressHeader?: string
   onAction?: (row: WorkflowRow) => void
   onRowClick?: (row: WorkflowRow) => void
@@ -46,6 +48,8 @@ export function WorkflowFeedTable({
   renderAction,
   renderStatus,
   renderProgress,
+  renderControlNumber,
+  showDate = true,
   progressHeader = 'Progress',
   onAction,
   onRowClick,
@@ -80,12 +84,26 @@ export function WorkflowFeedTable({
         cell: ({ row }) =>
           renderStatus ? renderStatus(row.original) : row.original.status,
       },
-      {
-        accessorKey: 'date',
-        header: 'Date',
-        cell: ({ row }) =>
-          row.original.date ? formatDate(row.original.date) : '—',
-      },
+      ...(renderControlNumber
+        ? [
+            {
+              id: 'control_number',
+              header: 'Control number',
+              cell: ({ row }: { row: { original: WorkflowRow } }) =>
+                renderControlNumber(row.original),
+            } satisfies ColumnDef<WorkflowRow>,
+          ]
+        : []),
+      ...(showDate
+        ? [
+            {
+              accessorKey: 'date',
+              header: 'Date',
+              cell: ({ row }) =>
+                row.original.date ? formatDate(row.original.date) : '—',
+            } satisfies ColumnDef<WorkflowRow>,
+          ]
+        : []),
       {
         id: 'action',
         header: 'Action',
@@ -120,9 +138,11 @@ export function WorkflowFeedTable({
       actionPermission,
       labelForRow,
       renderAction,
+      renderControlNumber,
       renderProgress,
       progressHeader,
       renderStatus,
+      showDate,
       onAction,
       permissionForRow,
     ]

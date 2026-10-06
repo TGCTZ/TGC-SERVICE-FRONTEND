@@ -205,7 +205,7 @@ export function GenerateBillDialog({
             {mutation.isPending
               ? 'Requesting...'
               : canBill
-                ? `Request control number · ${money(preview?.total ?? null)}`
+                ? `Bill (${money(preview?.total ?? null)})`
                 : 'Request control number'}
           </Button>
         </DialogFooter>

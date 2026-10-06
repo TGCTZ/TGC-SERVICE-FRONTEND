@@ -135,6 +135,16 @@ function BillsContent() {
               )
             }
             progressHeader='Payment / identification'
+            showDate={false}
+            renderControlNumber={(row) => {
+              if (row.kind !== 'bill') return '—'
+              const controlNumber = billSchema.parse(row.detail).control_number
+              return (
+                controlNumber ?? (
+                  <span className='text-muted-foreground'>Awaiting number</span>
+                )
+              )
+            }}
             renderProgress={(row) => {
               if (row.kind === 'bill') {
                 const bill = billSchema.parse(row.detail)

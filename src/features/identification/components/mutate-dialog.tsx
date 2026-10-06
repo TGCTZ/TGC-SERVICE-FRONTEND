@@ -160,7 +160,10 @@ export function ReportMutateDialog({
 
   // One hook for all five reference lists; a hook cannot run inside `.map()`.
   const related = useQueries({
-    queries: RELATED.map((entry) => lookupOptionsQuery(entry.resource)),
+    queries: RELATED.map((entry) => ({
+      ...lookupOptionsQuery(entry.resource),
+      enabled: open,
+    })),
   })
 
   // Only needed while creating: the endpoint encodes "paid, not yet finalized".
@@ -395,6 +398,8 @@ export function ReportMutateDialog({
                           value: String(row.id),
                           label: row.name,
                         }))}
+                        loading={related[index]?.isPending ?? false}
+                        loadError={related[index]?.isError ?? false}
                       />
                     ))}
 
@@ -685,7 +690,13 @@ function OptionField({
   name,
   label,
   options,
-}: FieldProps & { options: EnumOption[] }) {
+  loading = false,
+  loadError = false,
+}: FieldProps & {
+  options: EnumOption[]
+  loading?: boolean
+  loadError?: boolean
+}) {
   return (
     <FormField
       control={control}
@@ -713,6 +724,12 @@ function OptionField({
               ))}
             </SelectContent>
           </Select>
+          {loading && <FormDescription>Loading choices…</FormDescription>}
+          {loadError && (
+            <p className='text-sm text-destructive' role='alert'>
+              Could not load choices. Close and reopen this dialog to retry.
+            </p>
+          )}
           <FormMessage />
         </FormItem>
       )}
