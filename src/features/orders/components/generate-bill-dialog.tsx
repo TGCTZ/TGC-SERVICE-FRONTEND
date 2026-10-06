@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { TriangleAlert } from 'lucide-react'
+import { LoaderCircle, TriangleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate, formatMoney } from '@/lib/format'
 import { serverMessageOr } from '@/lib/handle-server-error'
@@ -16,7 +17,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DefinitionList } from '@/components/definition-list'
 import { DialogBody } from '@/components/dialog-body'
-import { billPreviewQuery } from '@/features/bills/data/api'
+import { billPreviewQuery, billQuery } from '@/features/bills/data/api'
 import { generateBill } from '../data/api'
 import { type Order } from '../data/schema'
 
@@ -45,6 +46,24 @@ export function GenerateBillDialog({
   order,
 }: GenerateBillDialogProps) {
   const queryClient = useQueryClient()
+  const [requestedBill, setRequestedBill] = useState<{
+    id: number
+    bill_number: string
+    control_number: string | null
+  } | null>(null)
+
+  const billDetails = useQuery({
+    ...billQuery(requestedBill?.id ?? 0),
+    enabled: requestedBill !== null && !requestedBill.control_number,
+    refetchInterval: (query) =>
+      query.state.data?.control_number ? false : 3000,
+  })
+  const controlNumber =
+    requestedBill?.control_number || billDetails.data?.control_number || null
+  const closeRequestedBill = () => {
+    setRequestedBill(null)
+    onOpenChange(false)
+  }
 
   const {
     data: preview,
@@ -55,6 +74,11 @@ export function GenerateBillDialog({
   const mutation = useMutation({
     mutationFn: () => generateBill(order.id),
     onSuccess: async (bill) => {
+      setRequestedBill({
+        id: bill.id,
+        bill_number: bill.bill_number,
+        control_number: bill.control_number || null,
+      })
       toast.success(`Bill ${bill.bill_number} has been created`, {
         description: `Raised against ${order.reference_number}. It is now awaiting payment.`,
       })
@@ -65,7 +89,6 @@ export function GenerateBillDialog({
         queryClient.invalidateQueries({ queryKey: ['worklist'] }),
         queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
       ])
-      onOpenChange(false)
     },
     onError: (error) => {
       // A partly identified order, an unpriced category or an existing bill are
@@ -78,6 +101,10 @@ export function GenerateBillDialog({
       })
     },
   })
+  const handleRequestDialogChange = (nextOpen: boolean) => {
+    if (!nextOpen && mutation.isPending) return
+    onOpenChange(nextOpen)
+  }
 
   const blockers = preview?.blockers ?? []
   const canBill = !isPending && !isError && blockers.length === 0
@@ -86,7 +113,11 @@ export function GenerateBillDialog({
     formatMoney(value === null ? null : Number(value), preview?.currency)
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog
+        open={open && requestedBill === null}
+        onOpenChange={handleRequestDialogChange}
+      >
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-lg'>
         <DialogHeader className='text-start'>
           <DialogTitle>Request control number</DialogTitle>
@@ -189,7 +220,7 @@ export function GenerateBillDialog({
         <DialogFooter>
           <Button
             variant='outline'
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleRequestDialogChange(false)}
             disabled={mutation.isPending}
           >
             Cancel
@@ -198,17 +229,60 @@ export function GenerateBillDialog({
             onClick={() => mutation.mutate()}
             disabled={!canBill || mutation.isPending}
           >
-            {/* The amount is on the button itself: the last thing you read
-                before committing should be the figure you are committing to.
-                Falls back to the plain verb while the price is unknown. */}
-            {mutation.isPending
-              ? 'Requesting...'
-              : canBill
-                ? `Bill (${money(preview?.total ?? null)})`
-                : 'Request control number'}
+            {mutation.isPending ? 'Requesting...' : 'Request'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <Dialog
+      open={requestedBill !== null}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) closeRequestedBill()
+      }}
+    >
+      <DialogContent className='sm:max-w-md'>
+        <DialogHeader className='text-start'>
+          <DialogTitle>Control number</DialogTitle>
+          <DialogDescription>
+            Bill {requestedBill?.bill_number} · {order.reference_number}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div
+          aria-live='polite'
+          className='flex min-h-36 flex-col items-center justify-center gap-3 rounded-md border bg-muted/30 p-5 text-center'
+        >
+          {controlNumber ? (
+            <>
+              <p className='text-sm text-muted-foreground'>GePG control number</p>
+              <p className='break-all font-mono text-3xl font-bold tracking-wide tabular-nums sm:text-4xl'>
+                {controlNumber}
+              </p>
+            </>
+          ) : (
+            <>
+              <LoaderCircle className='size-6 animate-spin text-muted-foreground' />
+              <p className='text-sm font-medium'>
+                Waiting for GePG to return the control number…
+              </p>
+              <p className='text-xs text-muted-foreground'>
+                This dialog will update automatically.
+              </p>
+            </>
+          )}
+        </div>
+
+        {billDetails.isError && !controlNumber && (
+          <p className='text-sm text-muted-foreground' role='status'>
+            Still waiting for GePG. We’ll keep checking automatically.
+          </p>
+        )}
+
+        <DialogFooter>
+          <Button onClick={closeRequestedBill}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
