@@ -19,7 +19,6 @@ import {
 } from '@/features/workflow-feed/data/api'
 import { CertificatePreviewDialog } from './components/preview-dialog'
 import { CertificatesProvider, useCertificates } from './components/provider'
-import { RevokeCertificateDialog } from './components/revoke-dialog'
 import { CertificatesRowActions } from './components/row-actions'
 import { CertificateStatusBadge } from './components/status-badge'
 import { CertificateViewDialog } from './components/view-dialog'
@@ -101,7 +100,7 @@ function CertificatesContent() {
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <PageHeading
             title='Certificates'
-            description='Issued certificates can be downloaded; revoked certificates remain in history.'
+            description='Issued certificates are available to view, print, and download.'
           />
         </div>
 
@@ -175,18 +174,6 @@ function CertificatesContent() {
         />
       )}
 
-      {currentRow && (
-        <RevokeCertificateDialog
-          open={open === 'revoke'}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) {
-              setOpen(null)
-              setCurrentRow(null)
-            }
-          }}
-          currentRow={currentRow}
-        />
-      )}
     </>
   )
 }

@@ -7,7 +7,7 @@ import {
   type ListParams,
   type Paginated,
 } from '@/lib/api-query'
-import { certificateSchema, type Certificate } from './schema'
+import { certificateSchema } from './schema'
 
 const listSchema = paginatedSchema(certificateSchema)
 
@@ -27,18 +27,6 @@ export const certificatesQuery = (params: ListParams) =>
     queryFn: () => fetchCertificates(params),
     placeholderData: (previous) => previous,
   })
-
-/**
- * Withdraw a certificate.
- *
- * The record stays, and so does its number — the PDF keeps downloading, now
- * watermarked REVOKED, so a holder checking a withdrawn document is told it was
- * withdrawn rather than that it never existed.
- */
-export async function revokeCertificate(id: number): Promise<Certificate> {
-  const res = await api.post(`/certificates/${id}/revoke`)
-  return certificateSchema.parse(res.data)
-}
 
 /**
  * Fetch one certificate's PDF.

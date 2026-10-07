@@ -7,10 +7,10 @@ import { type Certificate } from '../data/schema'
 /**
  * Download a certificate's PDF, named after the certificate.
  *
- * A revoked certificate still downloads — it renders with a REVOKED watermark,
- * and the `-revoked` suffix keeps a saved copy from being mistaken for a live
- * one. The server sets the same name in `Content-Disposition`, but a blob
- * download never sees that header, so the filename is rebuilt here.
+ * A legacy revoked certificate still downloads with its REVOKED watermark.
+ * The `-revoked` suffix keeps a saved copy from being mistaken for a live one.
+ * The server sets the same name in `Content-Disposition`, but a blob download
+ * never sees that header, so the filename is rebuilt here.
  */
 export function useDownloadCertificatePdf() {
   const mutation = useMutation({

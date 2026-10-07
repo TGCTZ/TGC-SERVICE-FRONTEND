@@ -3,6 +3,7 @@ import { z } from 'zod'
 /** Mirrors `CertificateStatus` in `apps/gems/enums.py`. */
 export const CERTIFICATE_STATUS_LABELS: Record<string, string> = {
   issued: 'Issued',
+  // Kept for certificates marked revoked before the revoke action was removed.
   revoked: 'Revoked',
 }
 

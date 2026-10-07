@@ -1,5 +1,5 @@
-import { Ban, Download, Eye, FileSearch, Printer } from 'lucide-react'
-import { PERMISSIONS, perm } from '@/lib/permissions'
+import { Download, Eye, FileSearch, Printer } from 'lucide-react'
+import { perm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useCertificates } from '../components/provider'
 import { type Certificate } from '../data/schema'
@@ -11,10 +11,8 @@ import {
 /**
  * Every action the API exposes for a certificate.
  *
- * No Edit: everything but the stone is minted by the service. No Delete or
- * Restore either — a certificate is withdrawn by revoking it, which keeps the
- * record and its number so a holder is told the document was withdrawn rather
- * than that it never existed.
+ * No Edit, Delete, or Restore: everything but the stone is minted by the
+ * issuing service, and an issued certificate is permanent.
  *
  * Declaring Download here rather than in a component is what puts it in both
  * the table row menu and the view dialog footer.
@@ -26,7 +24,7 @@ export function useCertificateActions(
   const { download } = useDownloadCertificatePdf()
   const { print } = usePrintCertificatePdf()
 
-  function select(dialog: 'view' | 'preview' | 'revoke') {
+  function select(dialog: 'view' | 'preview') {
     setCurrentRow(certificate)
     setOpen(dialog)
   }
@@ -59,15 +57,6 @@ export function useCertificateActions(
       icon: Download,
       permission: perm('certificates', 'view'),
       onSelect: () => download(certificate),
-    },
-    {
-      label: 'Revoke',
-      icon: Ban,
-      permission: PERMISSIONS.revokeCertificate,
-      onSelect: () => select('revoke'),
-      tone: 'destructive',
-      hidden: certificate.status === 'revoked',
-      separatorBefore: true,
     },
   ]
 }

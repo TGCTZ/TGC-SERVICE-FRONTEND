@@ -132,7 +132,6 @@ export const PERMISSIONS = {
   generateBill: 'billing.generate_bill',
   finalizeReport: 'identification.finalize_report',
   issueCertificate: 'certificates.issue_certificate',
-  revokeCertificate: 'certificates.revoke_certificate',
 
   // Module gates.
   moduleOrders: 'core.module_orders',
