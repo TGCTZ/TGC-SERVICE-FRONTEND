@@ -131,6 +131,7 @@ export const PERMISSIONS = {
   holdOrder: 'orders.hold_order',
   generateBill: 'billing.generate_bill',
   finalizeReport: 'identification.finalize_report',
+  editFinalizedReport: 'identification.edit_finalized_report',
   issueCertificate: 'certificates.issue_certificate',
 
   // Module gates.

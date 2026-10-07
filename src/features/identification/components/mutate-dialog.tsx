@@ -12,7 +12,7 @@ import { Check, ChevronsUpDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { fieldErrors, serverMessageOr } from '@/lib/handle-server-error'
-import { perm, type PermissionResource } from '@/lib/permissions'
+import { PERMISSIONS, perm, type PermissionResource } from '@/lib/permissions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
@@ -348,7 +348,12 @@ export function ReportMutateDialog({
 
   // A finalized report is locked by the service — `is_finalized` is one-way —
   // so the form stays locked even for someone who may otherwise edit.
-  const isLocked = Boolean(row?.is_finalized)
+  const permissions = useAuthStore(
+    (state) => state.auth.user?.permissions ?? []
+  )
+  const isLocked = Boolean(
+    row?.is_finalized && !permissions.includes(PERMISSIONS.editFinalizedReport)
+  )
 
   const form = useForm<FormValues>({
     resolver: zodResolver(reportFormSchema),
@@ -692,7 +697,7 @@ export function ReportMutateDialog({
                         name='weight'
                         render={({ field }) => (
                           <FormItem>
-                          <FieldLabel label='Weight' />
+                            <FieldLabel label='Weight' />
                             <FormControl
                               {...unansweredProps('weight', field.value)}
                             >
@@ -904,13 +909,7 @@ function needsAnswer(name: string, value: unknown): boolean {
   return !String(value ?? '').trim()
 }
 
-function FieldLabel({
-  label,
-  suffix,
-}: {
-  label: string
-  suffix?: string
-}) {
+function FieldLabel({ label, suffix }: { label: string; suffix?: string }) {
   return (
     <FormLabel>
       {label}

@@ -69,7 +69,7 @@ export async function createReport(
   return reportSchema.parse(res.data)
 }
 
-/** Refused by the service once the report is finalized. */
+/** Draft edits, or corrections by users with the finalized-report permission. */
 export async function updateReport(
   id: number,
   payload: ReportPayload

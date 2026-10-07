@@ -1,6 +1,7 @@
 import { Pencil } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import { formatDateTime } from '@/lib/format'
-import { perm } from '@/lib/permissions'
+import { PERMISSIONS, perm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -59,10 +60,9 @@ function formatStoneWeight(report: IdentificationReport): string | null {
  * A gemmologist's findings for one stone, as a record.
  *
  * A definition list rather than the mutate form with `isLocked` on every field.
- * A finalized report is genuinely immutable — `is_finalized` is one-way — so
- * the form was never going to accept a change, and rendering one implied
- * otherwise. It also let a blank optional finding look like an empty input
- * waiting to be filled in, when it means the test was not run.
+ * Most viewers cannot change a finalized report; authorized administrators can
+ * enter the correction flow explicitly. A blank optional finding is displayed
+ * as absent because it means the test was not run.
  */
 export function ReportViewDialog({
   open,
@@ -71,6 +71,12 @@ export function ReportViewDialog({
   onRequestEdit,
   actions = [],
 }: ReportViewDialogProps) {
+  const permissions = useAuthStore(
+    (state) => state.auth.user?.permissions ?? []
+  )
+  const canEdit =
+    !report.is_finalized ||
+    permissions.includes(PERMISSIONS.editFinalizedReport)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-2xl'>
@@ -221,10 +227,8 @@ export function ReportViewDialog({
           <ViewFooterActions
             actions={actions}
             primary={
-              // A finalized report accepts no writes, so Edit is withdrawn
-              // rather than offered and then refused by the API.
               onRequestEdit &&
-              !report.is_finalized && (
+              canEdit && (
                 <Can permission={perm('identification-reports', 'change')}>
                   <Button onClick={onRequestEdit}>
                     <Pencil className='me-1 size-4' />

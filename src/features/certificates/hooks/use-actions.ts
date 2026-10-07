@@ -1,5 +1,6 @@
-import { Download, Eye, FileSearch, Printer } from 'lucide-react'
-import { perm } from '@/lib/permissions'
+import { useNavigate } from '@tanstack/react-router'
+import { Download, Eye, FileSearch, Pencil, Printer } from 'lucide-react'
+import { PERMISSIONS, perm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useCertificates } from '../components/provider'
 import { type Certificate } from '../data/schema'
@@ -11,8 +12,8 @@ import {
 /**
  * Every action the API exposes for a certificate.
  *
- * No Edit, Delete, or Restore: everything but the stone is minted by the
- * issuing service, and an issued certificate is permanent.
+ * The certificate has no direct edit, delete, or restore action. Authorized
+ * users can open its linked findings for a controlled correction.
  *
  * Declaring Download here rather than in a component is what puts it in both
  * the table row menu and the view dialog footer.
@@ -20,6 +21,7 @@ import {
 export function useCertificateActions(
   certificate: Certificate | null
 ): RowAction[] {
+  const navigate = useNavigate()
   const { setOpen, setCurrentRow } = useCertificates()
   const { download } = useDownloadCertificatePdf()
   const { print } = usePrintCertificatePdf()
@@ -39,6 +41,25 @@ export function useCertificateActions(
       permission: perm('certificates', 'view'),
       onSelect: () => select('view'),
     },
+    ...(certificate.report
+      ? [
+          {
+            label: 'Edit findings',
+            icon: Pencil,
+            permission: PERMISSIONS.editFinalizedReport,
+            onSelect: () =>
+              navigate({
+                to: '/identification-reports',
+                search: {
+                  page: 1,
+                  pageSize: 10,
+                  status: 'Finalized',
+                  editReportId: certificate.report!,
+                },
+              }),
+          },
+        ]
+      : []),
     {
       label: 'Preview PDF',
       icon: FileSearch,

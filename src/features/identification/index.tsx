@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { perm } from '@/lib/permissions'
+import { useAuthStore } from '@/stores/auth-store'
+import { PERMISSIONS, perm } from '@/lib/permissions'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { DataTableRowActions, type RowAction } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
@@ -28,6 +30,7 @@ import { ReportsProvider, useReports } from './components/provider'
 import { ReportRestoreDialog } from './components/restore-dialog'
 import { ReportsRowActions } from './components/row-actions'
 import { ReportViewDialog } from './components/view-dialog'
+import { reportQuery } from './data/api'
 import { reportSchema, type IdentificationReport } from './data/schema'
 import { useReportActions } from './hooks/use-actions'
 
@@ -46,6 +49,31 @@ function IdentificationContent() {
   const navigate = route.useNavigate()
   const { open, setOpen, currentRow, setCurrentRow } = useReports()
   const [initialStone, setInitialStone] = useState<number | undefined>()
+  const selectedTab = search.status === 'Finalized' ? 'finalized' : 'open'
+  const canEditFinalized = useAuthStore((state) =>
+    (state.auth.user?.permissions ?? []).includes(
+      PERMISSIONS.editFinalizedReport
+    )
+  )
+  const editReportId = search.editReportId
+  const editReport = useQuery({
+    ...reportQuery(editReportId ?? 0),
+    enabled: Boolean(editReportId && canEditFinalized),
+  })
+
+  useEffect(() => {
+    if (!editReport.data || !editReportId) return
+
+    setCurrentRow(editReport.data)
+    setOpen('update')
+    navigate({
+      search: (prev) => {
+        const { editReportId: _removed, ...rest } = prev
+        return rest
+      },
+      replace: true,
+    })
+  }, [editReport.data, editReportId, navigate, setCurrentRow, setOpen])
 
   // The same list the table cell renders.
   const actions = useReportActions(currentRow)
@@ -106,59 +134,80 @@ function IdentificationContent() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='Findings'
-          description='Record findings for paid stones.'
+          description={
+            state.status === 'Finalized'
+              ? 'Review finalized findings.'
+              : 'Record findings for paid stones.'
+          }
         />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
         ) : (
-          <WorkflowFeedTable
-            rows={data?.results ?? []}
-            count={data?.count ?? 0}
-            isFetching={isPending || isFetching}
-            state={state}
-            onStateChange={handleStateChange}
-            renderStatus={(row) =>
-              row.kind === 'report' ? (
-                <StatusBadge
-                  tone={row.status === 'Finalized' ? 'success' : 'neutral'}
-                >
-                  {row.status}
-                </StatusBadge>
-              ) : (
-                <StatusBadge tone='info'>{row.status}</StatusBadge>
-              )
+          <Tabs
+            value={selectedTab}
+            onValueChange={(value) =>
+              handleStateChange({
+                status: value === 'finalized' ? 'Finalized' : undefined,
+                page: 1,
+              })
             }
-            renderAction={(row: WorkflowRow) => {
-              if (row.kind === 'stone') {
-                const action: RowAction = {
-                  label: 'Record findings',
-                  icon: Plus,
-                  tone: 'advance',
-                  permission: perm('identification-reports', 'add'),
-                  onSelect: () => {
-                    setInitialStone(row.record_id)
-                    setCurrentRow(null)
-                    setOpen('create')
-                  },
+            className='space-y-4'
+          >
+            <TabsList>
+              <TabsTrigger value='open'>Open findings</TabsTrigger>
+              <TabsTrigger value='finalized'>Finalized reports</TabsTrigger>
+            </TabsList>
+            <TabsContent value={selectedTab} className='mt-0'>
+              <WorkflowFeedTable
+                rows={data?.results ?? []}
+                count={data?.count ?? 0}
+                isFetching={isPending || isFetching}
+                state={state}
+                onStateChange={handleStateChange}
+                renderStatus={(row) =>
+                  row.kind === 'report' ? (
+                    <StatusBadge
+                      tone={row.status === 'Finalized' ? 'success' : 'neutral'}
+                    >
+                      {row.status}
+                    </StatusBadge>
+                  ) : (
+                    <StatusBadge tone='info'>{row.status}</StatusBadge>
+                  )
                 }
-                return <DataTableRowActions actions={[action]} />
-              }
-              if (row.kind !== 'report') return null
-              const report = reportSchema.parse(
-                row.detail
-              ) as IdentificationReport
-              return <ReportsRowActions report={report} />
-            }}
-            onRowClick={(row: WorkflowRow) => {
-              if (row.kind === 'report') {
-                setCurrentRow(
-                  reportSchema.parse(row.detail) as IdentificationReport
-                )
-                setOpen('view')
-              }
-            }}
-          />
+                renderAction={(row: WorkflowRow) => {
+                  if (row.kind === 'stone') {
+                    const action: RowAction = {
+                      label: 'Record findings',
+                      icon: Plus,
+                      tone: 'advance',
+                      permission: perm('identification-reports', 'add'),
+                      onSelect: () => {
+                        setInitialStone(row.record_id)
+                        setCurrentRow(null)
+                        setOpen('create')
+                      },
+                    }
+                    return <DataTableRowActions actions={[action]} />
+                  }
+                  if (row.kind !== 'report') return null
+                  const report = reportSchema.parse(
+                    row.detail
+                  ) as IdentificationReport
+                  return <ReportsRowActions report={report} />
+                }}
+                onRowClick={(row: WorkflowRow) => {
+                  if (row.kind === 'report') {
+                    setCurrentRow(
+                      reportSchema.parse(row.detail) as IdentificationReport
+                    )
+                    setOpen('view')
+                  }
+                }}
+              />
+            </TabsContent>
+          </Tabs>
         )}
       </Main>
 

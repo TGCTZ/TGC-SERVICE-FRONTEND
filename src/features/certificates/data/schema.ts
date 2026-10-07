@@ -10,13 +10,11 @@ export const CERTIFICATE_STATUS_LABELS: Record<string, string> = {
 /**
  * A certificate as the lab sees it.
  *
- * Write-once: everything but `stone` is minted by the issuing service — the
- * number and every snapshot have to be created together or the document does
- * not mean anything.
+ * Issuance metadata is write-once. A permitted correction can refresh finding
+ * snapshots in place while preserving the number, issue date, and signatories.
  *
- * The snapshots are copies, not joins, and that is the point: a certificate
- * must keep saying what it said on the day it was issued, even if the stone
- * type is later renamed or the colour retired.
+ * Snapshot fields do not follow renamed lookup rows. Authorized report
+ * corrections are the only workflow that refreshes them.
  */
 export const certificateSchema = z.object({
   id: z.number(),
