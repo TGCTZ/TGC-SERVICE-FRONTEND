@@ -68,6 +68,34 @@ export function InstrumentsPanel({
       ),
   })
 
+  const toggleAll = useMutation({
+    mutationFn: async ({ on }: { on: boolean }) => {
+      const activeInstruments = options.data ?? []
+      const changes = activeInstruments.filter(
+        (instrument) => usedIds.has(instrument.id) !== on
+      )
+
+      await Promise.all(
+        changes.map(async (instrument) => {
+          if (on) {
+            await addInstrumentUsed(reportId, instrument.id)
+            return
+          }
+          const row = rows.data?.find((r) => r.instrument === instrument.id)
+          if (row) await removeInstrumentUsed(row.id)
+        })
+      )
+    },
+    onSettled: invalidate,
+    onError: (error) =>
+      toast.error(
+        serverMessageOr(
+          error,
+          'Could not update the instruments. Please try again.'
+        )
+      ),
+  })
+
   const usedIds = new Set(rows.data?.map((r) => r.instrument))
   // A retired instrument drops out of the lookup but must stay visible on a
   // report that used it.
@@ -102,38 +130,69 @@ export function InstrumentsPanel({
       )}
 
       {options.isSuccess && rows.isSuccess && instruments.length > 0 && (
-        <ul className='divide-y rounded-md border'>
-          {instruments.map((instrument) => {
-            const id = `instrument-${instrument.id}`
-            const pending =
-              toggle.isPending && toggle.variables?.instrument === instrument.id
-            return (
-              <li
-                key={instrument.id}
-                className='flex items-center justify-between gap-2 px-3'
+        <div className='space-y-3'>
+          <div className='flex items-center justify-between gap-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm'>
+            <div className='min-w-0'>
+              <Label
+                htmlFor={`instruments-select-all-${reportId}`}
+                className='cursor-pointer font-semibold'
               >
-                {/* The label fills the row, so a click anywhere on it flips the
-                    switch it points at. */}
-                <Label
-                  htmlFor={id}
-                  className='flex-1 cursor-pointer py-3 font-medium'
+                Select all instruments
+              </Label>
+            </div>
+            <Switch
+              id={`instruments-select-all-${reportId}`}
+              checked={
+                toggleAll.isPending
+                  ? toggleAll.variables.on
+                  : (options.data?.length ?? 0) > 0 &&
+                    options.data!.every((instrument) =>
+                      usedIds.has(instrument.id)
+                    )
+              }
+              disabled={
+                readOnly ||
+                toggle.isPending ||
+                toggleAll.isPending ||
+                (options.data?.length ?? 0) === 0
+              }
+              onCheckedChange={(on) => toggleAll.mutate({ on })}
+            />
+          </div>
+          <ul className='divide-y rounded-md border'>
+            {instruments.map((instrument) => {
+              const id = `instrument-${instrument.id}`
+              const pending =
+                toggle.isPending &&
+                toggle.variables?.instrument === instrument.id
+              return (
+                <li
+                  key={instrument.id}
+                  className='flex items-center justify-between gap-2 px-3'
                 >
-                  {instrument.name}
-                </Label>
-                <Switch
-                  id={id}
-                  checked={
-                    pending ? toggle.variables!.on : usedIds.has(instrument.id)
-                  }
-                  disabled={readOnly || pending}
-                  onCheckedChange={(on) =>
-                    toggle.mutate({ instrument: instrument.id, on })
-                  }
-                />
-              </li>
-            )
-          })}
-        </ul>
+                  {/* The label fills the row, so a click anywhere on it flips the
+                      switch it points at. */}
+                  <Label
+                    htmlFor={id}
+                    className='flex-1 cursor-pointer py-3 font-medium'
+                  >
+                    {instrument.name}
+                  </Label>
+                  <Switch
+                    id={id}
+                    checked={
+                      pending ? toggle.variables!.on : usedIds.has(instrument.id)
+                    }
+                    disabled={readOnly || pending || toggleAll.isPending}
+                    onCheckedChange={(on) =>
+                      toggle.mutate({ instrument: instrument.id, on })
+                    }
+                  />
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </div>
   )
