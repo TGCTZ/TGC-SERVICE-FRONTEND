@@ -281,6 +281,13 @@ type ReportMutateDialogProps = {
   initialStone?: number
 }
 
+function formatStoneReference(
+  orderReference: string | null | undefined,
+  stoneLabel: string | null | undefined
+) {
+  return [orderReference, stoneLabel].filter(Boolean).join('-')
+}
+
 export function ReportMutateDialog({
   open,
   onOpenChange,
@@ -488,7 +495,7 @@ export function ReportMutateDialog({
           </DialogTitle>
           <DialogDescription>
             {row
-              ? `Stone ${row.stone_label} · ${row.order_reference}`
+              ? `Stone ${formatStoneReference(row.order_reference, row.stone_label)}`
               : 'Select a paid stone awaiting findings.'}
           </DialogDescription>
         </DialogHeader>
@@ -514,7 +521,10 @@ export function ReportMutateDialog({
                           <FormControl>
                             <Input
                               readOnly
-                              value={`${row?.stone_label ?? ''} · ${row?.order_reference ?? ''}`}
+                              value={formatStoneReference(
+                                row?.order_reference,
+                                row?.stone_label
+                              )}
                             />
                           </FormControl>
                         ) : (
@@ -536,7 +546,11 @@ export function ReportMutateDialog({
                                   key={stone.id}
                                   value={String(stone.id)}
                                 >
-                                  {stone.order_reference} · {stone.label} ·{' '}
+                                  {formatStoneReference(
+                                    stone.order_reference,
+                                    stone.label
+                                  )}{' '}
+                                  ·{' '}
                                   {stone.stone_category_detail?.name ??
                                     'Uncategorized'}
                                 </SelectItem>
