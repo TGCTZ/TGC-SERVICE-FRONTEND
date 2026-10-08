@@ -26,10 +26,8 @@ Also swap the favicons in `public/images/`.
 Declare every `VITE_` variable here, with a Zod type, and document it in
 `.env.example`. Variables not declared here are invisible to the app.
 
-`VITE_API_URL` is deliberately **optional** so the template boots without a
-backend — you get a shell with empty screens rather than a crash. If your
-project cannot function without an API, make it required here; nothing else
-will tell you it is missing.
+`VITE_API_URL` is optional and defaults to the local backend URL. The app can
+start without an explicit value; requests still need a reachable API.
 
 ### 3. API — `src/lib/api.ts`
 
@@ -53,15 +51,12 @@ the login in `src/features/auth/data/api.ts`, and the refresh seam in
 
 ### 5. Navigation — `src/components/layout/data/sidebar-data.ts`
 
-Six groups: **Reports** (Financial reports, Operational reports), **Operations**
-(Customers, Orders), then
-the lab pipeline — **Gemmology Lab**, **Billing**, **Certificates** — and
-**Administration** (Users, Logs, and the Reference data collapsible).
+Six groups: **Reports**, **Operations**, **Gemmology Lab**, **Billing**,
+**Certificates**, and **Administration** (Users, Logs, and Reference data).
 
-Each pipeline group opens with its queue and then the screens where that stage's
-work is done, so the sidebar reads in the order a stone actually moves. The four
-queues come from `src/features/worklists/data/config.ts` and Reference data from
-`src/features/lookups/data/config.ts` — add an entry there, not here.
+Pending counts appear on the relevant resource pages. Identification, findings,
+and billing features combine pending work with their records. Reference data
+navigation is generated from `src/features/lookups/data/config.ts`.
 
 Every entry carries the `permission` the API enforces. The file's own docblock
 explains the rules in full.
@@ -92,8 +87,8 @@ Two rules make edits here behave:
   no matching `--color-brand-x` entry there cannot be written as `bg-brand-x`,
   and the class silently does nothing.
 
-The full palette, the reasoning behind each role and the light/dark parity table
-are in **[TGC-COLOR-SYSTEM.md](./TGC-COLOR-SYSTEM.md)**.
+The token guide is **[TGC-COLOR-SYSTEM.md](./TGC-COLOR-SYSTEM.md)**; the CSS file
+is the source of current values.
 
 ### 8. Localisation — `src/lib/format.ts` ⚠ fails silently
 

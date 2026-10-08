@@ -42,25 +42,14 @@ flowchart LR
 - **`lib/api.ts`** is the single door to the backend; **`stores/`** holds global
   client state.
 
-## Keeping these docs honest
+## Maintaining documentation
 
-Docs rot quietly. A component is deleted and the paragraph describing it stays
-behind, still reading as though it were true. Two rules push back.
+Keep detailed implementation contracts beside the code that owns them, and
+link to those explanations from broader guides. When behavior or structure
+changes, update the relevant guide and examples in the same change. The
+[adding-a-feature checklist](./adding-a-feature.md#checklist) includes this
+review.
 
-**1. Code owns the "why".** The most important explanations live in docblocks
-next to the code they describe — `sidebar-data.ts` on how navigation is
-assembled and filtered, `lookups/data/config.ts` on the one-screen-many-tables
-escape hatch, `dialog-body.tsx` on why it does not use Radix `ScrollArea`,
-`api-query.ts` on the list contract. Docs **link** to those rather than
-restating them, because restating is what rots.
-
-**2. `pnpm docs:check` enforces the rest.** It fails when any doc references a
-file that no longer exists — a link, a code span, or a path in an ASCII diagram.
-There is no CI pipeline in this repository, so nothing runs it for you: run it
-before opening a pull request, alongside `pnpm typecheck`, `pnpm lint` and
-`pnpm build`. The backend has its own equivalent, `scripts/check_docs.py`,
-covering its own tree; neither script sees the other half of the repository.
-
-Neither can tell you a *description* went stale. That still needs a human, which
-is why the [adding-a-feature checklist](./adding-a-feature.md#checklist) ends
-with "update the docs in the same commit".
+`pnpm docs:check` verifies that documented paths resolve. GitHub Actions runs
+frontend checks on pushes to `main`/`master` and pull requests. The backend has
+its own link checker and CI workflow; each checker covers its repository.

@@ -40,7 +40,7 @@ Full setup and the common first-run failures:
 | [Conventions](./docs/conventions.md)           | The patterns every screen follows — read before writing one |
 | [Adding a Feature](./docs/adding-a-feature.md) | Step-by-step walkthrough                                    |
 | [Customizing](./docs/customizing.md)           | The swap points for branding, navigation and theme          |
-| [Colour System](./docs/TGC-COLOR-SYSTEM.md)    | The brand palette and every design token                    |
+| [Theme tokens](./docs/TGC-COLOR-SYSTEM.md)     | Theme variables and their current CSS definitions           |
 | [Testing](./docs/testing.md)                   | Verifying a change, running and writing tests               |
 | [Deployment](./docs/deployment.md)             | Building and shipping                                       |
 | [Tech Stack](./docs/tech-stack.md)             | Every library and why                                       |
@@ -48,22 +48,20 @@ Full setup and the common first-run failures:
 ## What the app does
 
 - **Orders and stones** — a customer's stones are received as one order, each
-  stone tracked individually through the lab
+  stone registered with a pricing category and tracked individually through the lab
 - **The lab pipeline** — identification, then billing, then findings, then
-  certification, with a worklist queue standing in front of each stage
+  certification, with worklists integrated into the relevant module pages
 - **Billing through GePG** — control numbers issued by the gateway, payment
   notifications settled against the bill, partial payments supported
 - **Certificates** — issued per stone, with a PDF and a public verification page
-- **A dashboard in two parts** — a live status board of queues and counts for
-  everyone, and management statistics (volume, revenue, turnaround, market mix)
-  over any period for those allowed to see them
+- **Reports** — financial and operational report pages with permission-filtered sections, date filters, tables, and XLSX/PDF exports
 - **Staff-created accounts** — no sign-up; an administrator creates an account
   from an email and a role, and the new user sets a password and completes their
   profile on first sign-in
 - **Permission-based access control** — route guards, UI gates and sidebar
   filtering all reading the one list the API enforces, with a role hierarchy so
   nobody manages a role at or above their own
-- **In-app notifications** — each handoff announced to the desk it waits on
+- **In-app notifications** — workflow events surface to the relevant staff
 - **A shared table layer** — server-side paging, sorting, filtering, soft
   deletes and declared row actions, so screens cannot drift apart
 - **An audit trail** — every write recorded and browsable under Audit Logs
@@ -134,9 +132,7 @@ patterns carrying real workflow.
 - **knip** guards against dead code; only `src/components/ui/**` and generated
   files are ignored
 - **`pnpm docs:check`** fails when a doc references a file that no longer
-  exists. There is no CI pipeline in this repository, so run it — along with
-  `pnpm typecheck`, `pnpm lint` and `pnpm build` — before opening a pull
-  request. [testing.md](./docs/testing.md) has the full list.
+  exists. GitHub Actions runs documentation checks, type checking, lint, tests, and builds on pushes to `main`/`master` and pull requests. Run those checks locally before opening a pull request; [testing.md](./docs/testing.md) has the commands.
 
 > Uses **pnpm** via corepack. Build-script approvals live in
 > `pnpm-workspace.yaml`.

@@ -1,23 +1,18 @@
 import { PERMISSIONS, perm } from '@/lib/permissions'
 
 /**
- * The lab's three queues.
+ * Legacy metadata for standalone worklist pages.
  *
- * Each answers "what is waiting for me right now" at one stage of the pipeline,
- * and each is served by the same screen: the four differ in exactly three ways
- * — which endpoint they read, whether the rows are orders or stones, and which
- * dialog the primary action opens. Four feature folders would be four copies of
- * one file.
- *
- * The endpoints themselves encode the queue's rules (identified, billed,
- * settled, finalized). Nothing here re-derives them.
+ * Current resource pages fetch their own pending work, and navigation badges
+ * use feature-specific count queries. No route consumes this registry; it
+ * remains as metadata exercised by its tests.
  */
 
 /** Which shape the rows are, and therefore which columns and dialog apply. */
 export type WorklistRowKind = 'order' | 'stone'
 
 export type WorklistConfig = {
-  /** Route path segment under /worklists. */
+  /** Legacy standalone-route key. */
   slug: string
   title: string
   description: string
@@ -87,19 +82,13 @@ export function worklistConfigBySlug(slug: string): WorklistConfig | undefined {
   return worklistConfigs.find((config) => config.slug === slug)
 }
 
-/** Every queue, for building navigation. */
+/** Return every entry in the legacy metadata registry. */
 export function allWorklistConfigs(): WorklistConfig[] {
   return worklistConfigs
 }
 
 /**
- * One queue by slug, for placing it beside the resource it feeds.
- *
- * A queue is reachable from two places on purpose. Under *Queues* it sits with
- * the others, which is how you work through a shift; under its own resource it
- * answers "what is waiting?" while you are already looking at that screen — and
- * that second question is the one people arrive with. Both routes hit the same
- * page, so there is nothing to keep in step.
+ * Resolve one entry in the legacy metadata registry by its key.
  */
 export function worklistConfig(slug: string): WorklistConfig {
   const config = worklistConfigBySlug(slug)

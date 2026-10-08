@@ -190,5 +190,6 @@ flowchart TD
 ```
 
 The step shown follows the flags, so a reload or a second sign-in resumes where
-the user left off. Storing the token pair from the password step matters: the
-API revokes every older token there, including the one the page is using.
+the user left off. The password endpoint blacklists outstanding refresh tokens
+and returns a fresh pair. Existing login-session rows are not revoked, so an
+older access token can remain usable until expiry or its idle deadline.

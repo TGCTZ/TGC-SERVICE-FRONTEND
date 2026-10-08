@@ -5,11 +5,8 @@ import {
 } from '@/features/worklists/data/config'
 
 /**
- * The queue registry.
- *
- * One screen serves all four queues off this config, so a wrong endpoint or
- * row kind does not fail to compile — it renders the wrong columns against the
- * wrong rows, or 404s at runtime. These are pure assertions and cost nothing.
+ * The legacy worklist metadata registry has no current route consumer. Keep its
+ * endpoint and permission descriptions consistent with the API while it exists.
  */
 describe('worklist configs', () => {
   it('resolves a queue by its slug and nothing by an unknown one', () => {

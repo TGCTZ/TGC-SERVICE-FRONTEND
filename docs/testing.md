@@ -104,8 +104,7 @@ expect(hasAnyPermission('orders.view_order')).toBe(false)
 
 ## Verifying a change
 
-There is **no CI pipeline in this repository**, so nothing runs these for you.
-Before opening a pull request:
+GitHub Actions runs the frontend checks on pushes to `main`/`master` and pull requests. Run the same checks locally before opening a pull request:
 
 ```bash
 pnpm typecheck     # tsc -b — the real type check; see below

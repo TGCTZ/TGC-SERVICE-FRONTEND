@@ -55,10 +55,7 @@ Two consequences:
 
 ## Before you ship
 
-There is no CI pipeline in this repository, so the pre-flight checks are
-manual — `pnpm typecheck`, `pnpm lint`, `pnpm docs:check`, `pnpm knip` and
-`pnpm build`. The full list, and what to do when the browser tests cannot run,
-is in [testing.md](./testing.md#verifying-a-change).
+GitHub Actions checks the frontend on pushes to `main`/`master` and pull requests, and deploys on a push to `main`. Run `pnpm typecheck`, `pnpm lint`, `pnpm docs:check`, `pnpm knip`, `pnpm test`, and `pnpm build` locally; see [testing.md](./testing.md#verifying-a-change).
 
 Deployment is whatever your host does with the built `dist/` — connect it to the
 repository, or run the build and upload.

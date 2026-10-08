@@ -76,7 +76,7 @@ permissions the API enforces:
 | --- | --- |
 | `superadmin@example.com` | Everything, including the only account that can create, edit or assign admins. Its own role is protected even from itself. |
 | `admin@example.com` | Every permission, one rank down: manages managers and the stations, but never sees that superadmin exists. |
-| `manager@example.com` | Runs the lab and its staff: manages the station roles and their accounts, sees the Management statistics. Cannot see admins, or edit the manager role. |
+| `manager@example.com` | Manages station roles and accounts, and can view financial and operational report sections granted to the role. Cannot see admins or edit the manager role. |
 | `receptionist@example.com` | Takes orders in. Can register customers and create orders, but cannot type a stone or record findings — the Gemmology Lab actions are absent, not disabled. |
 | `gemmologist@example.com` | The bench. Identification, findings and certification, with no billing. |
 | `accountant@example.com` | Billing and payments, read-only on the lab. |
@@ -98,14 +98,13 @@ step is a different screen and a different role's job:
 | Step | Screen |
 | --- | --- |
 | 1. Register a customer and take in their stones | **Orders → Create order** |
-| 2. Type each stone, which is what prices it | **Gemmology Lab → Identification queue** |
-| 3. Raise the bill and get a control number | **Billing → Ready to bill** |
+| 2. Register each stone’s pricing category | **Gemmology Lab → Identification** |
+| 3. Preview and generate the bill after all submitted stones are registered | **Billing → Bills** |
 | 4. Settle it | **Bills → Simulate payment** (development only) |
-| 5. Record what the bench found | **Gemmology Lab → Findings** |
-| 6. Issue the certificate and download the PDF | **Certificates → Certification queue** |
+| 5. Record the exact type, weight, and findings, then finalize the report | **Gemmology Lab → Findings** |
+| 6. Finalization issues the certificate; open Certificates to download its PDF | **Certificates** |
 
-Each stage has a worklist queue standing in front of it, so nobody has to
-remember what is waiting.
+Worklist counts and waiting items appear in their relevant module pages. When `AUTO_BILL_AFTER_IDENTIFICATION` is enabled, billing follows registration of the last submitted stone automatically.
 
 ## 5. Other things worth opening
 

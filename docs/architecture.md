@@ -129,8 +129,8 @@ src/
 │   ├── identification-queue/  The identification screen's table
 │   ├── bills/            Bills, control numbers and payment simulation
 │   ├── payments/         Payments received against bills
-│   ├── certificates/     Issuing, revoking and downloading certificates
-│   ├── worklists/        ONE screen serving all four pipeline queues
+│   ├── certificates/     Viewing and downloading issued certificates
+│   ├── worklists/        Shared query definitions for pending-work counts
 │   ├── roles/            RBAC admin: roles and the permission matrix
 │   ├── users/            Accounts, avatars and role assignment
 │   ├── lookups/          ONE screen serving all ten reference tables
@@ -147,7 +147,7 @@ src/
 │       ├── identification-reports/ · bills/ · payments/ · certificates/
 │       ├── users/ · roles/ · settings/ · audit-logs/ · system-logs/
 │       ├── lookups/$slug/     One screen, ten URLs
-│       └── worklists/$slug/   One screen, four URLs
+│       └── reports/           Financial and operational report routes
 │
 └── styles/
     ├── index.css          Tailwind v4 entry — imports theme.css, plus base rules
@@ -182,25 +182,21 @@ feature, with the least domain detail in the way. See
 
 ## Navigation structure
 
-`sidebar-data.ts` holds six groups. The middle four follow the stone's journey
-through the lab; the outer two are reports and administration:
+`sidebar-data.ts` defines six groups. Resource pages combine pending work with
+the related records; navigation follows the lab's workflow:
 
 ```
 Reports         Financial reports · Operational reports
 Operations      Customers · Orders                     ← ─┐
-Gemmology Lab   Identification queue · Identification  │
-                Stones · Findings queue · Findings      │ the stone's journey,
-Billing         Ready to bill · Bills · Payments        │ in the order it happens
-Certificates    Certification queue · Certificates    ← ─┘
+Gemmology Lab   Identification · Findings
+Billing         Bills · Payments
+Certificates    Certificates
 Administration  Users · Logs · Reference data           ← maintained, not worked
 ```
 
-Each pipeline group opens with its **queue** — the list of work waiting to enter
-that stage — followed by the screens where the work is done. A queue is an entry
-in `features/worklists/data/config.ts` rendered at `/worklists/<slug>`, so the
-four queues share one screen. They sit inside their stage's group rather than
-collected together, because the question a gemmologist asks is "what is waiting
-for me", not "what queues exist".
+Pending counts appear on Identification, Findings, and Bills. Their feature
+pages combine worklists with the corresponding records; there are no separate
+queue routes. Shared count queries live with the sidebar navigation.
 
 **Reference data** is a collapsible generated from
 `features/lookups/data/config.ts`, so adding a lookup table is one config entry
@@ -219,7 +215,7 @@ Two invariants make the structure hold itself together:
   `filterNavGroups` checks the gate first and the items after, never instead:
   an admin can hide a whole area from a role on the Roles screen without
   stripping the model permissions its pages need. The gates are presentation
-  only - the API never checks them - so a hidden page still opens from a link.
+  only - the API never checks them - so they do not replace API permissions.
 
 The sidebar is one of the per-project swap points listed in
 [customizing.md](./customizing.md).
@@ -227,18 +223,18 @@ The sidebar is one of the per-project swap points listed in
 ## Table conventions
 
 Most screens render `<DataTable>` — customers, orders, stones, identification,
-findings, bills, payments, certificates, worklists, users, lookups, audit logs
+findings, bills, payments, certificates, users, lookups, audit logs
 and system logs — and they behave identically because they share the same
 pieces:
 
 ```
 components/data-table/data-table.tsx    server-driven table shell
-  ├── row click ────────────────────►   opens the record's read-only view
+  ├── row click ────────────────────►   opens the record's detail view
   └── components/data-table/row-actions.tsx
           actions declared as data: View · Edit · the workflow verb · Restore · Delete
           rendered inline in the cell, and again in the view dialog's footer
 
-the record's own mutate dialog        the read-only view, via `readOnly`
+the feature's detail dialog           separate from mutate forms where needed
 ```
 
 > **Roles is the exception.** `features/roles/index.tsx` hand-rolls its table
@@ -252,10 +248,9 @@ all four; the first is a convention it does not enforce.
 1. **Six columns, no more:** a serial number (injected by the table, derived
    from server pagination so it keeps counting across pages), four data
    columns, and the actions menu. Anything else lives in the record's view.
-2. **Rows are clickable** and open the record's **edit form in read-only
-   mode** — the same dialog, wrapped in a disabled `<fieldset>`, with Save
-   swapped for Edit. A record therefore reads exactly as it edits. Gated on
-   `<resource>.view`. Clicks landing on a button, link, or menu item are
+2. **Rows are clickable** and open the record's detail view. Features may use
+   a separate detail dialog or a mutate dialog in read-only mode. Clicks
+   landing on a button, link, or menu item are
    ignored, so the actions menu never opens a sheet behind itself.
 3. **Actions are declared, not hand-written.** Each table returns a
    `RowAction[]`, rendered as inline icon buttons in the cell and as labelled
@@ -274,7 +269,9 @@ The ten lookup screens — stone categories, stone types, species, varieties,
 colours, origins, shapes and cuts, instruments, user statuses and genders —
 share **one** feature, `features/lookups/`, parameterised by `data/config.ts`.
 Adding an eleventh means adding a config entry, not a new feature folder. The
-four pipeline queues work the same way through `features/worklists/`.
+Pending work appears in the identification, findings, and billing pages. The
+worklists feature holds metadata for legacy standalone screens, not current
+routes.
 
 ## Formatting and localisation
 
@@ -301,9 +298,7 @@ once and renders `Ctrl` rather than `⌘` off Apple hardware.
 shared paginated tables, and complete XLSX/PDF downloads. Totals cover the full
 result, currencies stay separate, and each section requires its source permissions.
 
-`/` and `/reports` redirect to the first accessible report page. Old Management
-dates and named periods are preserved. Queue badges use `src/lib/count-query.ts`
-independently of the retired Dashboard.
+`/` and `/reports` redirect according to the current user’s accessible report page. Queue badges use `src/lib/count-query.ts`; there is no dashboard route.
 
 ## The audit trail
 
