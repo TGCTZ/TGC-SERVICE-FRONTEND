@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -237,9 +236,6 @@ export function OrderMutateDialog({
           <DialogTitle>
             {isEdit ? `Edit ${currentRow?.reference_number}` : 'Create order'}
           </DialogTitle>
-          <DialogDescription>
-            Who brought the stones, when, and how many.
-          </DialogDescription>
         </DialogHeader>
 
         <DialogBody>

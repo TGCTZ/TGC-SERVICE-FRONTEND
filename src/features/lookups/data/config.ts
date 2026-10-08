@@ -57,7 +57,7 @@ export type LookupConfig = {
   /** Route path segment under /lookups. */
   slug: string
   title: string
-  description: string
+  description?: string
   /**
    * Beyond `name`, `description` and `is_active`.
    *
@@ -75,6 +75,7 @@ const COLOR_GROUPS = [
   { value: 'orange_yellow', label: 'Orange / Yellow' },
   { value: 'green', label: 'Green' },
   { value: 'blue', label: 'Blue' },
+  { value: 'brown', label: 'Brown' },
 ]
 
 /**
@@ -93,16 +94,14 @@ const lookupConfigs: LookupConfig[] = [
     resource: 'stone-categories',
     slug: 'stone-categories',
     title: 'Stone categories',
-    description:
-      'The pricing tiers. The fee is per tier, so identifying a ruby and a sapphire costs the same. An unpriced tier cannot be billed.',
+    description: 'Fees are per tier; unpriced tiers cannot be billed.',
     extraFields: [{ key: 'price', label: 'Identification fee', type: 'money' }],
   },
   {
     resource: 'stone-types',
     slug: 'stone-types',
     title: 'Stone types',
-    description:
-      'What the lab identifies. The fee comes from the tier a type belongs to, not from the type itself.',
+    description: 'Pricing comes from the selected category.',
     extraFields: [
       {
         key: 'category',
@@ -117,15 +116,13 @@ const lookupConfigs: LookupConfig[] = [
     resource: 'species',
     slug: 'species',
     title: 'Species',
-    description: 'Gemmological species, the parent of a variety.',
     extraFields: [],
   },
   {
     resource: 'varieties',
     slug: 'varieties',
     title: 'Varieties',
-    description:
-      'A variety within a species. Two species may each have a variety of the same name.',
+    description: 'Names are unique within each species.',
     extraFields: [
       {
         key: 'species',
@@ -140,7 +137,6 @@ const lookupConfigs: LookupConfig[] = [
     resource: 'colors',
     slug: 'colors',
     title: 'Colours',
-    description: 'Observed stone colours, filed under a broad colour family.',
     extraFields: [
       {
         key: 'group',
@@ -155,36 +151,37 @@ const lookupConfigs: LookupConfig[] = [
     resource: 'origins',
     slug: 'origins',
     title: 'Origins',
-    description: 'Where a stone was mined.',
     extraFields: [],
   },
   {
     resource: 'shape-cuts',
     slug: 'shape-cuts',
     title: 'Shapes and cuts',
-    description: 'How a stone has been shaped or faceted.',
+    extraFields: [],
+  },
+  {
+    resource: 'treatments',
+    slug: 'treatments',
+    title: 'Treatments',
+    description: 'Treatments and enhancements recorded during identification.',
     extraFields: [],
   },
   {
     resource: 'instruments',
     slug: 'instruments',
     title: 'Instruments',
-    description: 'Bench instruments a gemmologist records readings from.',
     extraFields: [],
   },
   {
     resource: 'user-statuses',
     slug: 'user-statuses',
     title: 'User statuses',
-    description: 'The states an account can be in.',
     extraFields: [],
   },
   {
     resource: 'genders',
     slug: 'genders',
     title: 'Genders',
-    description:
-      'Self-described gender options, editable rather than hardcoded.',
     extraFields: [],
   },
 ]
@@ -269,6 +266,9 @@ export const lookupOptionSchema = z
   .object({
     id: z.number(),
     name: z.string(),
+    species: z.number().nullable().optional(),
+    category: z.number().nullable().optional(),
+    price: z.string().nullable().optional(),
     category_detail: z
       .object({
         id: z.number(),

@@ -44,7 +44,7 @@ export function OrderDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Delete order'
-      desc={`Delete ${currentRow.reference_number}? This is a soft delete — turn on "Show deleted" to find and restore it.`}
+      desc={`Delete ${currentRow.reference_number}? Restore it later from Show deleted.`}
       confirmText={mutation.isPending ? 'Deleting...' : 'Delete'}
       destructive
       disabled={mutation.isPending}

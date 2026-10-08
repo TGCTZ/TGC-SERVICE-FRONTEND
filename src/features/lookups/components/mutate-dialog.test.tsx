@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 import { userEvent } from 'vitest/browser'
-import { type LookupConfig } from '../data/config'
+import { lookupConfigBySlug, type LookupConfig } from '../data/config'
 import { LookupMutateDialog } from './mutate-dialog'
 
 const mocks = vi.hoisted(() => ({
@@ -98,6 +98,28 @@ describe('LookupMutateDialog', () => {
     await expect
       .element(screen.getByRole('combobox', { name: /Category/i }))
       .toBeInTheDocument()
+  })
+
+  it('offers Brown as a color family and submits its code', async () => {
+    const colors = lookupConfigBySlug('colors')
+    expect(colors).toBeDefined()
+    const screen = await renderDialog(colors!)
+
+    await userEvent.fill(
+      screen.getByRole('textbox', { name: /^Name/i }),
+      'Brown'
+    )
+    await userEvent.click(
+      screen.getByRole('combobox', { name: /Colour family/i })
+    )
+    await userEvent.click(screen.getByRole('option', { name: 'Brown' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Save$/i }))
+
+    await vi.waitFor(() => expect(mocks.createLookupRow).toHaveBeenCalledOnce())
+    expect(mocks.createLookupRow).toHaveBeenCalledWith(
+      'colors',
+      expect.objectContaining({ name: 'Brown', group: 'brown' })
+    )
   })
 
   it('sends the chosen code and a decimal fee', async () => {

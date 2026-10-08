@@ -37,7 +37,7 @@ export function useBillActions(bill: Bill | null): RowAction[] {
     },
     {
       label: 'Simulate payment',
-      tone: 'advance',
+      tone: 'document',
       icon: FlaskConical,
       // The same authority as raising the bill: whoever may charge a customer
       // is who may pretend they paid.

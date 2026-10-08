@@ -1,18 +1,39 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
+import { FileText } from 'lucide-react'
+import { formatMoney } from '@/lib/format'
+import { Progress } from '@/components/ui/progress'
 import { ConfigDrawer } from '@/components/config-drawer'
+import { DataTableRowActions, type RowAction } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
+import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
+import { GenerateBillDialog } from '@/features/orders/components/generate-bill-dialog'
+import {
+  ORDER_STAGE_TONES,
+  orderSchema,
+  type Order,
+} from '@/features/orders/data/schema'
+import {
+  WorkflowFeedTable,
+  type WorkflowListState,
+} from '@/features/workflow-feed'
+import {
+  workflowFeedQuery,
+  type WorkflowRow,
+} from '@/features/workflow-feed/data/api'
 import { BillsProvider, useBills } from './components/provider'
+import { BillsRowActions } from './components/row-actions'
 import { SimulatePaymentDialog } from './components/simulate-payment-dialog'
-import { BillsTable, type BillsQueryState } from './components/table'
+import { BillStatusBadge } from './components/status-badge'
 import { BillViewDialog } from './components/view-dialog'
-import { billsQuery } from './data/api'
+import { billSchema, type Bill } from './data/schema'
 import { useBillActions } from './hooks/use-actions'
 
 const route = getRouteApi('/_authenticated/bills/')
@@ -29,31 +50,36 @@ function BillsContent() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const { open, setOpen, currentRow, setCurrentRow } = useBills()
+  const [billOrder, setBillOrder] = useState<Order | null>(null)
 
   // The same list the table cell renders.
   const actions = useBillActions(currentRow)
 
-  const state: BillsQueryState = {
+  const state: WorkflowListState = {
     page: search.page ?? 1,
     perPage: search.pageSize ?? 10,
     search: search.search ?? '',
     sortBy: search.sortBy,
     sortDir: search.sortDir,
     status: search.status,
+    type: search.type,
+    source: search.source,
   }
 
   const { data, isPending, isError, isFetching } = useQuery(
-    billsQuery({
+    workflowFeedQuery('/bills/workflow-feed', {
       page: state.page,
-      perPage: state.perPage,
+      pageSize: state.perPage,
       search: state.search,
       sortBy: state.sortBy,
       sortDir: state.sortDir,
-      filters: { status: state.status },
+      status: state.status,
+      type: search.type,
+      source: search.source,
     })
   )
 
-  function handleStateChange(next: Partial<BillsQueryState>) {
+  function handleStateChange(next: Partial<WorkflowListState>) {
     navigate({
       search: (prev) => ({
         ...prev,
@@ -63,6 +89,11 @@ function BillsContent() {
         sortBy: 'sortBy' in next ? next.sortBy : prev.sortBy,
         sortDir: 'sortDir' in next ? next.sortDir : prev.sortDir,
         status: 'status' in next ? next.status : prev.status,
+        type: 'type' in next ? next.type : prev.type,
+        source:
+          'source' in next
+            ? (next.source as 'waiting' | 'records' | undefined)
+            : prev.source,
       }),
       replace: true,
     })
@@ -80,21 +111,105 @@ function BillsContent() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='Bills'
-          description='What each order was charged, and what GePG has collected. Bills are raised from an order, not from here.'
+          description='Charges, payment status, and orders ready to bill.'
         />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
         ) : (
-          <BillsTable
-            data={data?.items ?? []}
-            meta={data?.meta}
+          <WorkflowFeedTable
+            rows={data?.results ?? []}
+            count={data?.count ?? 0}
             isFetching={isPending || isFetching}
             state={state}
             onStateChange={handleStateChange}
-            onRowClick={(bill) => {
-              setCurrentRow(bill)
-              setOpen('view')
+            renderStatus={(row) =>
+              row.kind === 'bill' ? (
+                <BillStatusBadge status={billSchema.parse(row.detail).status} />
+              ) : (
+                <StatusBadge
+                  tone={ORDER_STAGE_TONES[orderSchema.parse(row.detail).stage]}
+                >
+                  {row.status}
+                </StatusBadge>
+              )
+            }
+            progressHeader='Payment / identification'
+            showDate={false}
+            renderControlNumber={(row) => {
+              if (row.kind !== 'bill') return '—'
+              const controlNumber = billSchema.parse(row.detail).control_number
+              return (
+                controlNumber ?? (
+                  <span className='text-muted-foreground'>Awaiting number</span>
+                )
+              )
+            }}
+            renderProgress={(row) => {
+              if (row.kind === 'bill') {
+                const bill = billSchema.parse(row.detail)
+                const total = Number(bill.total_amount ?? 0)
+                const paid = Number(bill.amount_paid ?? 0)
+                return (
+                  <div className='min-w-40 space-y-1.5 tabular-nums'>
+                    <div>{formatMoney(total, bill.currency)}</div>
+                    <Progress
+                      value={paid}
+                      max={total}
+                      label={`Payment progress for ${bill.bill_number}`}
+                    />
+                    <div className='text-xs text-muted-foreground'>
+                      {paid > 0
+                        ? `${formatMoney(paid, bill.currency)} paid`
+                        : 'Nothing paid'}
+                    </div>
+                  </div>
+                )
+              }
+              if (row.kind === 'order') {
+                const order = orderSchema.parse(row.detail)
+                return (
+                  <div className='min-w-40 space-y-1.5'>
+                    <div className='text-xs tabular-nums'>
+                      {order.identified_count} of {order.stone_count} identified
+                    </div>
+                    <Progress
+                      value={order.identified_count}
+                      max={order.stone_count}
+                      label={`Identification progress for ${order.reference_number}`}
+                    />
+                  </div>
+                )
+              }
+              return null
+            }}
+            renderAction={(row) => {
+              if (row.kind === 'bill') {
+                return (
+                  <BillsRowActions
+                    bill={billSchema.parse(row.detail) as Bill}
+                  />
+                )
+              }
+              if (row.kind !== 'order') return null
+              const action: RowAction = {
+                label: 'Request control number',
+                icon: FileText,
+                tone: 'advance',
+                permission: 'billing.generate_bill',
+                onSelect: () => setBillOrder(orderSchema.parse(row.detail)),
+              }
+              return <DataTableRowActions actions={[action]} />
+            }}
+            onAction={(row: WorkflowRow) =>
+              row.kind === 'order' &&
+              setBillOrder(orderSchema.parse(row.detail))
+            }
+            onRowClick={(row: WorkflowRow) => {
+              if (row.kind === 'bill') {
+                setCurrentRow(billSchema.parse(row.detail) as Bill)
+                setOpen('view')
+              }
             }}
           />
         )}
@@ -111,6 +226,13 @@ function BillsContent() {
             }
           }}
           bill={currentRow}
+        />
+      )}
+      {billOrder && (
+        <GenerateBillDialog
+          open
+          onOpenChange={(next) => !next && setBillOrder(null)}
+          order={billOrder}
         />
       )}
 

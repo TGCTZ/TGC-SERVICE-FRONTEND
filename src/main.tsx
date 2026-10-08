@@ -55,6 +55,12 @@ const queryClient: QueryClient = new QueryClient({
     onError: (error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
+          // An older request may fail after a fresh login has replaced its
+          // token. Its error must not clear the new session.
+          const currentAccess = useAuthStore.getState().auth.accessToken
+          const requestAccess = error.config?.headers?.Authorization
+          if (currentAccess && requestAccess !== `Bearer ${currentAccess}`)
+            return
           toast.error('Session expired!')
           useAuthStore.getState().auth.reset()
           const redirect = `${router.history.location.href}`

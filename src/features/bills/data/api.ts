@@ -32,6 +32,16 @@ export const billsQuery = (params: ListParams) =>
     placeholderData: (previous) => previous,
   })
 
+/** Fetch a single bill so asynchronous GePG responses can be observed. */
+export const billQuery = (id: number) =>
+  queryOptions({
+    queryKey: ['bills', 'detail', id],
+    queryFn: async (): Promise<Bill> => {
+      const res = await api.get(`/bills/${id}`)
+      return billSchema.parse(res.data)
+    },
+  })
+
 /** One line the bill would carry, priced but not yet written. */
 const billPreviewSchema = z.object({
   items: z

@@ -1,7 +1,7 @@
 import { PERMISSIONS, perm } from '@/lib/permissions'
 
 /**
- * The lab's four queues.
+ * The lab's three queues.
  *
  * Each answers "what is waiting for me right now" at one stage of the pipeline,
  * and each is served by the same screen: the four differ in exactly three ways
@@ -29,9 +29,8 @@ export type WorklistConfig = {
   /**
    * What the API enforces on the queue endpoint.
    *
-   * Not always the obvious `view`: the billing and certification queues are
-   * gated on the workflow verb, because the only reason to look at them is to
-   * act on them.
+   * Not always the obvious `view`: the billing queue is gated on its workflow
+   * verb, because the only reason to look at it is to act on it.
    */
   permission: string
   /** Shown when the queue is empty — the good outcome, so say so plainly. */
@@ -50,8 +49,7 @@ const worklistConfigs: WorklistConfig[] = [
   {
     slug: 'identification',
     title: 'Identification queue',
-    description:
-      "Orders with stones still to be typed. A stone's type is what prices it, so nothing here can be billed yet.",
+    description: 'Orders with stones that still need a type.',
     endpoint: '/orders/worklist',
     rowKind: 'order',
     actionLabel: 'Identify stone',
@@ -64,11 +62,10 @@ const worklistConfigs: WorklistConfig[] = [
   {
     slug: 'billing',
     title: 'Ready to bill',
-    description:
-      'Orders with every stone identified and no bill raised against them.',
+    description: 'Identified orders without a bill.',
     endpoint: '/bills/worklist',
     rowKind: 'order',
-    actionLabel: 'Generate bill',
+    actionLabel: 'Request control number',
     permission: PERMISSIONS.generateBill,
     emptyMessage: 'Nothing is waiting to be billed.',
     searchPlaceholder: 'Search reference, customer or phone...',
@@ -76,25 +73,12 @@ const worklistConfigs: WorklistConfig[] = [
   {
     slug: 'findings',
     title: 'Findings queue',
-    description:
-      'Paid stones on the bench, whose findings has not been finalized yet.',
+    description: 'Paid stones awaiting findings.',
     endpoint: '/identification-reports/worklist',
     rowKind: 'stone',
     actionLabel: 'Record findings',
     permission: perm('identification-reports', 'add'),
     emptyMessage: 'No stones are waiting for findings.',
-    searchPlaceholder: 'Search label, reference, type or customer...',
-  },
-  {
-    slug: 'certification',
-    title: 'Certification queue',
-    description:
-      'Stones with a finalized findings and a settled bill, not yet certified.',
-    endpoint: '/certificates/worklist',
-    rowKind: 'stone',
-    actionLabel: 'Issue certificate',
-    permission: PERMISSIONS.issueCertificate,
-    emptyMessage: 'Nothing is waiting to be certified.',
     searchPlaceholder: 'Search label, reference, type or customer...',
   },
 ]

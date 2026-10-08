@@ -159,7 +159,7 @@ export function Roles() {
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <PageHeading
             title='Roles'
-            description='Define what each role may do. Permissions are enforced by the API.'
+            description='Set what each role can access.'
           />
 
           <Can permission={perm('roles', 'add')}>
@@ -296,7 +296,7 @@ export function Roles() {
           open={Boolean(deleteFor)}
           onOpenChange={(open) => !open && setDeleteFor(null)}
           title='Delete role'
-          desc={`Delete the "${deleteFor.name}" role? Users holding it will lose the access it grants.`}
+          desc={`Delete "${deleteFor.name}"? Users who hold it lose its access.`}
           confirmText={deleteMutation.isPending ? 'Deleting...' : 'Delete'}
           destructive
           disabled={deleteMutation.isPending}
@@ -313,7 +313,7 @@ export function Roles() {
           <DialogHeader className='text-start'>
             <DialogTitle>Rename role</DialogTitle>
             <DialogDescription>
-              Renaming affects every user holding this role.
+              Renames this role for everyone who holds it.
             </DialogDescription>
           </DialogHeader>
 
@@ -345,9 +345,6 @@ export function Roles() {
         <DialogContent className='sm:max-w-sm'>
           <DialogHeader className='text-start'>
             <DialogTitle>Add role</DialogTitle>
-            <DialogDescription>
-              Create the role first, then choose its permissions.
-            </DialogDescription>
           </DialogHeader>
 
           <Input

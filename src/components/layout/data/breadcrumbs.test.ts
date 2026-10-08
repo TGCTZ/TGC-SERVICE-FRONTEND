@@ -17,7 +17,11 @@ describe('resolveBreadcrumbs', () => {
       'Gemmology Lab',
       'Identification',
     ])
-    expect(labels('/stones')).toEqual(['Home', 'Gemmology Lab', 'Stones'])
+    expect(labels('/identification?tab=stones')).toEqual([
+      'Home',
+      'Gemmology Lab',
+      'Identification',
+    ])
     expect(labels('/reports/financial')).toEqual([
       'Home',
       'Reports',
@@ -36,20 +40,6 @@ describe('resolveBreadcrumbs', () => {
       'Administration',
       'Reference data',
       'Colours',
-    ])
-  })
-
-  it('resolves a generated worklist slug without a slug lookup', () => {
-    // Each queue sits in the group of the stage it feeds.
-    expect(labels('/worklists/findings')).toEqual([
-      'Home',
-      'Gemmology Lab',
-      'Findings queue',
-    ])
-    expect(labels('/worklists/billing')).toEqual([
-      'Home',
-      'Billing',
-      'Ready to bill',
     ])
   })
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { PERMISSIONS } from '@/lib/permissions'
 import { filterNavGroups } from '@/components/layout/data/filter-nav'
 import { sidebarData } from '@/components/layout/data/sidebar-data'
 import { firstReportPath } from './config'
@@ -13,12 +14,28 @@ import {
 
 describe('report navigation', () => {
   it('chooses an accessible home without granting financial access to operations staff', () => {
-    expect(firstReportPath(['billing.view_bill'])).toBe('/reports/financial')
-    expect(firstReportPath(['billing.view_payment'])).toBe('/reports/financial')
-    expect(firstReportPath(['orders.view_order'])).toBe('/reports/operational')
-    expect(firstReportPath(['orders.view_order', 'billing.view_payment'])).toBe(
+    const reports = PERMISSIONS.moduleReports
+    const financial = PERMISSIONS.financialReports
+    const operational = PERMISSIONS.operationalReports
+    expect(firstReportPath([reports, financial, 'billing.view_bill'])).toBe(
       '/reports/financial'
     )
+    expect(firstReportPath([reports, financial, 'billing.view_payment'])).toBe(
+      '/reports/financial'
+    )
+    expect(firstReportPath([reports, operational, 'orders.view_order'])).toBe(
+      '/reports/operational'
+    )
+    expect(
+      firstReportPath([
+        reports,
+        financial,
+        operational,
+        'orders.view_order',
+        'billing.view_payment',
+      ])
+    ).toBe('/reports/financial')
+    expect(firstReportPath(['billing.view_bill'])).toBe('/403')
     expect(firstReportPath([])).toBe('/403')
   })
 
@@ -40,14 +57,24 @@ describe('report navigation', () => {
     ).toBe(false)
     expect(filterNavGroups([reports], []).length).toBe(0)
     expect(
-      filterNavGroups([reports], ['orders.view_stone'])[0].items.map(
-        (item) => item.title
-      )
+      filterNavGroups(
+        [reports],
+        [
+          PERMISSIONS.moduleReports,
+          PERMISSIONS.operationalReports,
+          'orders.view_stone',
+        ]
+      )[0].items.map((item) => item.title)
     ).toEqual(['Operational reports'])
-    const queueLinks = sidebarData.navGroups
+    const mainPageBadges = sidebarData.navGroups
       .flatMap((group) => group.items)
-      .filter((item) => item.url?.startsWith('/worklists/'))
-    expect(queueLinks).toHaveLength(4)
+      .filter((item) => item.count)
+    expect(mainPageBadges.map((item) => item.url)).toEqual([
+      '/identification',
+      '/identification-reports',
+      '/bills',
+      '/certificates',
+    ])
   })
 })
 

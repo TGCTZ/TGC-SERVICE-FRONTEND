@@ -82,8 +82,7 @@ export function AccountForm() {
                 <Input placeholder='Your name' {...field} />
               </FormControl>
               <FormDescription>
-                This is the name that will be displayed on your profile and in
-                emails.
+                Shown on your profile and in emails.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -96,9 +95,7 @@ export function AccountForm() {
             <FormItem className='flex flex-col'>
               <FormLabel>Date of birth</FormLabel>
               <DatePicker selected={field.value} onSelect={field.onChange} />
-              <FormDescription>
-                Your date of birth is used to calculate your age.
-              </FormDescription>
+              <FormDescription>Used to calculate your age.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -159,9 +156,6 @@ export function AccountForm() {
                   </Command>
                 </PopoverContent>
               </Popover>
-              <FormDescription>
-                This is the language that will be used in the dashboard.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

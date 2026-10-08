@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/auth-store'
 import { getCurrentPermissions } from '@/lib/authz'
-import { firstReportPath } from '@/features/reports/data/config'
+import { landingPath } from '@/features/auth/data/landing'
 import {
   legacyPeriod,
   legacySearchSchema,
@@ -9,10 +10,11 @@ import {
 export const Route = createFileRoute('/_authenticated/')({
   validateSearch: legacySearchSchema,
   beforeLoad: ({ search }) => {
-    const to = firstReportPath(getCurrentPermissions())
+    const user = useAuthStore.getState().auth.user
+    const to = landingPath(user?.roles ?? [], getCurrentPermissions())
     throw redirect({
       to,
-      search: to === '/403' ? {} : legacyPeriod(search),
+      search: to === '/reports/operational' ? legacyPeriod(search) : {},
     })
   },
 })

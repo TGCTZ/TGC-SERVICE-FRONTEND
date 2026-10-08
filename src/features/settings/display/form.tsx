@@ -7,7 +7,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -73,9 +72,6 @@ export function DisplayForm() {
             <FormItem>
               <div className='mb-4'>
                 <FormLabel className='text-base'>Sidebar</FormLabel>
-                <FormDescription>
-                  Select the items you want to display in the sidebar.
-                </FormDescription>
               </div>
               {items.map((item) => (
                 <FormField

@@ -46,6 +46,7 @@ const RESOURCE_MODELS = {
   colors: { app: 'gems', model: 'color' },
   origins: { app: 'gems', model: 'origin' },
   'shape-cuts': { app: 'gems', model: 'shapecut' },
+  treatments: { app: 'gems', model: 'treatment' },
   instruments: { app: 'gems', model: 'instrument' },
 
   // Reception.
@@ -130,13 +131,16 @@ export const PERMISSIONS = {
   holdOrder: 'orders.hold_order',
   generateBill: 'billing.generate_bill',
   finalizeReport: 'identification.finalize_report',
+  editFinalizedReport: 'identification.edit_finalized_report',
   issueCertificate: 'certificates.issue_certificate',
-  revokeCertificate: 'certificates.revoke_certificate',
 
   // Module gates.
   moduleOrders: 'core.module_orders',
   moduleIdentification: 'core.module_identification',
   moduleBilling: 'core.module_billing',
+  moduleReports: 'core.module_reports',
+  financialReports: 'core.report_financial',
+  operationalReports: 'core.report_operational',
   moduleCertificates: 'core.module_certificates',
   moduleReference: 'core.module_reference',
   moduleUser: 'core.module_user',

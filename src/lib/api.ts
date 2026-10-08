@@ -91,6 +91,9 @@ async function refreshAccessToken(): Promise<string> {
   // an absent `refresh` means the token we sent is still the current one.
   const refresh: string = res.data.refresh ?? refreshToken
 
+  if (useAuthStore.getState().auth.refreshToken !== refreshToken) {
+    throw new Error('The login session changed during token refresh')
+  }
   useAuthStore.getState().auth.setTokens(access, refresh)
   return access
 }
@@ -129,7 +132,7 @@ api.interceptors.response.use(
       } catch {
         // Refresh failed - the session is genuinely over. The global query
         // error handler in `main.tsx` surfaces the toast and redirect.
-        reset()
+        if (useAuthStore.getState().auth.refreshToken === refreshToken) reset()
       }
     }
 

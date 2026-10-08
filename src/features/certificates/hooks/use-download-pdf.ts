@@ -7,17 +7,21 @@ import { type Certificate } from '../data/schema'
 /**
  * Download a certificate's PDF, named after the certificate.
  *
- * A revoked certificate still downloads — it renders with a REVOKED watermark,
- * and the `-revoked` suffix keeps a saved copy from being mistaken for a live
- * one. The server sets the same name in `Content-Disposition`, but a blob
- * download never sees that header, so the filename is rebuilt here.
+ * A legacy revoked certificate still downloads with its REVOKED watermark.
+ * The `-revoked` suffix keeps a saved copy from being mistaken for a live one.
+ * The server sets the same name in `Content-Disposition`, but a blob download
+ * never sees that header, so the filename is rebuilt here.
  */
 export function useDownloadCertificatePdf() {
   const mutation = useMutation({
     mutationFn: async (certificate: Certificate) => {
       const blob = await fetchCertificatePdf(certificate.id)
       const suffix = certificate.status === 'revoked' ? '-revoked' : ''
-      saveBlob(blob, `${certificate.certificate_number}${suffix}.pdf`)
+      // Slash is only a display separator; keep the downloaded filename safe.
+      saveBlob(
+        blob,
+        `${certificate.certificate_number.replace(/\//g, '')}${suffix}.pdf`
+      )
     },
     onError: () => toast.error('Could not download the certificate.'),
   })

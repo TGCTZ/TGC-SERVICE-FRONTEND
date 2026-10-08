@@ -15,10 +15,24 @@ const identificationSearchSchema = z.object({
    * these are the same rows. Kept in the URL so a filtered view is shareable.
    */
   stage: z.string().optional(),
+  source: z.enum(['waiting', 'records']).optional(),
+  status: z.string().optional(),
+  type: z.string().optional(),
+  tab: z.enum(['work', 'stones']).optional(),
+  stonesPage: z.number().optional().catch(1),
+  stonesPageSize: z.number().optional().catch(10),
+  stonesSearch: z.string().optional().catch(''),
+  stonesSortBy: z.string().optional().catch(undefined),
+  stonesSortDir: z.enum(['asc', 'desc']).optional().catch(undefined),
+  stonesStatus: z.string().optional().catch(undefined),
+  stonesShowDeleted: z.boolean().optional().catch(undefined),
 })
 
 export const Route = createFileRoute('/_authenticated/identification/')({
   validateSearch: identificationSearchSchema,
-  beforeLoad: requirePermission([perm('orders', 'view')]),
+  beforeLoad: requirePermission([
+    perm('orders', 'view'),
+    perm('stones', 'view'),
+  ]),
   component: IdentificationQueue,
 })

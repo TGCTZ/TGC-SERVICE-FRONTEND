@@ -41,7 +41,7 @@ export function CustomerRestoreDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Restore customer'
-      desc={`Bring ${currentRow.full_name} back?`}
+      desc={`Restore ${currentRow.full_name}?`}
       confirmText={mutation.isPending ? 'Restoring...' : 'Restore'}
       disabled={mutation.isPending}
       handleConfirm={() => mutation.mutate()}

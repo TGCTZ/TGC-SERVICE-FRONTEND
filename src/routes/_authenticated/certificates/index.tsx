@@ -11,6 +11,8 @@ const certificatesSearchSchema = z.object({
   sortBy: z.string().optional().catch(undefined),
   sortDir: z.enum(['asc', 'desc']).optional().catch(undefined),
   status: z.string().optional().catch(undefined),
+  type: z.string().optional().catch(undefined),
+  source: z.enum(['waiting', 'records']).optional().catch(undefined),
 })
 
 export const Route = createFileRoute('/_authenticated/certificates/')({

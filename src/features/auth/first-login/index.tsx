@@ -40,7 +40,7 @@ export function FirstLogin() {
             Welcome — let’s set up your account
           </CardTitle>
           <CardDescription>
-            Two quick steps before you start. You are signed in as{' '}
+            Signed in as{' '}
             <span className='font-medium text-foreground'>{user?.email}</span>.
           </CardDescription>
           <ol className='flex gap-4 pt-2 text-xs' aria-label='Setup steps'>

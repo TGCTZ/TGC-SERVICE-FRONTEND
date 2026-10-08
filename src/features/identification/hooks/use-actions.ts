@@ -1,4 +1,5 @@
 import { Eye, Lock, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import { PERMISSIONS, perm, restorePerm } from '@/lib/permissions'
 import { type RowAction } from '@/components/data-table'
 import { useReports } from '../components/provider'
@@ -7,14 +8,16 @@ import { type IdentificationReport } from '../data/schema'
 /**
  * Every action the API exposes for a report, in one place.
  *
- * Finalizing is one-way and the service refuses every edit afterwards, so once
- * a report is finalized both Edit and Finalize disappear — leaving them would
- * offer two buttons that can only fail.
+ * Finalizing is one-way. Finalize disappears after sign-off, while Edit remains
+ * available to users with the dedicated finalized-report correction permission.
  */
 export function useReportActions(
   report: IdentificationReport | null
 ): RowAction[] {
   const { setOpen, setCurrentRow } = useReports()
+  const permissions = useAuthStore(
+    (state) => state.auth.user?.permissions ?? []
+  )
 
   function select(
     dialog: 'view' | 'update' | 'delete' | 'restore' | 'finalize'
@@ -27,7 +30,9 @@ export function useReportActions(
   if (!report) return []
 
   const isDeleted = Boolean(report.deleted_at)
-  const isLocked = report.is_finalized
+  const isLocked =
+    report.is_finalized &&
+    !permissions.includes(PERMISSIONS.editFinalizedReport)
 
   return [
     {
@@ -49,7 +54,8 @@ export function useReportActions(
       icon: Lock,
       permission: PERMISSIONS.finalizeReport,
       onSelect: () => select('finalize'),
-      hidden: isDeleted || isLocked,
+      // Correction permission unlocks Edit only; sign-off is already complete.
+      hidden: isDeleted || report.is_finalized,
     },
     {
       label: 'Restore',

@@ -12,6 +12,10 @@ const reportsSearchSchema = z.object({
   sortDir: z.enum(['asc', 'desc']).optional().catch(undefined),
   finalized: z.string().optional().catch(undefined),
   showDeleted: z.boolean().optional().catch(undefined),
+  status: z.string().optional().catch(undefined),
+  editReportId: z.number().optional().catch(undefined),
+  type: z.string().optional().catch(undefined),
+  source: z.enum(['waiting', 'records']).optional().catch(undefined),
 })
 
 export const Route = createFileRoute('/_authenticated/identification-reports/')(

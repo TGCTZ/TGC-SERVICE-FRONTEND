@@ -12,10 +12,8 @@ export type EnumOption = { value: string; label: string }
 /** Whether the stone is natural or man-made/altered. */
 export const NATURE_TYPES: EnumOption[] = [
   { value: 'natural', label: 'Natural' },
-  { value: 'synthetic', label: 'Synthetic' },
-  { value: 'treated', label: 'Treated' },
-  { value: 'enhanced', label: 'Enhanced' },
   { value: 'artificial', label: 'Artificial' },
+  { value: 'synthetic', label: 'Synthetic' },
 ]
 
 /** How light passes through the stone. */
@@ -23,18 +21,6 @@ export const TRANSPARENCIES: EnumOption[] = [
   { value: 'transparent', label: 'Transparent' },
   { value: 'translucent', label: 'Translucent' },
   { value: 'opaque', label: 'Opaque' },
-]
-
-/** Enhancement applied to the stone, if any. */
-export const TREATMENTS: EnumOption[] = [
-  { value: 'none', label: 'None' },
-  { value: 'heated', label: 'Heated' },
-  { value: 'oiled', label: 'Oiled' },
-  { value: 'dyed', label: 'Dyed' },
-  { value: 'irradiated', label: 'Irradiated' },
-  { value: 'fracture_filled', label: 'Fracture filled' },
-  { value: 'bleached', label: 'Bleached' },
-  { value: 'impregnated', label: 'Impregnated' },
 ]
 
 /**

@@ -10,7 +10,7 @@ import { reportSchema } from '@/features/identification/data/schema'
  * The completeness rule the sign-off gate rests on.
  *
  * The server is the enforcement point; this copy exists so Finalize can refuse
- * before spending a round trip, and so the form can mark the four fields. If
+ * before spending a round trip, and so the form can mark the required fields. If
  * the two drift, the dialog offers a button the API then rejects — which is the
  * failure these assertions are here to catch.
  */
@@ -21,6 +21,7 @@ function report(overrides: Record<string, unknown> = {}) {
     report_number: 'TGC-2627-0001',
     is_finalized: false,
     species: 3,
+    stone_type_detail: { id: 5, name: 'Ruby' },
     color: 4,
     stone_weight: '2.500',
     conclusion: 'Natural ruby.',
@@ -42,10 +43,11 @@ describe('missingForFinalize', () => {
     })
 
     expect(missingForFinalize(blank)).toEqual([
-      'species',
+      'Specie / Group',
+      'stone type',
       'colour',
       'weight',
-      'conclusion',
+      'comments',
     ])
   })
 
@@ -59,15 +61,16 @@ describe('missingForFinalize', () => {
 
   it('treats a whitespace-only conclusion as unwritten', () => {
     expect(missingForFinalize(report({ conclusion: '   ' }))).toEqual([
-      'conclusion',
+      'comments',
     ])
   })
 
-  it('marks exactly the four fields the form should flag', () => {
+  it('marks exactly the required fields the form should flag', () => {
     expect([...FINALIZE_REQUIRED_NAMES].sort()).toEqual([
       'color',
-      'conclusion',
+      'comments',
       'species',
+      'stone_type',
       'weight',
     ])
   })
@@ -77,9 +80,11 @@ describe('listLabels', () => {
   it('reads as a sentence at every length', () => {
     expect(listLabels([])).toBe('')
     expect(listLabels(['weight'])).toBe('weight')
-    expect(listLabels(['species', 'weight'])).toBe('species and weight')
-    expect(listLabels(['species', 'colour', 'weight'])).toBe(
-      'species, colour and weight'
+    expect(listLabels(['Specie / Group', 'weight'])).toBe(
+      'Specie / Group and weight'
+    )
+    expect(listLabels(['Specie / Group', 'colour', 'weight'])).toBe(
+      'Specie / Group, colour and weight'
     )
   })
 })

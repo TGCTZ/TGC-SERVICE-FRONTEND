@@ -105,13 +105,13 @@ export function RoleViewDialog({
               </Badge>
             )}
           </DialogTitle>
-          <DialogDescription>
-            {role.is_protected
-              ? 'This role is protected: it always holds every permission and cannot be re-scoped.'
-              : !role.can_manage
-                ? 'What this role may do, and who holds it. Only a role ranked above it can change it.'
-                : 'What this role may do, and who holds it.'}
-          </DialogDescription>
+          {(role.is_protected || !role.can_manage) && (
+            <DialogDescription>
+              {role.is_protected
+                ? 'Protected: its permissions cannot be changed.'
+                : 'Only a higher-ranked role can change this role.'}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <DialogBody className='space-y-5'>

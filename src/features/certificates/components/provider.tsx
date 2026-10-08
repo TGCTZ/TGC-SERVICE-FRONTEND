@@ -1,11 +1,8 @@
 import { createContext, useContext, useState } from 'react'
 import { type Certificate } from '../data/schema'
 
-/**
- * A certificate is write-once: there is no edit, and no delete or restore in
- * the UI — withdrawing one is `revoke`, which keeps the record and its number.
- */
-type CertificatesDialogType = 'view' | 'preview' | 'issue' | 'revoke'
+/** Issued certificates are permanent; the UI only opens their view or preview. */
+type CertificatesDialogType = 'view' | 'preview'
 
 type CertificatesContextType = {
   open: CertificatesDialogType | null

@@ -8,12 +8,23 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
+import { Check, ChevronsUpDown } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
 import { fieldErrors, serverMessageOr } from '@/lib/handle-server-error'
-import { type PermissionResource } from '@/lib/permissions'
+import { PERMISSIONS, perm, type PermissionResource } from '@/lib/permissions'
+import { cn } from '@/lib/utils'
 import { zodResolver } from '@/lib/zod-resolver'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import {
   Dialog,
   DialogContent,
@@ -33,6 +44,11 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -43,14 +59,17 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { DialogBody } from '@/components/dialog-body'
 import { StatusBadge } from '@/components/status-badge'
-import { lookupOptionsQuery } from '@/features/lookups/data/api'
+import {
+  createOrGetLookupRow,
+  lookupOptionsQuery,
+  searchLookupOptions,
+} from '@/features/lookups/data/api'
 import { WEIGHT_UNITS } from '@/features/stones/data/enums'
 import { createReport, findingsWorklistQuery, updateReport } from '../data/api'
 import {
   NATURE_TYPES,
   OPTIC_CHARACTERS,
   TRANSPARENCIES,
-  TREATMENTS,
   type EnumOption,
 } from '../data/enums'
 import { FINALIZE_REQUIRED_NAMES } from '../data/finalize-rules'
@@ -61,15 +80,156 @@ import { StonePhotoPanel } from './stone-photo-panel'
 /** Radix forbids an empty-string SelectItem value, so "not recorded" needs one. */
 const NONE = 'none'
 
+/** The lab's hue progression; non-hue colors follow the circular sequence. */
+const COLOR_HUE_ORDER = [
+  'Violet',
+  'Bluish violet',
+  'Violetish blue',
+  'Blue',
+  'Very slightly greenish blue',
+  'Greenish blue',
+  'Very strongly greenish blue',
+  'Green blue or blue green',
+  'Strongly bluish green',
+  'Slightly bluish green',
+  'Very slightly bluish green',
+  'Green',
+  'Slightly yellowish green',
+  'Yellowish green',
+  'Strongly yellowish green',
+  'Yellow green or green yellow',
+  'Greenish yellow',
+  'Yellow',
+  'Orange yellow',
+  'Yellowish orange',
+  'Orange',
+  'Reddish orange',
+  'Red orange or orange red',
+  'Orangy red',
+  'Red',
+  'Slightly purplish red',
+  'Strongly purplish red',
+  'Purple red or red purple',
+  'Reddish purple',
+  'Purple',
+  'Bluish purple',
+  'Colorless',
+  'Brown',
+  'Black',
+  'Pink',
+  'Grey',
+] as const
+const COLOR_HUE_RANK = new Map<string, number>(
+  COLOR_HUE_ORDER.map((name, index) => [name, index])
+)
+
+/** Approximate display swatches for the lab's named color choices. */
+const COLOR_SWATCHES: Record<string, string> = {
+  Colorless: '#f8fafc',
+  Black: '#171717',
+  Grey: '#808080',
+  Violet: '#7c3aed',
+  'Bluish violet': '#6045cd',
+  Purple: '#9333ea',
+  'Bluish purple': '#7c4dff',
+  'Reddish purple': '#ad2a76',
+  'Orangy red': '#ed4e33',
+  Red: '#dc2626',
+  'Slightly purplish red': '#ca315c',
+  'Strongly purplish red': '#b42363',
+  'Purple red or red purple': '#bd245b',
+  Pink: '#ec4899',
+  'Greenish yellow': '#b4c63b',
+  Yellow: '#f2d22b',
+  'Orange yellow': '#f5b52e',
+  'Yellowish orange': '#efa32c',
+  Orange: '#ed7d24',
+  'Reddish orange': '#e95b2d',
+  'Red orange or orange red': '#e94b26',
+  'Strongly bluish green': '#008b76',
+  'Slightly bluish green': '#3a9b63',
+  'Very slightly bluish green': '#49a65d',
+  Green: '#2e8b45',
+  'Slightly yellowish green': '#6aa543',
+  'Yellowish green': '#85ac33',
+  'Strongly yellowish green': '#9faf23',
+  'Yellow green or green yellow': '#91b72d',
+  'Violetish blue': '#4f5fd0',
+  Blue: '#2563eb',
+  'Very slightly greenish blue': '#318ab7',
+  'Greenish blue': '#219b9b',
+  'Very strongly greenish blue': '#178c86',
+  'Green blue or blue green': '#189e91',
+  Brown: '#8b5a2b',
+}
+
+function ColorSwatch({ name }: { name: string }) {
+  return (
+    <span
+      aria-hidden='true'
+      className='h-5 w-3 shrink-0 rounded-sm border border-black/15 dark:border-white/20'
+      style={{ backgroundColor: COLOR_SWATCHES[name] ?? '#94a3b8' }}
+    />
+  )
+}
+
 /** The reference tables the classification section draws on. */
-const RELATED: { name: string; label: string; resource: PermissionResource }[] =
-  [
-    { name: 'species', label: 'Species', resource: 'species' },
-    { name: 'variety', label: 'Variety', resource: 'varieties' },
-    { name: 'color', label: 'Colour', resource: 'colors' },
-    { name: 'origin', label: 'Origin', resource: 'origins' },
-    { name: 'shape_cut', label: 'Shape / cut', resource: 'shape-cuts' },
-  ]
+const RELATED: {
+  name: string
+  label: string
+  resource: PermissionResource
+  searchable?: boolean
+  creatable?: boolean
+}[] = [
+  {
+    name: 'stone_type',
+    label: 'Stone type',
+    resource: 'stone-types',
+    searchable: true,
+    creatable: true,
+  },
+  {
+    name: 'species',
+    label: 'Specie / Group',
+    resource: 'species',
+    searchable: true,
+    creatable: true,
+  },
+  {
+    name: 'variety',
+    label: 'Variety',
+    resource: 'varieties',
+    searchable: true,
+    creatable: true,
+  },
+  {
+    name: 'color',
+    label: 'Colour',
+    resource: 'colors',
+    searchable: true,
+  },
+  {
+    name: 'origin',
+    label: 'Origin',
+    resource: 'origins',
+    searchable: true,
+    creatable: true,
+  },
+  {
+    name: 'shape_cut',
+    label: 'Shape / cut',
+    resource: 'shape-cuts',
+    searchable: true,
+    creatable: true,
+  },
+  {
+    name: 'treatment',
+    label: 'Treatment',
+    resource: 'treatments',
+    searchable: true,
+    creatable: true,
+  },
+]
 
 /**
  * Everything is optional except the stone.
@@ -81,6 +241,7 @@ const RELATED: { name: string; label: string; resource: PermissionResource }[] =
 const reportFormSchema = z.object({
   stone: z.string().min(1, 'Stone is required.'),
 
+  stone_type: z.string().optional(),
   species: z.string().optional(),
   variety: z.string().optional(),
   color: z.string().optional(),
@@ -118,6 +279,13 @@ type ReportMutateDialogProps = {
    * stays visible and changeable.
    */
   initialStone?: number
+}
+
+function formatStoneReference(
+  orderReference: string | null | undefined,
+  stoneLabel: string | null | undefined
+) {
+  return [orderReference, stoneLabel].filter(Boolean).join('-')
 }
 
 export function ReportMutateDialog({
@@ -158,9 +326,12 @@ export function ReportMutateDialog({
   const isEdit = Boolean(row)
   const queryClient = useQueryClient()
 
-  // One hook for all five reference lists; a hook cannot run inside `.map()`.
+  // One hook for all classification lookups; a hook cannot run inside `.map()`.
   const related = useQueries({
-    queries: RELATED.map((entry) => lookupOptionsQuery(entry.resource)),
+    queries: RELATED.map((entry) => ({
+      ...lookupOptionsQuery(entry.resource),
+      enabled: open,
+    })),
   })
 
   // Only needed while creating: the endpoint encodes "paid, not yet finalized".
@@ -177,7 +348,12 @@ export function ReportMutateDialog({
 
   // A finalized report is locked by the service — `is_finalized` is one-way —
   // so the form stays locked even for someone who may otherwise edit.
-  const isLocked = Boolean(row?.is_finalized)
+  const permissions = useAuthStore(
+    (state) => state.auth.user?.permissions ?? []
+  )
+  const isLocked = Boolean(
+    row?.is_finalized && !permissions.includes(PERMISSIONS.editFinalizedReport)
+  )
 
   const form = useForm<FormValues>({
     resolver: zodResolver(reportFormSchema),
@@ -192,13 +368,26 @@ export function ReportMutateDialog({
    * needed - it is the stone that carries the image.
    */
   const watchedStone = useWatch({ control: form.control, name: 'stone' })
+  const watchedSpecies = useWatch({ control: form.control, name: 'species' })
   const selectedStone = watchedStone ? Number(watchedStone) : null
+  const selectedIntakeStone = selectable.find(
+    (stone) => stone.id === selectedStone
+  )
+  const selectedCategory = row
+    ? row.stone_category_detail?.id
+    : selectedIntakeStone?.stone_category
+  const selectedCategoryName = row
+    ? row.stone_category_detail?.name
+    : selectedIntakeStone?.stone_category_detail?.name
 
   useEffect(() => {
     if (!open) return
 
     form.reset({
       stone: row ? String(row.stone) : initialStone ? String(initialStone) : '',
+      stone_type: row?.stone_type_detail
+        ? String(row.stone_type_detail.id)
+        : '',
       species: row?.species ? String(row.species) : '',
       variety: row?.variety ? String(row.variety) : '',
       color: row?.color ? String(row.color) : '',
@@ -206,7 +395,7 @@ export function ReportMutateDialog({
       shape_cut: row?.shape_cut ? String(row.shape_cut) : '',
       nature_type: row?.nature_type ?? '',
       transparency: row?.transparency ?? '',
-      treatment: row?.treatment ?? '',
+      treatment: row?.treatment ? String(row.treatment) : '',
       optic_character: row?.optic_character ?? '',
       refractive_index: row?.refractive_index ?? '',
       specific_gravity: row?.specific_gravity ?? '',
@@ -220,6 +409,7 @@ export function ReportMutateDialog({
   const mutation = useMutation({
     mutationFn: (values: FormValues) => {
       const payload = {
+        stone_type: idOrNull(values.stone_type),
         species: idOrNull(values.species),
         variety: idOrNull(values.variety),
         color: idOrNull(values.color),
@@ -230,7 +420,7 @@ export function ReportMutateDialog({
         // `blank=True, default=""` rather than nullable.
         nature_type: values.nature_type ?? '',
         transparency: values.transparency ?? '',
-        treatment: values.treatment ?? '',
+        treatment: idOrNull(values.treatment),
         optic_character: values.optic_character ?? '',
 
         refractive_index: values.refractive_index ?? '',
@@ -254,9 +444,12 @@ export function ReportMutateDialog({
         ? updateReport(row.id, { ...payload, stone })
         : createReport({ ...payload, stone })
     },
-    onSuccess: (report) => {
-      queryClient.invalidateQueries({ queryKey: ['identification-reports'] })
-      queryClient.invalidateQueries({ queryKey: ['worklist'] })
+    onSuccess: async (report) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['identification-reports'] }),
+        queryClient.invalidateQueries({ queryKey: ['worklist'] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-feed'] }),
+      ])
 
       if (isEdit) {
         toast.success('Findings saved')
@@ -307,8 +500,8 @@ export function ReportMutateDialog({
           </DialogTitle>
           <DialogDescription>
             {row
-              ? `Stone ${row.stone_label} · ${row.order_reference}`
-              : 'Only paid stones without finished findings can be opened.'}
+              ? `Stone ${formatStoneReference(row.order_reference, row.stone_label)}`
+              : 'Select a paid stone awaiting findings.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -333,13 +526,19 @@ export function ReportMutateDialog({
                           <FormControl>
                             <Input
                               readOnly
-                              value={`${row?.stone_label ?? ''} · ${row?.order_reference ?? ''}`}
+                              value={formatStoneReference(
+                                row?.order_reference,
+                                row?.stone_label
+                              )}
                             />
                           </FormControl>
                         ) : (
                           <Select
                             value={field.value || undefined}
-                            onValueChange={field.onChange}
+                            onValueChange={(value) => {
+                              field.onChange(value)
+                              form.setValue('stone_type', '')
+                            }}
                           >
                             <FormControl>
                               <SelectTrigger className='w-full'>
@@ -352,8 +551,13 @@ export function ReportMutateDialog({
                                   key={stone.id}
                                   value={String(stone.id)}
                                 >
-                                  {stone.order_reference} · {stone.label} ·{' '}
-                                  {stone.stone_type_detail?.name ?? 'Untyped'}
+                                  {formatStoneReference(
+                                    stone.order_reference,
+                                    stone.label
+                                  )}{' '}
+                                  ·{' '}
+                                  {stone.stone_category_detail?.name ??
+                                    'Uncategorized'}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -361,13 +565,12 @@ export function ReportMutateDialog({
                         )}
                         {isEdit ? (
                           <FormDescription>
-                            A report cannot be moved to another stone.
+                            A report stays linked to its stone.
                           </FormDescription>
                         ) : (
                           worklist.length === 0 && (
                             <FormDescription>
-                              Nothing is waiting — a stone appears here once its
-                              bill is settled.
+                              Paid stones appear here when ready for findings.
                             </FormDescription>
                           )
                         )}
@@ -382,18 +585,82 @@ export function ReportMutateDialog({
                 <section className='space-y-4'>
                   <h3 className='text-sm font-medium'>Classification</h3>
                   <div className='grid gap-4 sm:grid-cols-2'>
-                    {RELATED.map((entry, index) => (
-                      <OptionField
-                        key={entry.name}
-                        control={form.control}
-                        name={entry.name}
-                        label={entry.label}
-                        options={(related[index]?.data ?? []).map((row) => ({
+                    {RELATED.map((entry, index) => {
+                      const lookupRows = related[index]?.data ?? []
+                      const selectedSpecies = watchedSpecies
+                        ? Number(watchedSpecies)
+                        : null
+                      const options = lookupRows
+                        .filter(
+                          (lookupRow) =>
+                            (entry.name !== 'variety' ||
+                              lookupRow.species === selectedSpecies) &&
+                            (entry.name !== 'stone_type' ||
+                              lookupRow.category === selectedCategory)
+                        )
+                        .map((row) => ({
                           value: String(row.id),
                           label: row.name,
-                        }))}
-                      />
-                    ))}
+                        }))
+
+                      if (entry.name === 'color') {
+                        options.sort(
+                          (left, right) =>
+                            (COLOR_HUE_RANK.get(left.label) ?? Infinity) -
+                              (COLOR_HUE_RANK.get(right.label) ?? Infinity) ||
+                            left.label.localeCompare(right.label)
+                        )
+                      }
+
+                      return (
+                        <OptionField
+                          key={entry.name}
+                          control={form.control}
+                          name={entry.name}
+                          label={entry.label}
+                          labelSuffix={
+                            entry.name === 'stone_type' && selectedCategoryName
+                              ? `(Category: ${selectedCategoryName})`
+                              : undefined
+                          }
+                          options={options}
+                          searchable={entry.searchable}
+                          resource={entry.resource}
+                          creatable={entry.creatable}
+                          searchFilters={
+                            entry.name === 'stone_type' && selectedCategory
+                              ? { category: selectedCategory }
+                              : undefined
+                          }
+                          disabled={
+                            entry.name === 'stone_type' && !selectedCategory
+                          }
+                          disabledMessage={
+                            entry.name === 'stone_type' && !selectedCategory
+                              ? 'Select a stone first to load types in its category.'
+                              : undefined
+                          }
+                          createExtra={
+                            entry.name === 'variety'
+                              ? { species: selectedSpecies }
+                              : entry.name === 'stone_type' && selectedCategory
+                                ? { category: selectedCategory }
+                                : undefined
+                          }
+                          onSelection={
+                            entry.name === 'species'
+                              ? (value) => {
+                                  if (value !== form.getValues('species')) {
+                                    form.setValue('variety', '')
+                                  }
+                                }
+                              : undefined
+                          }
+                          loading={related[index]?.isPending ?? false}
+                          loadError={related[index]?.isError ?? false}
+                        />
+                      )
+                    })}
 
                     <OptionField
                       control={form.control}
@@ -406,12 +673,6 @@ export function ReportMutateDialog({
                       name='transparency'
                       label='Transparency'
                       options={TRANSPARENCIES}
-                    />
-                    <OptionField
-                      control={form.control}
-                      name='treatment'
-                      label='Treatment'
-                      options={TREATMENTS}
                     />
                     <OptionField
                       control={form.control}
@@ -436,7 +697,7 @@ export function ReportMutateDialog({
                         name='weight'
                         render={({ field }) => (
                           <FormItem>
-                            <FieldLabel name='weight' label='Weight' />
+                            <FieldLabel label='Weight' />
                             <FormControl
                               {...unansweredProps('weight', field.value)}
                             >
@@ -533,24 +794,19 @@ export function ReportMutateDialog({
                 <Separator />
 
                 <section className='space-y-4'>
-                  <h3 className='text-sm font-medium'>
-                    Conclusion
-                    <span className='ms-1 text-xs font-normal text-muted-foreground'>
-                      (needed to finalize)
-                    </span>
-                  </h3>
+                  <h3 className='text-sm font-medium'>Comments</h3>
                   <FormField
                     control={form.control}
                     name='conclusion'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className='sr-only'>Conclusion</FormLabel>
+                        <FormLabel className='sr-only'>Comments</FormLabel>
                         <FormControl
                           {...unansweredProps('conclusion', field.value)}
                         >
                           <Textarea
                             rows={4}
-                            placeholder='What the stone is, in the words the certificate will carry.'
+                            placeholder='Add comments about the stone.'
                             {...field}
                             value={field.value ?? ''}
                           />
@@ -625,15 +881,7 @@ type FieldProps = {
 }
 
 /** A select whose blank choice means "not recorded", which is always allowed. */
-/**
- * A field's label, marked when the field is one finalize insists on.
- *
- * The form itself stays permissive - a sitting at the bench must be saveable
- * half-done - so this is not a validation message but a note about what is
- * still ahead: these four are what a certificate quotes. Showing it here means
- * the requirement is met while the stone is in hand rather than discovered
- * later at the sign-off gate.
- */
+/** Render a concise label for a findings field. */
 /**
  * `aria-invalid` for an unanswered field, or nothing at all.
  *
@@ -661,18 +909,11 @@ function needsAnswer(name: string, value: unknown): boolean {
   return !String(value ?? '').trim()
 }
 
-function FieldLabel({ name, label }: { name: string; label: string }) {
+function FieldLabel({ label, suffix }: { label: string; suffix?: string }) {
   return (
     <FormLabel>
       {label}
-      {FINALIZE_REQUIRED_NAMES.has(name) && (
-        <span
-          className='ms-1 text-xs font-normal text-muted-foreground'
-          title='Needed before this report can be finalized'
-        >
-          (needed to finalize)
-        </span>
-      )}
+      {suffix && <span className='ms-1 font-normal'>{suffix}</span>}
     </FormLabel>
   )
 }
@@ -681,38 +922,289 @@ function OptionField({
   control,
   name,
   label,
+  labelSuffix,
   options,
-}: FieldProps & { options: EnumOption[] }) {
+  searchable = false,
+  resource,
+  creatable = false,
+  createExtra,
+  searchFilters,
+  disabled = false,
+  disabledMessage,
+  onSelection,
+  loading = false,
+  loadError = false,
+}: FieldProps & {
+  options: EnumOption[]
+  labelSuffix?: string
+  searchable?: boolean
+  resource?: PermissionResource
+  creatable?: boolean
+  createExtra?: Record<string, unknown>
+  searchFilters?: Record<string, number>
+  disabled?: boolean
+  disabledMessage?: string
+  onSelection?: (value: string) => void
+  loading?: boolean
+  loadError?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const queryClient = useQueryClient()
+  const permissions = useAuthStore(
+    (state) => state.auth.user?.permissions ?? []
+  )
+  const canCreate = Boolean(
+    creatable && resource && permissions.includes(perm(resource, 'add'))
+  )
+  const trimmedSearch = searchTerm.trim()
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setDebouncedSearch(trimmedSearch),
+      200
+    )
+    return () => window.clearTimeout(timeout)
+  }, [trimmedSearch])
+  const searchResults = useQuery({
+    queryKey: [
+      'lookup-search',
+      resource,
+      name,
+      debouncedSearch,
+      createExtra,
+      searchFilters,
+    ],
+    queryFn: () =>
+      searchLookupOptions(
+        resource!,
+        debouncedSearch,
+        searchFilters ??
+          (name === 'variety' && createExtra?.species
+            ? { species: Number(createExtra.species) }
+            : {})
+      ),
+    enabled: Boolean(
+      searchable && open && resource && debouncedSearch.length >= 2
+    ),
+    staleTime: 30_000,
+  })
+  const visibleOptions = [
+    ...options,
+    ...(searchResults.data ?? []).map((option) => ({
+      value: String(option.id),
+      label: option.name,
+    })),
+  ].filter(
+    (option, index, all) =>
+      all.findIndex((candidate) => candidate.value === option.value) === index
+  )
+  const hasExactOption = visibleOptions.some(
+    (option) =>
+      option.label.trim().toLocaleLowerCase() ===
+      trimmedSearch.toLocaleLowerCase()
+  )
+  const canCreateNow =
+    canCreate &&
+    Boolean(trimmedSearch) &&
+    !hasExactOption &&
+    (name !== 'variety' || Boolean(createExtra?.species))
+
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FieldLabel name={name} label={label} />
-          <Select
-            value={field.value ? String(field.value) : NONE}
-            onValueChange={(value) =>
-              field.onChange(value === NONE ? '' : value)
-            }
-          >
-            <FormControl {...unansweredProps(name, field.value)}>
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Not recorded' />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value={NONE}>Not recorded</SelectItem>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        const selected = options.find(
+          (option) => option.value === String(field.value ?? '')
+        )
+
+        return (
+          <FormItem>
+            <FieldLabel label={label} suffix={labelSuffix} />
+            {searchable ? (
+              <Popover
+                open={open}
+                onOpenChange={(nextOpen) => {
+                  setOpen(nextOpen)
+                  if (!nextOpen) setSearchTerm('')
+                }}
+                modal
+              >
+                <PopoverTrigger asChild>
+                  <FormControl {...unansweredProps(name, field.value)}>
+                    <Button
+                      type='button'
+                      disabled={disabled}
+                      variant='outline'
+                      role='combobox'
+                      aria-expanded={open}
+                      aria-controls={`${name}-options`}
+                      className={cn(
+                        'w-full justify-between font-normal',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      <span className='flex min-w-0 items-center gap-2'>
+                        {name === 'color' && selected && (
+                          <ColorSwatch name={selected.label} />
+                        )}
+                        <span className='truncate'>
+                          {selected?.label ?? 'Not recorded'}
+                        </span>
+                      </span>
+                      <ChevronsUpDown
+                        className='opacity-50'
+                        aria-hidden='true'
+                      />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent
+                  align='start'
+                  className='w-(--radix-popover-trigger-width) min-w-60 p-0'
+                >
+                  <Command>
+                    <CommandInput
+                      placeholder={
+                        creatable
+                          ? `Search or add ${label.toLowerCase()}…`
+                          : `Search ${label.toLowerCase()}…`
+                      }
+                      value={searchTerm}
+                      onValueChange={setSearchTerm}
+                    />
+                    <CommandList id={`${name}-options`}>
+                      <CommandEmpty>
+                        No matching {label.toLowerCase()}.
+                      </CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value='Not recorded'
+                          onSelect={() => {
+                            onSelection?.('')
+                            field.onChange('')
+                            setOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              'size-4',
+                              !field.value ? 'opacity-100' : 'opacity-0'
+                            )}
+                            aria-hidden
+                          />
+                          <span>Not recorded</span>
+                        </CommandItem>
+                        {visibleOptions.map((option) => (
+                          <CommandItem
+                            key={option.value}
+                            value={option.label}
+                            onSelect={() => {
+                              onSelection?.(option.value)
+                              field.onChange(option.value)
+                              setOpen(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'size-4',
+                                option.value === String(field.value ?? '')
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                              aria-hidden
+                            />
+                            {name === 'color' && (
+                              <ColorSwatch name={option.label} />
+                            )}
+                            <span>{option.label}</span>
+                          </CommandItem>
+                        ))}
+                        {canCreateNow && resource && (
+                          <CommandItem
+                            value={`Create ${trimmedSearch}`}
+                            onSelect={async () => {
+                              try {
+                                const created = await createOrGetLookupRow(
+                                  resource,
+                                  trimmedSearch,
+                                  createExtra
+                                )
+                                queryClient.setQueryData(
+                                  ['lookup', resource],
+                                  (
+                                    current: { id: number; name: string }[] = []
+                                  ) =>
+                                    current.some(
+                                      (item) => item.id === created.id
+                                    )
+                                      ? current
+                                      : [...current, created]
+                                )
+                                await queryClient.invalidateQueries({
+                                  queryKey: ['lookup', resource],
+                                })
+                                field.onChange(String(created.id))
+                                setSearchTerm('')
+                                setOpen(false)
+                              } catch {
+                                toast.error(
+                                  `Could not add this ${label.toLowerCase()}.`
+                                )
+                              }
+                            }}
+                          >
+                            <span className='text-muted-foreground'>
+                              Add “{trimmedSearch}”
+                            </span>
+                          </CommandItem>
+                        )}
+                        {name === 'variety' && !createExtra?.species && (
+                          <p className='px-2 py-1.5 text-sm text-muted-foreground'>
+                            Select a Specie / Group before adding a variety.
+                          </p>
+                        )}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <Select
+                value={field.value ? String(field.value) : NONE}
+                onValueChange={(value) =>
+                  field.onChange(value === NONE ? '' : value)
+                }
+              >
+                <FormControl {...unansweredProps(name, field.value)}>
+                  <SelectTrigger className='w-full' disabled={disabled}>
+                    <SelectValue placeholder='Not recorded' />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value={NONE}>Not recorded</SelectItem>
+                  {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {loading && <FormDescription>Loading choices…</FormDescription>}
+            {disabledMessage && (
+              <FormDescription>{disabledMessage}</FormDescription>
+            )}
+            {loadError && (
+              <p className='text-sm text-destructive' role='alert'>
+                Could not load choices. Close and reopen this dialog to retry.
+              </p>
+            )}
+            <FormMessage />
+          </FormItem>
+        )
+      }}
     />
   )
 }
@@ -729,7 +1221,7 @@ function TextField({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FieldLabel name={name} label={label} />
+          <FieldLabel label={label} />
           <FormControl {...unansweredProps(name, field.value)}>
             <Input
               placeholder={placeholder}

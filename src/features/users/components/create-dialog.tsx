@@ -103,11 +103,11 @@ export function UserCreateDialog({
       <DialogContent className='sm:max-w-md'>
         <DialogHeader className='text-start'>
           <DialogTitle>{created ? 'Account created' : 'Add user'}</DialogTitle>
-          <DialogDescription>
-            {created
-              ? 'Here are the sign-in details.'
-              : 'The user sets their own password and fills in their profile when they first sign in. Country is Tanzania and the account starts Active.'}
-          </DialogDescription>
+          {!created && (
+            <DialogDescription>
+              They set their password at first sign-in.
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         {created ? (
@@ -134,7 +134,7 @@ export function UserCreateDialog({
                       />
                     </FormControl>
                     <FormDescription>
-                      They sign in with it, and the credentials are sent to it.
+                      Used to sign in and receive credentials.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

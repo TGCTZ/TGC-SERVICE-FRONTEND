@@ -29,7 +29,10 @@ export function filterNavGroups(
     .map((group) => ({
       ...group,
       items: group.items
-        .filter((item) => isVisible(item.permission, granted))
+        .filter(
+          (item) =>
+            isVisible(item.permission, granted) && isVisible(item.gate, granted)
+        )
         .map((item) => {
           if (!('items' in item) || !item.items) return item
 

@@ -44,7 +44,7 @@ export function OrderRestoreDialog({
       open={open}
       onOpenChange={onOpenChange}
       title='Restore order'
-      desc={`Bring ${currentRow.reference_number} back?`}
+      desc={`Restore ${currentRow.reference_number}?`}
       confirmText={mutation.isPending ? 'Restoring...' : 'Restore'}
       disabled={mutation.isPending}
       handleConfirm={() => mutation.mutate()}

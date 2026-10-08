@@ -21,7 +21,6 @@ import { Route as authFirstLoginRouteImport } from './routes/(auth)/first-login'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedSystemLogsIndexRouteImport } from './routes/_authenticated/system-logs/index'
-import { Route as AuthenticatedStonesIndexRouteImport } from './routes/_authenticated/stones/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRolesIndexRouteImport } from './routes/_authenticated/roles/index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
@@ -37,7 +36,6 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
-import { Route as AuthenticatedWorklistsSlugIndexRouteImport } from './routes/_authenticated/worklists/$slug/index'
 import { Route as AuthenticatedReportsOperationalIndexRouteImport } from './routes/_authenticated/reports/operational/index'
 import { Route as AuthenticatedReportsFinancialIndexRouteImport } from './routes/_authenticated/reports/financial/index'
 import { Route as AuthenticatedLookupsSlugIndexRouteImport } from './routes/_authenticated/lookups/$slug/index'
@@ -101,12 +99,6 @@ const AuthenticatedSystemLogsIndexRoute =
   AuthenticatedSystemLogsIndexRouteImport.update({
     id: '/system-logs/',
     path: '/system-logs/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedStonesIndexRoute =
-  AuthenticatedStonesIndexRouteImport.update({
-    id: '/stones/',
-    path: '/stones/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsIndexRoute =
@@ -197,12 +189,6 @@ const AuthenticatedSettingsAccountRoute =
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
-const AuthenticatedWorklistsSlugIndexRoute =
-  AuthenticatedWorklistsSlugIndexRouteImport.update({
-    id: '/worklists/$slug/',
-    path: '/worklists/$slug/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedReportsOperationalIndexRoute =
   AuthenticatedReportsOperationalIndexRouteImport.update({
     id: '/reports/operational/',
@@ -247,13 +233,11 @@ export interface FileRoutesByFullPath {
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/roles/': typeof AuthenticatedRolesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/stones/': typeof AuthenticatedStonesIndexRoute
   '/system-logs/': typeof AuthenticatedSystemLogsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
   '/lookups/$slug/': typeof AuthenticatedLookupsSlugIndexRoute
   '/reports/financial/': typeof AuthenticatedReportsFinancialIndexRoute
   '/reports/operational/': typeof AuthenticatedReportsOperationalIndexRoute
-  '/worklists/$slug/': typeof AuthenticatedWorklistsSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/first-login': typeof authFirstLoginRoute
@@ -279,13 +263,11 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/roles': typeof AuthenticatedRolesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
-  '/stones': typeof AuthenticatedStonesIndexRoute
   '/system-logs': typeof AuthenticatedSystemLogsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/lookups/$slug': typeof AuthenticatedLookupsSlugIndexRoute
   '/reports/financial': typeof AuthenticatedReportsFinancialIndexRoute
   '/reports/operational': typeof AuthenticatedReportsOperationalIndexRoute
-  '/worklists/$slug': typeof AuthenticatedWorklistsSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -314,13 +296,11 @@ export interface FileRoutesById {
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/roles/': typeof AuthenticatedRolesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/_authenticated/stones/': typeof AuthenticatedStonesIndexRoute
   '/_authenticated/system-logs/': typeof AuthenticatedSystemLogsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/lookups/$slug/': typeof AuthenticatedLookupsSlugIndexRoute
   '/_authenticated/reports/financial/': typeof AuthenticatedReportsFinancialIndexRoute
   '/_authenticated/reports/operational/': typeof AuthenticatedReportsOperationalIndexRoute
-  '/_authenticated/worklists/$slug/': typeof AuthenticatedWorklistsSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -349,13 +329,11 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/roles/'
     | '/settings/'
-    | '/stones/'
     | '/system-logs/'
     | '/users/'
     | '/lookups/$slug/'
     | '/reports/financial/'
     | '/reports/operational/'
-    | '/worklists/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/first-login'
@@ -381,13 +359,11 @@ export interface FileRouteTypes {
     | '/reports'
     | '/roles'
     | '/settings'
-    | '/stones'
     | '/system-logs'
     | '/users'
     | '/lookups/$slug'
     | '/reports/financial'
     | '/reports/operational'
-    | '/worklists/$slug'
   id:
     | '__root__'
     | '/_authenticated'
@@ -415,13 +391,11 @@ export interface FileRouteTypes {
     | '/_authenticated/reports/'
     | '/_authenticated/roles/'
     | '/_authenticated/settings/'
-    | '/_authenticated/stones/'
     | '/_authenticated/system-logs/'
     | '/_authenticated/users/'
     | '/_authenticated/lookups/$slug/'
     | '/_authenticated/reports/financial/'
     | '/_authenticated/reports/operational/'
-    | '/_authenticated/worklists/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -519,13 +493,6 @@ declare module '@tanstack/react-router' {
       path: '/system-logs'
       fullPath: '/system-logs/'
       preLoaderRoute: typeof AuthenticatedSystemLogsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/stones/': {
-      id: '/_authenticated/stones/'
-      path: '/stones'
-      fullPath: '/stones/'
-      preLoaderRoute: typeof AuthenticatedStonesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/': {
@@ -633,13 +600,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
-    '/_authenticated/worklists/$slug/': {
-      id: '/_authenticated/worklists/$slug/'
-      path: '/worklists/$slug'
-      fullPath: '/worklists/$slug/'
-      preLoaderRoute: typeof AuthenticatedWorklistsSlugIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/reports/operational/': {
       id: '/_authenticated/reports/operational/'
       path: '/reports/operational'
@@ -700,13 +660,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPaymentsIndexRoute: typeof AuthenticatedPaymentsIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedRolesIndexRoute: typeof AuthenticatedRolesIndexRoute
-  AuthenticatedStonesIndexRoute: typeof AuthenticatedStonesIndexRoute
   AuthenticatedSystemLogsIndexRoute: typeof AuthenticatedSystemLogsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedLookupsSlugIndexRoute: typeof AuthenticatedLookupsSlugIndexRoute
   AuthenticatedReportsFinancialIndexRoute: typeof AuthenticatedReportsFinancialIndexRoute
   AuthenticatedReportsOperationalIndexRoute: typeof AuthenticatedReportsOperationalIndexRoute
-  AuthenticatedWorklistsSlugIndexRoute: typeof AuthenticatedWorklistsSlugIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -723,7 +681,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPaymentsIndexRoute: AuthenticatedPaymentsIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
   AuthenticatedRolesIndexRoute: AuthenticatedRolesIndexRoute,
-  AuthenticatedStonesIndexRoute: AuthenticatedStonesIndexRoute,
   AuthenticatedSystemLogsIndexRoute: AuthenticatedSystemLogsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedLookupsSlugIndexRoute: AuthenticatedLookupsSlugIndexRoute,
@@ -731,7 +688,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedReportsFinancialIndexRoute,
   AuthenticatedReportsOperationalIndexRoute:
     AuthenticatedReportsOperationalIndexRoute,
-  AuthenticatedWorklistsSlugIndexRoute: AuthenticatedWorklistsSlugIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

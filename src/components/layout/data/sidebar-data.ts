@@ -4,8 +4,6 @@ import {
   ClipboardList,
   Contact,
   FlaskConical,
-  Gem,
-  ListChecks,
   Microscope,
   Receipt,
   ScrollText,
@@ -19,16 +17,13 @@ import { countQuery } from '@/lib/count-query'
 import { PERMISSIONS, perm } from '@/lib/permissions'
 import { allLookupConfigs } from '@/features/lookups/data/config'
 import { reportConfigs } from '@/features/reports/data/config'
-import { worklistConfig } from '@/features/worklists/data/config'
 import { type NavLink, type SidebarData } from '../types'
 
 /**
  * Sidebar navigation.
  *
- * Five groups following the stone's journey through the lab — reception, the
- * two identification stages, billing, certification — while the work queues sit
- * beside the screens they feed and the reference tables those stages draw on
- * sit under Administration. Reports leads with the two read-only report pages.
+ * Resource pages follow the stone's journey through the lab, while badges show
+ * their pending-work counts and reference tables sit under Administration.
  *
  * Identification holds both gemmological stages, because they are one person's
  * work split by payment: identification types the stone and so
@@ -53,34 +48,35 @@ import { type NavLink, type SidebarData } from '../types'
  * "Queues" menu — the sidebar then reads as the pipeline itself, and a queue
  * sits beside the screen whose work it feeds.
  *
- * Read from the worklist configs rather than hard-coded, so a queue's title,
- * route and permission stay in step with its definition.
- *
- * Every queue has an entry: the screens themselves are plain lists now, so the
- * sidebar is the only place that answers "what is waiting?".
+ * Each resource page owns its combined feed, while the shared badge query only
+ * reads that feed's waiting count.
  */
-const identificationQueue = worklistConfig('identification')
-const findingsQueue = worklistConfig('findings')
-const billingQueue = worklistConfig('billing')
-const certificationQueue = worklistConfig('certification')
+const identificationFeed = countQuery('/orders/identification-count')
+const findingsFeed = countQuery('/identification-reports/workflow-feed', {
+  source: 'waiting',
+})
+const billingFeed = countQuery('/bills/workflow-feed', { source: 'waiting' })
 
 /** The whole navigation tree, unfiltered - `filterNavGroups` narrows it per user. */
 export const sidebarData: SidebarData = {
   navGroups: [
     {
       title: 'Reports',
+      permission: PERMISSIONS.moduleReports,
       items: [
         {
           title: 'Financial reports',
           url: '/reports/financial',
           icon: Receipt,
           permission: reportConfigs.financial.permissions,
+          gate: reportConfigs.financial.gate,
         },
         {
           title: 'Operational reports',
           url: '/reports/operational',
           icon: ClipboardList,
           permission: reportConfigs.operational.permissions,
+          gate: reportConfigs.operational.gate,
         },
       ],
     },
@@ -105,69 +101,39 @@ export const sidebarData: SidebarData = {
       ],
     },
 
-    /* ---------------------------------------------------------------- */
-    /* The bench. Each screen answers "what is waiting?" through its own  */
-    /* status filter, so the queues are not repeated as separate entries. */
-    /* ---------------------------------------------------------------- */
+    /* The bench: waiting and completed work share each resource page. */
     {
       title: 'Gemmology Lab',
-      permission: PERMISSIONS.moduleIdentification,
+      permission: [PERMISSIONS.moduleIdentification, perm('stones', 'view')],
       items: [
         {
-          title: identificationQueue.title,
-          url: `/worklists/${identificationQueue.slug}` as NavLink['url'],
-          icon: ListChecks,
-          permission: identificationQueue.permission,
-          count: countQuery(identificationQueue.endpoint),
-        },
-        {
-          // Order-shaped: identifying a stone is work done against an order,
-          // and what the bench needs is how many of each order are still to do.
           title: 'Identification',
           url: '/identification',
           icon: Microscope,
-          permission: perm('orders', 'view'),
-        },
-        {
-          title: 'Stones',
-          url: '/stones',
-          icon: Gem,
-          permission: perm('stones', 'view'),
-        },
-        {
-          title: findingsQueue.title,
-          url: `/worklists/${findingsQueue.slug}` as NavLink['url'],
-          icon: ListChecks,
-          permission: findingsQueue.permission,
-          count: countQuery(findingsQueue.endpoint),
+          permission: [perm('orders', 'view'), perm('stones', 'view')],
+          count: identificationFeed,
         },
         {
           title: 'Findings',
           url: '/identification-reports',
           icon: FlaskConical,
           permission: perm('identification-reports', 'view'),
+          count: findingsFeed,
         },
       ],
     },
 
-    /* Billing and Certificates both lead with their queue: the work comes
-       before the record it produces. */
+    /* Billing carries its pending count on the main item. */
     {
       title: 'Billing',
       permission: PERMISSIONS.moduleBilling,
       items: [
         {
-          title: billingQueue.title,
-          url: `/worklists/${billingQueue.slug}` as NavLink['url'],
-          icon: ListChecks,
-          permission: billingQueue.permission,
-          count: countQuery(billingQueue.endpoint),
-        },
-        {
           title: 'Bills',
           url: '/bills',
           icon: Receipt,
           permission: perm('bills', 'view'),
+          count: billingFeed,
         },
         {
           title: 'Payments',
@@ -183,15 +149,6 @@ export const sidebarData: SidebarData = {
       permission: PERMISSIONS.moduleCertificates,
       items: [
         {
-          title: certificationQueue.title,
-          url: `/worklists/${certificationQueue.slug}` as NavLink['url'],
-          icon: ListChecks,
-          permission: certificationQueue.permission,
-          count: countQuery(certificationQueue.endpoint),
-        },
-        {
-          // An archive of what has been issued, which is why the queue leads:
-          // this screen cannot answer "what is waiting?".
           title: 'Certificates',
           url: '/certificates',
           icon: BadgeCheck,

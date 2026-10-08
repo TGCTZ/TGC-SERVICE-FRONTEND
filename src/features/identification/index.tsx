@@ -1,25 +1,37 @@
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { perm } from '@/lib/permissions'
-import { Button } from '@/components/ui/button'
-import { Can } from '@/components/can'
+import { useAuthStore } from '@/stores/auth-store'
+import { PERMISSIONS, perm } from '@/lib/permissions'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfigDrawer } from '@/components/config-drawer'
+import { DataTableRowActions, type RowAction } from '@/components/data-table'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
+import { StatusBadge } from '@/components/status-badge'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GeneralError } from '@/features/errors/general-error'
+import {
+  WorkflowFeedTable,
+  type WorkflowListState,
+} from '@/features/workflow-feed'
+import {
+  workflowFeedQuery,
+  type WorkflowRow,
+} from '@/features/workflow-feed/data/api'
 import { ReportDeleteDialog } from './components/delete-dialog'
 import { FinalizeReportDialog } from './components/finalize-dialog'
 import { ReportMutateDialog } from './components/mutate-dialog'
 import { ReportsProvider, useReports } from './components/provider'
 import { ReportRestoreDialog } from './components/restore-dialog'
-import { ReportsTable, type ReportsQueryState } from './components/table'
+import { ReportsRowActions } from './components/row-actions'
 import { ReportViewDialog } from './components/view-dialog'
-import { reportsQuery } from './data/api'
+import { reportQuery } from './data/api'
+import { reportSchema, type IdentificationReport } from './data/schema'
 import { useReportActions } from './hooks/use-actions'
 
 const route = getRouteApi('/_authenticated/identification-reports/')
@@ -36,33 +48,61 @@ function IdentificationContent() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const { open, setOpen, currentRow, setCurrentRow } = useReports()
+  const [initialStone, setInitialStone] = useState<number | undefined>()
+  const selectedTab = search.status === 'Finalized' ? 'finalized' : 'open'
+  const canEditFinalized = useAuthStore((state) =>
+    (state.auth.user?.permissions ?? []).includes(
+      PERMISSIONS.editFinalizedReport
+    )
+  )
+  const editReportId = search.editReportId
+  const editReport = useQuery({
+    ...reportQuery(editReportId ?? 0),
+    enabled: Boolean(editReportId && canEditFinalized),
+  })
+
+  useEffect(() => {
+    if (!editReport.data || !editReportId) return
+
+    setCurrentRow(editReport.data)
+    setOpen('update')
+    navigate({
+      search: (prev) => {
+        const { editReportId: _removed, ...rest } = prev
+        return rest
+      },
+      replace: true,
+    })
+  }, [editReport.data, editReportId, navigate, setCurrentRow, setOpen])
 
   // The same list the table cell renders.
   const actions = useReportActions(currentRow)
 
-  const state: ReportsQueryState = {
+  const state: WorkflowListState = {
     page: search.page ?? 1,
     perPage: search.pageSize ?? 10,
     search: search.search ?? '',
     sortBy: search.sortBy,
     sortDir: search.sortDir,
-    finalized: search.finalized,
-    showDeleted: search.showDeleted,
+    status: search.status,
+    type: search.type,
+    source: search.source,
   }
 
   const { data, isPending, isError, isFetching } = useQuery(
-    reportsQuery({
+    workflowFeedQuery('/identification-reports/workflow-feed', {
       page: state.page,
-      perPage: state.perPage,
+      pageSize: state.perPage,
       search: state.search,
       sortBy: state.sortBy,
       sortDir: state.sortDir,
-      filters: { is_finalized: state.finalized },
-      trashed: state.showDeleted ? 'with' : undefined,
+      status: state.status,
+      type: state.type,
+      source: state.source,
     })
   )
 
-  function handleStateChange(next: Partial<ReportsQueryState>) {
+  function handleStateChange(next: Partial<WorkflowListState>) {
     navigate({
       search: (prev) => ({
         ...prev,
@@ -71,9 +111,12 @@ function IdentificationContent() {
         search: next.search !== undefined ? next.search : prev.search,
         sortBy: 'sortBy' in next ? next.sortBy : prev.sortBy,
         sortDir: 'sortDir' in next ? next.sortDir : prev.sortDir,
-        finalized: 'finalized' in next ? next.finalized : prev.finalized,
-        showDeleted:
-          'showDeleted' in next ? next.showDeleted : prev.showDeleted,
+        status: 'status' in next ? next.status : prev.status,
+        type: 'type' in next ? next.type : prev.type,
+        source:
+          'source' in next
+            ? (next.source as 'waiting' | 'records' | undefined)
+            : prev.source,
       }),
       replace: true,
     })
@@ -89,39 +132,82 @@ function IdentificationContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <PageHeading
-            title='Findings'
-            description="What the bench found, per stone — the findings recorded after payment. A report can only be opened once the stone's bill is settled."
-          />
-
-          <Can permission={perm('identification-reports', 'add')}>
-            <Button
-              onClick={() => {
-                setCurrentRow(null)
-                setOpen('create')
-              }}
-            >
-              Record findings
-              <Plus className='ms-1 size-4' />
-            </Button>
-          </Can>
-        </div>
+        <PageHeading
+          title='Findings'
+          description={
+            state.status === 'Finalized'
+              ? 'Review finalized findings.'
+              : 'Record findings for paid stones.'
+          }
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
         ) : (
-          <ReportsTable
-            data={data?.items ?? []}
-            meta={data?.meta}
-            isFetching={isPending || isFetching}
-            state={state}
-            onStateChange={handleStateChange}
-            onRowClick={(report) => {
-              setCurrentRow(report)
-              setOpen('view')
-            }}
-          />
+          <Tabs
+            value={selectedTab}
+            onValueChange={(value) =>
+              handleStateChange({
+                status: value === 'finalized' ? 'Finalized' : undefined,
+                page: 1,
+              })
+            }
+            className='space-y-4'
+          >
+            <TabsList>
+              <TabsTrigger value='open'>Open findings</TabsTrigger>
+              <TabsTrigger value='finalized'>Finalized reports</TabsTrigger>
+            </TabsList>
+            <TabsContent value={selectedTab} className='mt-0'>
+              <WorkflowFeedTable
+                rows={data?.results ?? []}
+                count={data?.count ?? 0}
+                isFetching={isPending || isFetching}
+                state={state}
+                onStateChange={handleStateChange}
+                renderStatus={(row) =>
+                  row.kind === 'report' ? (
+                    <StatusBadge
+                      tone={row.status === 'Finalized' ? 'success' : 'neutral'}
+                    >
+                      {row.status}
+                    </StatusBadge>
+                  ) : (
+                    <StatusBadge tone='info'>{row.status}</StatusBadge>
+                  )
+                }
+                renderAction={(row: WorkflowRow) => {
+                  if (row.kind === 'stone') {
+                    const action: RowAction = {
+                      label: 'Record findings',
+                      icon: Plus,
+                      tone: 'advance',
+                      permission: perm('identification-reports', 'add'),
+                      onSelect: () => {
+                        setInitialStone(row.record_id)
+                        setCurrentRow(null)
+                        setOpen('create')
+                      },
+                    }
+                    return <DataTableRowActions actions={[action]} />
+                  }
+                  if (row.kind !== 'report') return null
+                  const report = reportSchema.parse(
+                    row.detail
+                  ) as IdentificationReport
+                  return <ReportsRowActions report={report} />
+                }}
+                onRowClick={(row: WorkflowRow) => {
+                  if (row.kind === 'report') {
+                    setCurrentRow(
+                      reportSchema.parse(row.detail) as IdentificationReport
+                    )
+                    setOpen('view')
+                  }
+                }}
+              />
+            </TabsContent>
+          </Tabs>
         )}
       </Main>
 
@@ -153,6 +239,7 @@ function IdentificationContent() {
           }
         }}
         currentRow={open === 'create' ? null : currentRow}
+        initialStone={initialStone}
       />
 
       {currentRow && (

@@ -79,7 +79,7 @@ function PaymentsContent() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title='Payments'
-          description='Every notification GePG has sent, exactly as it arrived.'
+          description='GePG payment notifications, as received.'
         />
 
         {isError ? (

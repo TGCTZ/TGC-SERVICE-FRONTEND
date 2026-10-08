@@ -55,9 +55,6 @@ describe('PERMISSIONS', () => {
     expect(PERMISSIONS.generateBill).toBe('billing.generate_bill')
     expect(PERMISSIONS.finalizeReport).toBe('identification.finalize_report')
     expect(PERMISSIONS.issueCertificate).toBe('certificates.issue_certificate')
-    expect(PERMISSIONS.revokeCertificate).toBe(
-      'certificates.revoke_certificate'
-    )
   })
 
   it('reads the audit log from two different apps', () => {

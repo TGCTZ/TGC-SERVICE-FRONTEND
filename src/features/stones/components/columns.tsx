@@ -56,6 +56,15 @@ export const stonesDataColumns: ColumnDef<Stone>[] = [
     },
   },
   {
+    id: 'stone_category',
+    header: () => <span>Category</span>,
+    enableSorting: false,
+    cell: ({ row }) =>
+      row.original.stone_category_detail?.name ?? (
+        <span className='text-muted-foreground'>—</span>
+      ),
+  },
+  {
     id: 'stone_type',
     header: () => <span>Type</span>,
     enableSorting: false,

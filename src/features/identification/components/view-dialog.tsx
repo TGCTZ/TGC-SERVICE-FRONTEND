@@ -1,6 +1,7 @@
 import { Pencil } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import { formatDateTime } from '@/lib/format'
-import { perm } from '@/lib/permissions'
+import { PERMISSIONS, perm } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,7 +23,6 @@ import {
   NATURE_TYPES,
   OPTIC_CHARACTERS,
   TRANSPARENCIES,
-  TREATMENTS,
   type EnumOption,
 } from '../data/enums'
 import { type IdentificationReport } from '../data/schema'
@@ -60,10 +60,9 @@ function formatStoneWeight(report: IdentificationReport): string | null {
  * A gemmologist's findings for one stone, as a record.
  *
  * A definition list rather than the mutate form with `isLocked` on every field.
- * A finalized report is genuinely immutable — `is_finalized` is one-way — so
- * the form was never going to accept a change, and rendering one implied
- * otherwise. It also let a blank optional finding look like an empty input
- * waiting to be filled in, when it means the test was not run.
+ * Most viewers cannot change a finalized report; authorized administrators can
+ * enter the correction flow explicitly. A blank optional finding is displayed
+ * as absent because it means the test was not run.
  */
 export function ReportViewDialog({
   open,
@@ -72,6 +71,12 @@ export function ReportViewDialog({
   onRequestEdit,
   actions = [],
 }: ReportViewDialogProps) {
+  const permissions = useAuthStore(
+    (state) => state.auth.user?.permissions ?? []
+  )
+  const canEdit =
+    !report.is_finalized ||
+    permissions.includes(PERMISSIONS.editFinalizedReport)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-2xl'>
@@ -95,11 +100,11 @@ export function ReportViewDialog({
           {/* The conclusion leads: it is the sentence the certificate carries,
               and the reason anyone opens a finished report. */}
           <div className='space-y-2 rounded-md border p-3'>
-            <h3 className='text-sm font-medium'>Conclusion</h3>
+            <h3 className='text-sm font-medium'>Comments</h3>
             <p className='text-sm'>
               {report.conclusion || (
                 <span className='text-muted-foreground'>
-                  No conclusion recorded yet.
+                  No comments recorded yet.
                 </span>
               )}
             </p>
@@ -110,7 +115,11 @@ export function ReportViewDialog({
             <DefinitionList
               items={[
                 {
-                  label: 'Species',
+                  label: 'Stone type',
+                  value: report.stone_type_detail?.name ?? null,
+                },
+                {
+                  label: 'Specie / Group',
                   value: report.species_detail?.name ?? null,
                 },
                 {
@@ -133,7 +142,7 @@ export function ReportViewDialog({
                 },
                 {
                   label: 'Treatment',
-                  value: enumLabel(TREATMENTS, report.treatment),
+                  value: report.treatment_detail?.name ?? null,
                 },
               ]}
             />
@@ -218,10 +227,8 @@ export function ReportViewDialog({
           <ViewFooterActions
             actions={actions}
             primary={
-              // A finalized report accepts no writes, so Edit is withdrawn
-              // rather than offered and then refused by the API.
               onRequestEdit &&
-              !report.is_finalized && (
+              canEdit && (
                 <Can permission={perm('identification-reports', 'change')}>
                   <Button onClick={onRequestEdit}>
                     <Pencil className='me-1 size-4' />

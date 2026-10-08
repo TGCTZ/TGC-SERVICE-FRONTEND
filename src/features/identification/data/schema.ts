@@ -56,6 +56,8 @@ export const reportSchema = z.object({
   customer_name: z.string().nullable().default(null),
   customer_phone: z.string().nullable().default(null),
   report_number: z.string(),
+  stone_category_detail: relatedSchema.nullable().default(null),
+  stone_type_detail: relatedSchema.nullable().default(null),
 
   species: z.number().nullable().default(null),
   species_detail: relatedSchema.nullable().default(null),
@@ -67,10 +69,11 @@ export const reportSchema = z.object({
   shape_cut_detail: relatedSchema.nullable().default(null),
   color: z.number().nullable().default(null),
   color_detail: relatedSchema.nullable().default(null),
+  treatment: z.number().nullable().default(null),
+  treatment_detail: relatedSchema.nullable().default(null),
 
   nature_type: z.string().default(''),
   transparency: z.string().default(''),
-  treatment: z.string().default(''),
   optic_character: z.string().default(''),
 
   refractive_index: z.string().default(''),

@@ -14,7 +14,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -205,11 +204,6 @@ export function UserMutateDialog({
               ? `Edit ${currentRow?.full_name || currentRow?.email}`
               : 'Add user'}
           </DialogTitle>
-          <DialogDescription>
-            {isEdit
-              ? 'Update the account details below.'
-              : 'Create a new account and assign its access.'}
-          </DialogDescription>
         </DialogHeader>
 
         <DialogBody>
