@@ -1,4 +1,4 @@
-# TGC Service — Frontend
+# TGPMIS — Frontend
 
 The web client for the Tanzania Gemmological Centre's stone-certification
 system. Reception takes stones in, gemmologists identify and examine them,

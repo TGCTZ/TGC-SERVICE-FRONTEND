@@ -1,4 +1,4 @@
-# TGC Service Frontend — Documentation
+# TGPMIS Frontend — Documentation
 
 Reference docs for the web client of the Tanzania Gemmological Centre's
 stone-certification system, built on Vite, React 19, TypeScript, Tailwind v4 and
