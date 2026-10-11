@@ -27,5 +27,5 @@ export const appConfig = {
     'Stone certification for the Tanzania Gemmological Centre: reception, billing, identification and certificates.',
 
   /** Public URL of the deployed app (used for links and metadata). */
-  url: 'http://localhost:5173',
+  url: 'https://tgpmis.tgc.ac.tz',
 } as const

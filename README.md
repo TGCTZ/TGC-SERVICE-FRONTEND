@@ -101,6 +101,36 @@ Full setup and the common first-run failures:
 > `"files": []` and only project references, so it exits 0 regardless. Use
 > `pnpm typecheck`. See [testing.md](./docs/testing.md#type-checking).
 
+## Production deployment
+
+The frontend GitHub Actions workflow builds the static app and uploads `dist/`
+to the production host after CI passes on `main`. To build and upload manually,
+set the values for your repository, API, site, and deployment host, then run
+these commands on a build machine with SSH and `rsync` access:
+
+```bash
+TGC_FRONTEND_DIR=/path/to/frontend
+TGC_API_URL=https://api.example.com/api/v1
+TGC_SITE_URL=https://app.example.com
+TGC_SSH_KEY=/path/to/deployment-key
+TGC_SSH_USER=deploy
+TGC_SSH_HOST=example.com
+TGC_REMOTE_DIST_DIR=/path/to/site/dist
+
+cd "$TGC_FRONTEND_DIR"
+pnpm install --frozen-lockfile
+VITE_API_URL="$TGC_API_URL" pnpm build
+rsync --archive --compress --delete --delay-updates \
+  --rsh="ssh -i $TGC_SSH_KEY -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15" \
+  dist/ "$TGC_SSH_USER@$TGC_SSH_HOST:$TGC_REMOTE_DIST_DIR/"
+curl --fail --silent --show-error "$TGC_SITE_URL/"
+```
+
+Install the deployment key and trusted host key for your SSH client before
+uploading. `TGC_API_URL` must include the API version path. It is embedded in
+the build, so changing it requires rebuilding and uploading `dist/` again. See
+[deployment.md](./docs/deployment.md) for the static-host requirements.
+
 ## Project structure
 
 ```

@@ -11,6 +11,9 @@ on:
       - main
       - master
 
+permissions:
+  contents: read
+
 jobs:
   install-lint-build:
     runs-on: ubuntu-latest
@@ -22,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -58,6 +61,9 @@ jobs:
     needs: install-lint-build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.SITE_URL }}
     concurrency:
       group: frontend-production
       cancel-in-progress: false
@@ -68,7 +74,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -77,9 +83,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build production frontend
-        run: pnpm build
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: |
+          test -n "$VITE_API_URL"
+          pnpm build
 
       - name: Configure SSH
         env:
@@ -95,22 +103,32 @@ jobs:
 
       - name: Upload frontend build
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_PORT: ${{ vars.SSH_PORT }}
+          SSH_USER: ${{ vars.SSH_USER }}
         run: |
+          test -n "$SSH_HOST"
+          test -n "$SSH_PORT"
+          test -n "$SSH_USER"
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
           rsync \
             --archive \
+            --no-owner \
+            --no-group \
             --compress \
             --delete \
             --delay-updates \
-            --rsh="ssh -i $HOME/.ssh/tgc-actions -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15" \
+            --rsh="ssh -i $HOME/.ssh/tgc-actions -p $SSH_PORT -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15" \
             dist/ \
-            "$SSH_USER@$SSH_HOST:/var/www/tgc/service/frontend/dist/"
+            "$SSH_USER@$SSH_HOST:/var/www/html/tgpmis-frontend-production/"
 
       - name: Check production frontend
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
         run: |
+          test -n "$SITE_URL"
           for attempt in {1..6}; do
-            if curl --fail --silent --show-error --output /dev/null https://tgc.mtakati.online/; then
+            if curl --fail --silent --show-error --output /dev/null "$SITE_URL/"; then
               exit 0
             fi
             sleep 5
