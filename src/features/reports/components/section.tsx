@@ -41,10 +41,12 @@ export function ReportSectionCard({
   const query = useQuery(reportsQuery(kind, state))
   const data = query.data
   return (
-    <Card>
+    <Card className='bg-primary text-primary-foreground'>
       <CardHeader>
         <CardTitle>{summary.title}</CardTitle>
-        <CardDescription>{summary.description}</CardDescription>
+        <CardDescription className='text-primary-foreground/80'>
+          {summary.description}
+        </CardDescription>
       </CardHeader>
       <CardContent
         className={
@@ -65,7 +67,7 @@ export function ReportSectionCard({
             </p>
           ))}
           {summary.statuses.map((status) => (
-            <p key={status.status} className='text-muted-foreground'>
+            <p key={status.status} className='text-primary-foreground/80'>
               {status.status.replace(/_/g, ' ')}: {status.count}
             </p>
           ))}
