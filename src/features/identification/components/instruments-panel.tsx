@@ -181,7 +181,9 @@ export function InstrumentsPanel({
                   <Switch
                     id={id}
                     checked={
-                      pending ? toggle.variables!.on : usedIds.has(instrument.id)
+                      pending
+                        ? toggle.variables!.on
+                        : usedIds.has(instrument.id)
                     }
                     disabled={readOnly || pending || toggleAll.isPending}
                     onCheckedChange={(on) =>
