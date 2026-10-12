@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { DataTable } from '@/components/data-table'
+import { brandPanelClassName } from '@/components/layout/brand-panel'
 import { reportsQuery } from '../data/api'
 import { type ReportKind } from '../data/config'
 import { type ReportSearch, type ReportSection } from '../data/schema'
@@ -41,10 +42,12 @@ export function ReportSectionCard({
   const query = useQuery(reportsQuery(kind, state))
   const data = query.data
   return (
-    <Card className='bg-primary text-primary-foreground [&_[data-slot=table-container]]:bg-card [&_[data-slot=table-container]]:text-card-foreground'>
+    <Card
+      className={`${brandPanelClassName} [&_[data-slot=table-container]]:bg-card [&_[data-slot=table-container]]:text-card-foreground dark:[&_[data-slot=table-container]]:bg-transparent dark:[&_[data-slot=table-container]]:text-foreground`}
+    >
       <CardHeader>
         <CardTitle>{summary.title}</CardTitle>
-        <CardDescription className='text-primary-foreground/80'>
+        <CardDescription className='text-primary-foreground/80 dark:text-muted-foreground'>
           {summary.description}
         </CardDescription>
       </CardHeader>
@@ -67,7 +70,10 @@ export function ReportSectionCard({
             </p>
           ))}
           {summary.statuses.map((status) => (
-            <p key={status.status} className='text-primary-foreground/80'>
+            <p
+              key={status.status}
+              className='text-primary-foreground/80 dark:text-muted-foreground'
+            >
               {status.status.replace(/_/g, ' ')}: {status.count}
             </p>
           ))}
@@ -98,6 +104,7 @@ export function ReportSectionCard({
           </Alert>
         ) : (
           <DataTable
+            panel={false}
             columns={reportColumns(data?.columns ?? [])}
             data={data?.page.items ?? []}
             meta={data?.page.meta}

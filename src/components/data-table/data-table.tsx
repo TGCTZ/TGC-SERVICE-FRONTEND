@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { brandPanelClassName } from '@/components/layout/brand-panel'
 import { DataTableCardList } from './card-list'
 import { DataTablePagination } from './pagination'
 import { DataTableViewOptions } from './view-options'
@@ -48,6 +49,8 @@ type DataTableProps<T> = {
   emptyMessage?: string
   /** Prepend a running row number. On by default. */
   showSerialNumber?: boolean
+  /** Wrap full-page tables in the shared light-theme brand panel. */
+  panel?: boolean
 }
 
 /**
@@ -77,6 +80,7 @@ export function DataTable<T extends { id: number }>({
   toolbar,
   emptyMessage = 'No results found.',
   showSerialNumber = true,
+  panel = true,
 }: DataTableProps<T>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const isMobile = useIsMobile()
@@ -167,7 +171,15 @@ export function DataTable<T extends { id: number }>({
   }
 
   return (
-    <div className='space-y-4'>
+    <div
+      className={cn(
+        'space-y-4',
+        panel && 'p-4',
+        panel && brandPanelClassName,
+        panel &&
+          'dark:rounded-none dark:border-transparent dark:bg-transparent dark:p-0 dark:text-foreground dark:shadow-none'
+      )}
+    >
       <div className='flex flex-wrap items-center gap-2'>
         {toolbar}
         <div className='ms-auto'>
@@ -189,12 +201,12 @@ export function DataTable<T extends { id: number }>({
             isRowDeleted={isRowDeleted}
           />
         ) : (
-          <div className='rounded-md border p-8 text-center text-sm text-muted-foreground'>
+          <div className='rounded-md border bg-card p-8 text-center text-sm text-card-foreground dark:bg-transparent dark:text-muted-foreground'>
             {emptyMessage}
           </div>
         )
       ) : (
-        <div className='overflow-hidden rounded-md border'>
+        <div className='overflow-hidden rounded-md border bg-card text-card-foreground dark:bg-transparent dark:text-foreground'>
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -274,7 +286,10 @@ function TableSkeleton({
     return (
       <div className='space-y-3'>
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className='space-y-3 rounded-md border p-4'>
+          <div
+            key={i}
+            className='space-y-3 rounded-md border bg-card p-4 dark:bg-transparent'
+          >
             <Skeleton className='h-3 w-8' />
             <Skeleton className='h-4 w-full' />
             <Skeleton className='h-4 w-4/5' />
@@ -286,7 +301,7 @@ function TableSkeleton({
   }
 
   return (
-    <div className='overflow-hidden rounded-md border'>
+    <div className='overflow-hidden rounded-md border bg-card dark:bg-transparent'>
       <Table>
         <TableBody>
           {Array.from({ length: 8 }).map((_, i) => (
