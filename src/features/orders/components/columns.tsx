@@ -11,12 +11,9 @@ import {
 import { OrdersRowActions } from './row-actions'
 
 /**
- * The order columns, shared with the worklist screens.
- *
- * Split from the actions column so the worklist screens can reuse the data
- * columns and swap that last one for a single primary-action button.
+ * Order data columns, kept separate so the Orders page can add its row actions.
  */
-export const ordersDataColumns: ColumnDef<Order>[] = [
+const ordersDataColumns: ColumnDef<Order>[] = [
   {
     accessorKey: 'reference_number',
     header: ({ column }) => (

@@ -48,15 +48,15 @@ deletes, restore — **stop**. Add one entry to `lookupConfigs` in
 and you get a table, CRUD, soft-delete/restore, permission gating and audit
 history with no new components.
 
-Ten reference tables already work this way, and the four queues work the same
-way through `features/worklists/`. The instinct to copy `features/customers/`
-for a table of tags costs a folder of code that then has to be maintained
-separately. Only continue below if your resource genuinely needs its own
-screen.
+Reference tables use `features/lookups/`; pending-work counts share query
+definitions in `features/worklists/` and appear in the identification,
+findings, or billing screen. A new feature is appropriate when a resource needs
+its own behavior and screen rather than another entry in an existing config.
 
 ## Walkthrough
 
-We'll use a `Widget` resource served at `/widgets`. Swap the noun for your own.
+The `Widget` names below are illustrative placeholders. Replace them with a
+real resource and endpoint from the feature you are adding.
 
 ### 1. Define the data — `data/schema.ts`
 
@@ -180,9 +180,7 @@ return <DataTableRowActions actions={actions} />
 Then hand the same list to the view dialog as `actions`, so everything you can
 do from the row you can also do while looking at the record.
 
-**There is no separate view component.** Give your mutate dialog a `readOnly`
-prop and wrap its body in one disabled `<fieldset>`; clicking a row opens the
-same dialog it edits with, so the two cannot drift.
+Choose a view pattern that fits the record. A separate detail dialog is useful when read-only fields should be easier to scan; a mutate dialog can expose a `readOnly` mode when its fields suit both tasks. See the customer and user view dialogs for the separate-detail pattern.
 
 All of this is spelled out with the reasoning in
 [conventions.md](./conventions.md) — worth reading once before your first
@@ -315,7 +313,7 @@ which is the one write in the app that sends multipart.
 - [ ] `features/<name>/data/schema.ts` — Zod schema + inferred type
 - [ ] `features/<name>/data/api.ts` — fetchers + `queryOptions`
 - [ ] `features/<name>/components/` — uses `<DataTable>` and `RowAction[]`
-- [ ] View reuses the mutate dialog with `readOnly`
+- [ ] Record viewing uses a clear read-only detail or form pattern
 - [ ] `features/<name>/index.tsx` — page with error/empty handling
 - [ ] `routes/_authenticated/<name>/index.tsx` — thin route + `requirePermission`
 - [ ] `sidebar-data.ts` — nav entry with `permission` and a lucide icon

@@ -118,171 +118,176 @@ export function GenerateBillDialog({
         open={open && requestedBill === null}
         onOpenChange={handleRequestDialogChange}
       >
-      <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-lg'>
-        <DialogHeader className='text-start'>
-          <DialogTitle>Request control number</DialogTitle>
-          <DialogDescription>
-            Review charges before sending the bill to GePG; pricing categories lock and
-            billing cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
+        <DialogContent className='flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-lg'>
+          <DialogHeader className='text-start'>
+            <DialogTitle>Request control number</DialogTitle>
+            <DialogDescription>
+              Review charges before sending the bill to GePG; pricing categories
+              lock and billing cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
 
-        <DialogBody className='space-y-5'>
-          <div className='space-y-3'>
-            <h3 className='text-sm font-medium'>Billing</h3>
-            <DefinitionList
-              items={[
-                { label: 'Order', value: order.reference_number },
-                {
-                  label: 'Customer',
-                  value: order.customer_detail?.full_name ?? null,
-                },
-                { label: 'Phone', value: order.customer_detail?.phone ?? null },
-                { label: 'Received', value: formatDate(order.received_date) },
-              ]}
-            />
-          </div>
+          <DialogBody className='space-y-5'>
+            <div className='space-y-3'>
+              <h3 className='text-sm font-medium'>Billing</h3>
+              <DefinitionList
+                items={[
+                  { label: 'Order', value: order.reference_number },
+                  {
+                    label: 'Customer',
+                    value: order.customer_detail?.full_name ?? null,
+                  },
+                  {
+                    label: 'Phone',
+                    value: order.customer_detail?.phone ?? null,
+                  },
+                  { label: 'Received', value: formatDate(order.received_date) },
+                ]}
+              />
+            </div>
 
-          <Separator />
+            <Separator />
 
-          <div className='space-y-3'>
-            <h3 className='text-sm font-medium'>Charges</h3>
+            <div className='space-y-3'>
+              <h3 className='text-sm font-medium'>Charges</h3>
 
-            {isPending && <Skeleton className='h-24 w-full' />}
+              {isPending && <Skeleton className='h-24 w-full' />}
 
-            {isError && (
-              <p className='text-sm text-destructive'>
-                Could not price this order. Close and try again.
-              </p>
-            )}
+              {isError && (
+                <p className='text-sm text-destructive'>
+                  Could not price this order. Close and try again.
+                </p>
+              )}
 
-            {preview && (
-              <>
-                <ul className='divide-y rounded-md border'>
-                  {preview.items.map((item) => (
-                    <li
-                      key={item.stone}
-                      className='flex flex-wrap items-center justify-between gap-2 p-3'
-                    >
-                      <div className='min-w-0'>
-                        <div className='font-medium'>
-                          {item.label} · {item.description}
-                        </div>
-                        {/* The tier is what sets the fee, so it is named rather
+              {preview && (
+                <>
+                  <ul className='divide-y rounded-md border'>
+                    {preview.items.map((item) => (
+                      <li
+                        key={item.stone}
+                        className='flex flex-wrap items-center justify-between gap-2 p-3'
+                      >
+                        <div className='min-w-0'>
+                          <div className='font-medium'>
+                            {item.label} · {item.description}
+                          </div>
+                          {/* The tier is what sets the fee, so it is named rather
                             than left for the reader to infer from the amount. */}
-                        <div className='text-xs text-muted-foreground'>
-                          {item.category || 'No category'}
+                          <div className='text-xs text-muted-foreground'>
+                            {item.category || 'No category'}
+                          </div>
                         </div>
-                      </div>
-                      <span className='tabular-nums'>
-                        {item.amount === null ? (
-                          <span className='text-destructive'>Not priced</span>
-                        ) : (
-                          money(item.amount)
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                  {preview.items.length === 0 && (
-                    <li className='p-3 text-sm text-muted-foreground'>
-                      No stones to bill.
-                    </li>
-                  )}
-                </ul>
+                        <span className='tabular-nums'>
+                          {item.amount === null ? (
+                            <span className='text-destructive'>Not priced</span>
+                          ) : (
+                            money(item.amount)
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                    {preview.items.length === 0 && (
+                      <li className='p-3 text-sm text-muted-foreground'>
+                        No stones to bill.
+                      </li>
+                    )}
+                  </ul>
 
-                <div className='flex items-center justify-between rounded-md border px-3 py-2'>
-                  <span className='text-sm font-medium'>Total</span>
-                  <span className='text-lg font-semibold tabular-nums'>
-                    {money(preview.total)}
-                  </span>
-                </div>
+                  <div className='flex items-center justify-between rounded-md border px-3 py-2'>
+                    <span className='text-sm font-medium'>Total</span>
+                    <span className='text-lg font-semibold tabular-nums'>
+                      {money(preview.total)}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Named rather than left to a 400 after the click: the user can fix
+              an unpriced category or a partly identified order from here. */}
+            {blockers.length > 0 && (
+              <div className='space-y-1 rounded-md border border-amber-500/50 bg-amber-500/10 p-3'>
+                <p className='flex items-center gap-2 text-sm font-medium'>
+                  <TriangleAlert className='size-4' />
+                  This order cannot be billed yet
+                </p>
+                <ul className='ms-6 list-disc text-sm'>
+                  {blockers.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </DialogBody>
+
+          <DialogFooter>
+            <Button
+              variant='outline'
+              onClick={() => handleRequestDialogChange(false)}
+              disabled={mutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => mutation.mutate()}
+              disabled={!canBill || mutation.isPending}
+            >
+              {mutation.isPending ? 'Requesting...' : 'Request'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={requestedBill !== null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) closeRequestedBill()
+        }}
+      >
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader className='text-start'>
+            <DialogTitle>Control number</DialogTitle>
+            <DialogDescription>
+              Bill {requestedBill?.bill_number} · {order.reference_number}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div
+            aria-live='polite'
+            className='flex min-h-36 flex-col items-center justify-center gap-3 rounded-md border bg-muted/30 p-5 text-center'
+          >
+            {controlNumber ? (
+              <>
+                <p className='text-sm text-muted-foreground'>
+                  GePG control number
+                </p>
+                <p className='font-mono text-3xl font-bold tracking-wide break-all tabular-nums sm:text-4xl'>
+                  {controlNumber}
+                </p>
+              </>
+            ) : (
+              <>
+                <LoaderCircle className='size-6 animate-spin text-muted-foreground' />
+                <p className='text-sm font-medium'>
+                  Waiting for GePG to return the control number…
+                </p>
+                <p className='text-xs text-muted-foreground'>
+                  This dialog will update automatically.
+                </p>
               </>
             )}
           </div>
 
-          {/* Named rather than left to a 400 after the click: the user can fix
-              an unpriced category or a partly identified order from here. */}
-          {blockers.length > 0 && (
-            <div className='space-y-1 rounded-md border border-amber-500/50 bg-amber-500/10 p-3'>
-              <p className='flex items-center gap-2 text-sm font-medium'>
-                <TriangleAlert className='size-4' />
-                This order cannot be billed yet
-              </p>
-              <ul className='ms-6 list-disc text-sm'>
-                {blockers.map((reason) => (
-                  <li key={reason}>{reason}</li>
-                ))}
-              </ul>
-            </div>
+          {billDetails.isError && !controlNumber && (
+            <p className='text-sm text-muted-foreground' role='status'>
+              Still waiting for GePG. We’ll keep checking automatically.
+            </p>
           )}
-        </DialogBody>
 
-        <DialogFooter>
-          <Button
-            variant='outline'
-            onClick={() => handleRequestDialogChange(false)}
-            disabled={mutation.isPending}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => mutation.mutate()}
-            disabled={!canBill || mutation.isPending}
-          >
-            {mutation.isPending ? 'Requesting...' : 'Request'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-    <Dialog
-      open={requestedBill !== null}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) closeRequestedBill()
-      }}
-    >
-      <DialogContent className='sm:max-w-md'>
-        <DialogHeader className='text-start'>
-          <DialogTitle>Control number</DialogTitle>
-          <DialogDescription>
-            Bill {requestedBill?.bill_number} · {order.reference_number}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div
-          aria-live='polite'
-          className='flex min-h-36 flex-col items-center justify-center gap-3 rounded-md border bg-muted/30 p-5 text-center'
-        >
-          {controlNumber ? (
-            <>
-              <p className='text-sm text-muted-foreground'>GePG control number</p>
-              <p className='break-all font-mono text-3xl font-bold tracking-wide tabular-nums sm:text-4xl'>
-                {controlNumber}
-              </p>
-            </>
-          ) : (
-            <>
-              <LoaderCircle className='size-6 animate-spin text-muted-foreground' />
-              <p className='text-sm font-medium'>
-                Waiting for GePG to return the control number…
-              </p>
-              <p className='text-xs text-muted-foreground'>
-                This dialog will update automatically.
-              </p>
-            </>
-          )}
-        </div>
-
-        {billDetails.isError && !controlNumber && (
-          <p className='text-sm text-muted-foreground' role='status'>
-            Still waiting for GePG. We’ll keep checking automatically.
-          </p>
-        )}
-
-        <DialogFooter>
-          <Button onClick={closeRequestedBill}>Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button onClick={closeRequestedBill}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

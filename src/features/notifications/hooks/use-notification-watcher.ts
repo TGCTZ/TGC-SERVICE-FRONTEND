@@ -20,9 +20,9 @@ import {
  *
  * 1. **Toast arrivals.** When the unread count rises between polls, never on
  *    first load: signing in to a dozen unread should show badges, not toasts.
- * 2. **Acknowledge by visiting.** Opening the billing queue is how an
- *    accountant acknowledges "ready to bill", so the bell stops reporting work
- *    they are already looking at.
+ * 2. **Acknowledge by visiting.** Opening the Bills page is how an accountant
+ *    acknowledges "ready to bill", so the bell stops reporting work they are
+ *    already looking at.
  * 3. **Refresh what the arrival changed.** Every notification means a queue
  *    grew, so the sidebar's queue counts refetch at once rather than on their
  *    next poll — and if the user is on that page, so does the page.

@@ -154,7 +154,8 @@ export function AddStoneDialog({
                 orderId={order.id}
                 label={label}
                 stoneReference={
-                  stone?.stone_reference ?? `${current.reference_number}-${label}`
+                  stone?.stone_reference ??
+                  `${current.reference_number}-${label}`
                 }
                 stone={stone}
                 stoneCategories={stoneCategories}
@@ -226,9 +227,7 @@ function StoneCategoryRow({
   // Keep the chosen category visible until the server refetch completes.
   const [pendingCategory, setPendingCategory] = useState<string | null>(null)
 
-  const saved = stone?.stone_category
-    ? String(stone.stone_category)
-    : undefined
+  const saved = stone?.stone_category ? String(stone.stone_category) : undefined
 
   const mutation = useMutation({
     mutationFn: (categoryId: string) =>

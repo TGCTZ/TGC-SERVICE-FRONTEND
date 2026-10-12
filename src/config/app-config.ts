@@ -20,12 +20,12 @@ export const appConfig = {
    * injected into `index.html` via the `%APP_NAME%` token and is what the
    * customer sees on a certificate.
    */
-  shortName: 'TGC-SERVICE',
+  shortName: 'TGPMIS',
 
   /** Short tagline / description used in metadata. */
   description:
     'Stone certification for the Tanzania Gemmological Centre: reception, billing, identification and certificates.',
 
   /** Public URL of the deployed app (used for links and metadata). */
-  url: 'http://localhost:5173',
+  url: 'https://tgpmis.tgc.ac.tz',
 } as const

@@ -15,12 +15,9 @@ export function formatWeight(stone: Stone) {
 }
 
 /**
- * The stone columns, shared with the worklist screens.
- *
- * Split from the actions column so the worklist screens can reuse the data
- * columns and swap that last one for a single primary-action button.
+ * Stone data columns, kept separate so the Stones page can add its row actions.
  */
-export const stonesDataColumns: ColumnDef<Stone>[] = [
+const stonesDataColumns: ColumnDef<Stone>[] = [
   {
     accessorKey: 'label',
     header: ({ column }) => (

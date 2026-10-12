@@ -1,8 +1,6 @@
 # Conventions
 
-The patterns that make every screen behave the same. **Read this before writing
-a screen** — most of what looks like boilerplate has already been extracted, and
-re-implementing it is how screens start to drift.
+Shared patterns for feature pages, tables, forms, permissions, and formatting. Use these conventions where they fit the feature; keep business-specific behavior in the feature that owns it.
 
 For the walkthrough, see [adding-a-feature.md](./adding-a-feature.md). This doc
 is the reference you keep open while writing.
@@ -18,9 +16,8 @@ entry to `lookupConfigs` in
 and you get a table, CRUD, soft-delete/restore, permission gating and audit
 history without writing a component.
 
-Ten lookup screens and four worklist queues already run this way. The wrong
-instinct — copying a whole feature folder for a table of colours — costs code that then has
-to be maintained separately.
+Lookup screens use this shared configuration. A separate feature for a table of
+reference data would duplicate behavior already provided by the lookup screen.
 
 ---
 
@@ -134,10 +131,12 @@ to this row*, `permission` means *not allowed for this user*.
 
 ---
 
-## 3. View is the edit form, read-only
+## 3. Choose a view pattern that fits the record
 
-There is no separate detail component. The mutate dialog takes `readOnly`, and
-the same fields you edit are the fields you read — so the two cannot drift.
+A separate detail dialog is often easier to scan and can show read-only data
+that does not belong in an edit form. The customer and user features use this
+pattern. A shared mutate dialog with a `readOnly` mode is also appropriate when
+the same fields serve both tasks.
 
 ```tsx
 <WidgetMutateDialog
@@ -326,9 +325,7 @@ Two smaller shared pieces that screens should not re-implement:
 
 ## 11. Docblocks
 
-Every exported symbol outside `src/features/` carries a TSDoc block, so hovering
-it in an editor explains it. Two tiers, because a rule that demands `@param` on
-a `<div>` wrapper gets ignored within a week.
+Document exported symbols outside `src/features/` when a short description adds useful context at the call site. Keep simple presentational wrappers concise; document non-obvious behavior, contracts, and constraints.
 
 ### Tier A — anything with real parameters
 
@@ -373,8 +370,8 @@ to a cookie, `Table` wraps itself in a scroll container. Those need the why.
 blur this used to grow on scroll". Git records what changed; a comment that
 tells the story of a fix goes stale once nobody remembers the story. Keep a
 docblock to the contract and the why; design rationale longer than about ten
-lines belongs in `docs/`, linked from the code. No leftovers from the starter
-template or other frameworks.
+lines belong in `docs/`, linked from the code. Remove examples and framework
+references that do not apply to this repository.
 
 ### Link, do not restate
 
@@ -460,7 +457,7 @@ A bare `src/lib/api.ts` is acceptable only because it is *the* HTTP client.
 - [ ] Uses `<DataTable>`, not its own `useReactTable`
 - [ ] Six columns including SN and actions
 - [ ] Actions declared as `RowAction[]` with permissions
-- [ ] View reuses the mutate dialog with `readOnly`
+- [ ] Record viewing uses a clear read-only detail or form pattern
 - [ ] Show deleted toggle, if the resource soft-deletes
 - [ ] Route guarded with `requirePermission`
 - [ ] Sidebar entry carries its `permission` — the breadcrumb trail comes free

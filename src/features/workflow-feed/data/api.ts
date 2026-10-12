@@ -34,7 +34,7 @@ const responseSchema = z.object({
   results: z.array(workflowRowSchema),
 })
 
-export type WorkflowFeedParams = {
+type WorkflowFeedParams = {
   page: number
   pageSize: number
   search?: string

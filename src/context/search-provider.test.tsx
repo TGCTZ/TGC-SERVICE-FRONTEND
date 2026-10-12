@@ -38,6 +38,8 @@ function signIn(
     perm('users', 'view'),
     PERMISSIONS.moduleOrders,
     PERMISSIONS.moduleUser,
+    PERMISSIONS.moduleReports,
+    PERMISSIONS.operationalReports,
   ]
 ) {
   useAuthStore.getState().auth.setUser({

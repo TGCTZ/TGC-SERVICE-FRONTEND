@@ -173,7 +173,6 @@ function CertificatesContent() {
           certificate={currentRow}
         />
       )}
-
     </>
   )
 }
