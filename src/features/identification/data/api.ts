@@ -1,13 +1,7 @@
 import { z } from 'zod'
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import {
-  buildListParams,
-  paginatedSchema,
-  toPaginated,
-  type ListParams,
-  type Paginated,
-} from '@/lib/api-query'
+import { paginatedSchema } from '@/lib/api-query'
 import { stoneSchema, type Stone } from '@/features/stones/data/schema'
 import {
   gemmologistCandidateSchema,
@@ -17,25 +11,6 @@ import {
   type IdentificationReport,
   type InstrumentUsed,
 } from './schema'
-
-const listSchema = paginatedSchema(reportSchema)
-
-async function fetchReports(
-  params: ListParams
-): Promise<Paginated<IdentificationReport>> {
-  const res = await api.get('/identification-reports', {
-    params: buildListParams(params),
-  })
-
-  return toPaginated(listSchema.parse(res.data), params)
-}
-
-export const reportsQuery = (params: ListParams) =>
-  queryOptions({
-    queryKey: ['identification-reports', params],
-    queryFn: () => fetchReports(params),
-    placeholderData: (previous) => previous,
-  })
 
 /**
  * One report by id.

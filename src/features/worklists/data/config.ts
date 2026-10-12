@@ -9,9 +9,9 @@ import { PERMISSIONS, perm } from '@/lib/permissions'
  */
 
 /** Which shape the rows are, and therefore which columns and dialog apply. */
-export type WorklistRowKind = 'order' | 'stone'
+type WorklistRowKind = 'order' | 'stone'
 
-export type WorklistConfig = {
+type WorklistConfig = {
   /** Legacy standalone-route key. */
   slug: string
   title: string
@@ -85,13 +85,4 @@ export function worklistConfigBySlug(slug: string): WorklistConfig | undefined {
 /** Return every entry in the legacy metadata registry. */
 export function allWorklistConfigs(): WorklistConfig[] {
   return worklistConfigs
-}
-
-/**
- * Resolve one entry in the legacy metadata registry by its key.
- */
-export function worklistConfig(slug: string): WorklistConfig {
-  const config = worklistConfigBySlug(slug)
-  if (!config) throw new Error(`No worklist config for slug "${slug}".`)
-  return config
 }
