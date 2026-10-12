@@ -74,7 +74,7 @@ Coverage is grouped by area:
 | Components | `src/components/config-drawer.test.tsx`, `src/components/confirm-dialog.test.tsx`, `src/components/password-input.test.tsx`, `src/components/sign-out-dialog.test.tsx` |
 | Context | `src/context/search-provider.test.tsx` |
 | Auth forms | `src/features/auth/sign-in/components/form.test.tsx` |
-| Domain data | `src/features/stones/data/enums.test.ts`, `src/features/worklists/data/config.test.ts` |
+| Domain data | `src/features/stones/data/enums.test.ts`, `src/features/identification/data/finalize-rules.test.ts` |
 | Feature dialogs | `src/features/lookups/components/mutate-dialog.test.tsx` |
 
 ## What is not covered — read this before trusting the suite
