@@ -15,6 +15,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+const pagerButtonClass =
+  'text-foreground disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100'
+
 type DataTablePaginationProps<TData> = {
   table: Table<TData>
   className?: string
@@ -62,7 +65,7 @@ export function DataTablePagination<TData>({
               table.setPageSize(Number(value))
             }}
           >
-            <SelectTrigger className='h-8 w-17.5'>
+            <SelectTrigger className='h-8 w-17.5 bg-background text-foreground'>
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side='top'>
@@ -84,7 +87,10 @@ export function DataTablePagination<TData>({
         <div className='flex items-center space-x-2'>
           <Button
             variant='outline'
-            className='size-8 p-0 @max-md/content:hidden'
+            className={cn(
+              'size-8 p-0 @max-md/content:hidden',
+              pagerButtonClass
+            )}
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
@@ -93,7 +99,7 @@ export function DataTablePagination<TData>({
           </Button>
           <Button
             variant='outline'
-            className='size-8 p-0'
+            className={cn('size-8 p-0', pagerButtonClass)}
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -108,8 +114,8 @@ export function DataTablePagination<TData>({
                 <span className='px-1 text-sm text-muted-foreground'>...</span>
               ) : (
                 <Button
-                  variant={currentPage === pageNumber ? 'default' : 'outline'}
-                  className='h-8 min-w-8 px-2'
+                  variant={currentPage === pageNumber ? 'secondary' : 'outline'}
+                  className={cn('h-8 min-w-8 px-2', pagerButtonClass)}
                   onClick={() => table.setPageIndex((pageNumber as number) - 1)}
                 >
                   <span className='sr-only'>Go to page {pageNumber}</span>
@@ -121,7 +127,7 @@ export function DataTablePagination<TData>({
 
           <Button
             variant='outline'
-            className='size-8 p-0'
+            className={cn('size-8 p-0', pagerButtonClass)}
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
@@ -130,7 +136,10 @@ export function DataTablePagination<TData>({
           </Button>
           <Button
             variant='outline'
-            className='size-8 p-0 @max-md/content:hidden'
+            className={cn(
+              'size-8 p-0 @max-md/content:hidden',
+              pagerButtonClass
+            )}
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
