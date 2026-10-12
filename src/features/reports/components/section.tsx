@@ -41,7 +41,7 @@ export function ReportSectionCard({
   const query = useQuery(reportsQuery(kind, state))
   const data = query.data
   return (
-    <Card className='bg-primary text-primary-foreground'>
+    <Card className='bg-primary text-primary-foreground [&_[data-slot=table-container]]:bg-card [&_[data-slot=table-container]]:text-card-foreground'>
       <CardHeader>
         <CardTitle>{summary.title}</CardTitle>
         <CardDescription className='text-primary-foreground/80'>
