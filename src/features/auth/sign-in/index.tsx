@@ -1,5 +1,6 @@
 import { useSearch } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { brandPanelClassName } from '@/components/layout/brand-panel'
 import { AuthLayout } from '../layout'
 import { UserAuthForm } from './components/form'
 
@@ -8,7 +9,7 @@ export function SignIn() {
 
   return (
     <AuthLayout>
-      <Card className='max-w-sm gap-4'>
+      <Card className={`${brandPanelClassName} max-w-sm gap-4`}>
         <CardHeader>
           <CardTitle className='text-lg tracking-tight'>Sign in</CardTitle>
         </CardHeader>

@@ -16,7 +16,7 @@ export function SettingsAccount() {
           <Separator className='mb-6' />
           <div className='mb-6'>
             <h4 className='text-base font-medium'>Password</h4>
-            <p className='text-sm text-muted-foreground'>
+            <p className='text-sm text-primary-foreground/80 dark:text-muted-foreground'>
               Changing your password signs out every other device.
             </p>
           </div>

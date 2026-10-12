@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { brandPanelClassName } from '@/components/layout/brand-panel'
 import { logout } from '@/features/auth/data/api'
 import { gendersQuery } from '@/features/users/data/api'
 import { AuthLayout } from '../layout'
@@ -34,14 +35,17 @@ export function FirstLogin() {
 
   return (
     <AuthLayout>
-      <Card className='w-full max-w-md gap-5'>
+      <Card className={`${brandPanelClassName} w-full max-w-md gap-5`}>
         <CardHeader>
           <CardTitle className='text-lg tracking-tight'>
             Welcome — let’s set up your account
           </CardTitle>
           <CardDescription>
             Signed in as{' '}
-            <span className='font-medium text-foreground'>{user?.email}</span>.
+            <span className='font-medium text-primary-foreground dark:text-foreground'>
+              {user?.email}
+            </span>
+            .
           </CardDescription>
           <ol className='flex gap-4 pt-2 text-xs' aria-label='Setup steps'>
             {STEPS.map((label, index) => (
@@ -51,16 +55,17 @@ export function FirstLogin() {
                 className={cn(
                   'flex items-center gap-1.5',
                   index === step
-                    ? 'font-medium text-foreground'
-                    : 'text-muted-foreground'
+                    ? 'font-medium text-primary-foreground dark:text-foreground'
+                    : 'text-primary-foreground/80 dark:text-muted-foreground'
                 )}
               >
                 <span
                   className={cn(
                     'flex size-5 items-center justify-center rounded-full border text-[11px]',
                     index < step &&
-                      'border-primary bg-primary text-primary-foreground',
-                    index === step && 'border-primary text-primary'
+                      'border-primary-foreground/50 bg-primary-foreground text-primary dark:border-primary dark:bg-primary dark:text-primary-foreground',
+                    index === step &&
+                      'border-primary-foreground text-primary-foreground dark:border-primary dark:text-primary'
                   )}
                 >
                   {index < step ? (
@@ -83,7 +88,7 @@ export function FirstLogin() {
           <Button
             type='button'
             variant='link'
-            className='h-auto p-0 text-xs text-muted-foreground'
+            className='h-auto p-0 text-xs text-primary-foreground/80 dark:text-muted-foreground'
             onClick={async () => {
               await logout()
               navigate({ to: '/sign-in', replace: true })

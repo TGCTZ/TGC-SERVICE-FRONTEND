@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 
 const pagerButtonClass =
-  'text-foreground disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100'
+  'text-foreground disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 dark:text-foreground dark:disabled:border-input dark:disabled:bg-input/30 dark:disabled:text-foreground dark:disabled:opacity-50'
 
 type DataTablePaginationProps<TData> = {
   table: Table<TData>
@@ -65,7 +65,7 @@ export function DataTablePagination<TData>({
               table.setPageSize(Number(value))
             }}
           >
-            <SelectTrigger className='h-8 w-17.5 bg-background text-foreground'>
+            <SelectTrigger className='h-8 w-17.5 bg-background text-foreground dark:bg-input/30'>
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side='top'>
@@ -115,7 +115,12 @@ export function DataTablePagination<TData>({
               ) : (
                 <Button
                   variant={currentPage === pageNumber ? 'secondary' : 'outline'}
-                  className={cn('h-8 min-w-8 px-2', pagerButtonClass)}
+                  className={cn(
+                    'h-8 min-w-8 px-2',
+                    pagerButtonClass,
+                    currentPage === pageNumber &&
+                      'dark:bg-primary dark:text-primary-foreground'
+                  )}
                   onClick={() => table.setPageIndex((pageNumber as number) - 1)}
                 >
                   <span className='sr-only'>Go to page {pageNumber}</span>

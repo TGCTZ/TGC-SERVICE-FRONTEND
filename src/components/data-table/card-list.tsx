@@ -72,7 +72,7 @@ export function DataTableCardList<T>({
                   : undefined
               }
               className={cn(
-                'rounded-md border bg-card p-4 text-sm',
+                'rounded-md border bg-card p-4 text-sm text-card-foreground',
                 onRowClick &&
                   'cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:bg-accent/50',
                 // Matches the table's treatment of soft-deleted rows.

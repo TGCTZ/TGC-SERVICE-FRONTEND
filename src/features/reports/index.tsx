@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfigDrawer } from '@/components/config-drawer'
+import { brandPanelClassName } from '@/components/layout/brand-panel'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/page-heading'
@@ -169,7 +170,9 @@ export function ReportsPage({ kind, search, onChange }: Props) {
             </Button>
           </div>
         </PageHeading>
-        <div className='flex flex-wrap items-end gap-3 rounded-lg border bg-card p-4'>
+        <div
+          className={`${brandPanelClassName} flex flex-wrap items-end gap-3 p-4 dark:bg-card dark:text-card-foreground`}
+        >
           <div className='space-y-2'>
             <Label htmlFor='report-from'>From</Label>
             <Input
