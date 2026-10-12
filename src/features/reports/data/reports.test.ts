@@ -73,7 +73,6 @@ describe('report navigation', () => {
       '/identification',
       '/identification-reports',
       '/bills',
-      '/certificates',
     ])
   })
 })

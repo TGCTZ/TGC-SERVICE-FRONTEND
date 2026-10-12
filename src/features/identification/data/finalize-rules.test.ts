@@ -37,6 +37,7 @@ describe('missingForFinalize', () => {
   it('names every unanswered field, not just the first', () => {
     const blank = report({
       species: null,
+      stone_type_detail: null,
       color: null,
       stone_weight: null,
       conclusion: '',
@@ -68,7 +69,7 @@ describe('missingForFinalize', () => {
   it('marks exactly the required fields the form should flag', () => {
     expect([...FINALIZE_REQUIRED_NAMES].sort()).toEqual([
       'color',
-      'comments',
+      'conclusion',
       'species',
       'stone_type',
       'weight',
