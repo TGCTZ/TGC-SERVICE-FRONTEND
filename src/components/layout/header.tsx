@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useLayout } from '@/context/layout-provider'
 import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { NotificationBell } from '@/features/notifications/components/notification-bell'
 import { BackButton } from './back-button'
 import { Breadcrumbs } from './breadcrumbs'
@@ -39,8 +40,24 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
  * @param props.fixed - Stick to the top of the scroll container
  * @param props.children - The page's controls, laid out at the end of the bar
  */
-export function Header({ className, fixed, children, ...props }: HeaderProps) {
+export function Header({
+  className,
+  fixed = true,
+  style,
+  children,
+  ...props
+}: HeaderProps) {
   const [offset, setOffset] = useState(0)
+  const { state, isMobile } = useSidebar()
+  const { collapsible } = useLayout()
+
+  const sidebarOffset = isMobile
+    ? '0px'
+    : collapsible === 'none' || state === 'expanded'
+      ? 'var(--sidebar-width)'
+      : collapsible === 'icon'
+        ? 'var(--sidebar-width-icon)'
+        : '0px'
 
   useEffect(() => {
     const onScroll = () => {
@@ -55,26 +72,34 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
   }, [])
 
   return (
-    <header
-      data-slot='page-header'
-      className={cn(
-        'z-50 h-16 border-b border-sidebar-border bg-sidebar text-sidebar-foreground',
-        fixed && 'sticky top-0 w-[inherit]',
-        offset > 10 && fixed ? 'shadow' : 'shadow-none',
-        className
-      )}
-      {...props}
-    >
-      <div className='relative flex h-full items-center gap-3 p-4 sm:gap-4'>
-        <SidebarTrigger variant='outline' className='max-md:scale-125' />
-        <Separator orientation='vertical' className='h-6' />
-        <BackButton />
-        <Breadcrumbs className='min-w-0 flex-1' />
-        <div className='ms-auto flex shrink-0 items-center gap-3 sm:gap-4'>
-          <NotificationBell />
-          {children}
+    <>
+      {fixed && <div aria-hidden='true' className='h-16 shrink-0' />}
+      <header
+        data-slot='page-header'
+        className={cn(
+          'z-50 h-16 border-b border-border bg-background text-foreground dark:border-sidebar-border dark:bg-sidebar dark:text-sidebar-foreground',
+          fixed &&
+            'fixed end-0 top-0 transition-[inset-inline-start] duration-200',
+          offset > 10 && fixed ? 'shadow' : 'shadow-none',
+          className
+        )}
+        style={{
+          ...style,
+          insetInlineStart: fixed ? sidebarOffset : undefined,
+        }}
+        {...props}
+      >
+        <div className='relative flex h-full items-center gap-3 p-4 sm:gap-4'>
+          <SidebarTrigger variant='outline' className='max-md:scale-125' />
+          <Separator orientation='vertical' className='h-6' />
+          <BackButton />
+          <Breadcrumbs className='min-w-0 flex-1' />
+          <div className='ms-auto flex shrink-0 items-center gap-3 sm:gap-4'>
+            <NotificationBell />
+            {children}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   )
 }

@@ -34,30 +34,22 @@ export function PageHeading({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-end justify-between gap-2',
+        'brand-gradient-lines relative flex flex-wrap items-end justify-between gap-4 overflow-hidden rounded-xl border border-white/15 p-5 text-white shadow-sm sm:p-6 dark:gap-2 dark:overflow-visible dark:rounded-none dark:border-transparent dark:bg-transparent dark:p-0 dark:text-foreground dark:shadow-none',
         className
       )}
     >
-      <div className='space-y-1'>
+      <div className='relative z-10 space-y-1'>
         <h2 className='text-2xl font-bold tracking-tight'>{title}</h2>
         {description && (
-          // Grey text on `--sidebar` — the same tint as the sidebar and the
-          // page header, since that token aliases `--sidebar`. The description
-          // is the screen explaining itself, so it reads as part of the frame
-          // around the data rather than as data; borrowing the chrome surface
-          // says that on its own, without a border drawing more attention to
-          // the explanation than to the data it introduces.
-          //
-          // max-w: prose past roughly 90 characters is measurably harder to
-          // scan, and these sit above a full-width table that would otherwise
-          // stretch them the width of a monitor.
-          <p className='max-w-prose rounded-md bg-sidebar px-3 py-2 text-sm/relaxed text-muted-foreground'>
+          <p className='max-w-prose text-sm/relaxed text-white/80 dark:rounded-md dark:bg-sidebar dark:px-3 dark:py-2 dark:text-muted-foreground'>
             {description}
           </p>
         )}
       </div>
 
-      {children}
+      <div className='relative z-10 ms-auto flex flex-wrap items-center gap-2'>
+        {children}
+      </div>
     </div>
   )
 }
