@@ -120,10 +120,6 @@ export function IdentificationQueue() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <PageHeading
-          title='Identification'
-          description='Orders waiting for stone identification.'
-        />
         <Tabs
           value={selectedTab}
           onValueChange={(tab) =>
@@ -132,13 +128,21 @@ export function IdentificationQueue() {
               replace: true,
             })
           }
+          className='w-full gap-4 sm:gap-6'
         >
-          <TabsList>
-            {canViewOrders && (
-              <TabsTrigger value='work'>Identification</TabsTrigger>
-            )}
-            {canViewStones && <TabsTrigger value='stones'>Stones</TabsTrigger>}
-          </TabsList>
+          <PageHeading
+            title='Identification'
+            description='Orders waiting for stone identification.'
+          >
+            <TabsList>
+              {canViewOrders && (
+                <TabsTrigger value='work'>Identification</TabsTrigger>
+              )}
+              {canViewStones && (
+                <TabsTrigger value='stones'>Stones</TabsTrigger>
+              )}
+            </TabsList>
+          </PageHeading>
           {canViewOrders && (
             <TabsContent value='work'>
               {isError ? (

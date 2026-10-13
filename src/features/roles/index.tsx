@@ -156,19 +156,14 @@ export function Roles() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <PageHeading
-            title='Roles'
-            description='Set what each role can access.'
-          />
-
+        <PageHeading title='Roles' description='Set what each role can access.'>
           <Can permission={perm('roles', 'add')}>
             <Button onClick={() => setCreateOpen(true)}>
               Add role
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>
-        </div>
+        </PageHeading>
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

@@ -92,12 +92,10 @@ function OrdersContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <PageHeading
-            title='Orders'
-            description='Customer visits and their registered stones.'
-          />
-
+        <PageHeading
+          title='Orders'
+          description='Customer visits and their registered stones.'
+        >
           <Can permission={perm('orders', 'add')}>
             <Button
               onClick={() => {
@@ -109,7 +107,7 @@ function OrdersContent() {
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>
-        </div>
+        </PageHeading>
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

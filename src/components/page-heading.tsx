@@ -34,7 +34,7 @@ export function PageHeading({
   return (
     <div
       className={cn(
-        'brand-gradient-lines relative flex flex-wrap items-end justify-between gap-4 overflow-hidden rounded-xl border border-white/15 p-5 text-white shadow-sm sm:p-6 dark:gap-2 dark:overflow-visible dark:rounded-none dark:border-transparent dark:bg-transparent dark:p-0 dark:text-foreground dark:shadow-none',
+        'brand-gradient-lines relative flex w-full flex-wrap items-end justify-between gap-4 overflow-hidden rounded-xl border border-white/15 p-5 text-white shadow-sm sm:p-6 dark:gap-2 dark:overflow-visible dark:rounded-none dark:border-transparent dark:bg-transparent dark:p-0 dark:text-foreground dark:shadow-none',
         className
       )}
     >

@@ -132,32 +132,33 @@ function IdentificationContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <PageHeading
-          title='Findings'
-          description={
-            state.status === 'Finalized'
-              ? 'Review finalized findings.'
-              : 'Record findings for paid stones.'
+        <Tabs
+          value={selectedTab}
+          onValueChange={(value) =>
+            handleStateChange({
+              status: value === 'finalized' ? 'Finalized' : undefined,
+              page: 1,
+            })
           }
-        />
-
-        {isError ? (
-          <GeneralError minimal className='h-auto py-12' />
-        ) : (
-          <Tabs
-            value={selectedTab}
-            onValueChange={(value) =>
-              handleStateChange({
-                status: value === 'finalized' ? 'Finalized' : undefined,
-                page: 1,
-              })
+          className='w-full gap-4 sm:gap-6'
+        >
+          <PageHeading
+            title='Findings'
+            description={
+              state.status === 'Finalized'
+                ? 'Review finalized findings.'
+                : 'Record findings for paid stones.'
             }
-            className='space-y-4'
           >
             <TabsList>
               <TabsTrigger value='open'>Open findings</TabsTrigger>
               <TabsTrigger value='finalized'>Finalized reports</TabsTrigger>
             </TabsList>
+          </PageHeading>
+
+          {isError ? (
+            <GeneralError minimal className='h-auto py-12' />
+          ) : (
             <TabsContent value={selectedTab} className='mt-0'>
               <WorkflowFeedTable
                 rows={data?.results ?? []}
@@ -207,8 +208,8 @@ function IdentificationContent() {
                 }}
               />
             </TabsContent>
-          </Tabs>
-        )}
+          )}
+        </Tabs>
       </Main>
 
       {/* Viewing and editing are separate components: a record is read as a

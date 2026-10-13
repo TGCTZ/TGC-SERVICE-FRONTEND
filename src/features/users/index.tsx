@@ -95,12 +95,10 @@ function UsersContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <PageHeading
-            title='Users'
-            description='Manage accounts and the roles that grant their access.'
-          />
-
+        <PageHeading
+          title='Users'
+          description='Manage accounts and the roles that grant their access.'
+        >
           <Can permission={perm('users', 'add')}>
             <Button
               onClick={() => {
@@ -112,7 +110,7 @@ function UsersContent() {
               <Plus className='ms-1 size-4' />
             </Button>
           </Can>
-        </div>
+        </PageHeading>
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
