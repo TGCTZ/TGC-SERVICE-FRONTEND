@@ -1,5 +1,5 @@
 /*
- * TGC Color System v1.1 — role token definitions.
+ * TGC Color System v2 — role token definitions.
  *
  * This file is the single mapping from the TGC palette to the roles the
  * interface consumes (spec §29). Components reference roles only; no component
@@ -7,23 +7,41 @@
  *
  * Two rules govern the naming, both from spec §33:
  *   - `accent` is shadcn's neutral hover surface, NOT the TGC brand accent.
- *     Gold lives under `--gold`, because `bg-accent` paints every hovered menu
- *     item, calendar day and ghost button in the app.
- *   - `secondary` is shadcn's quiet chip surface, NOT TGC Teal. Teal is a large
- *     institutional surface (spec §5) and lives under `--institutional`.
+ *     Orange lives under `--primary`, because `bg-accent` paints every hovered
+ *     menu item, calendar day and ghost button in the app.
+ *   - `secondary` is shadcn's quiet chip surface, NOT a brand color. Navy is
+ *     the institutional surface and lives under `--institutional`.
  */
 
 :root {
   --radius: 0.625rem;
 
+  --brand-navy: #0f2743;
+  --brand-blue-mid: #112a48;
+  --brand-blue-highlight: #204b76;
+  --brand-orange: #c77530;
+  --brand-sidebar-gradient: linear-gradient(
+    90deg,
+    var(--brand-navy) 0%,
+    var(--brand-blue-mid) 55%,
+    var(--brand-blue-highlight) 100%
+  );
+  --brand-gradient-clean:
+    radial-gradient(ellipse at 88% 48%, rgb(80 139 186 / 22%), transparent 42%),
+    linear-gradient(
+      110deg,
+      var(--brand-navy) 0%,
+      var(--brand-blue-mid) 55%,
+      var(--brand-blue-highlight) 100%
+    );
+
   /*
-   * Surfaces and text — spec §12.2, tinted toward TGC Blue.
+   * Surfaces and text — cool neutrals that keep the navy and orange brand clear.
    *
    * The spec's default neutrals are the slate scale (#F8FAFC, #F1F5F9,
    * #E2E8F0), which reads grey. Every light surface here is the same value
    * rotated onto the blue hue and matched for lightness, so the interface
-   * reads as TGC Blue at rest while the brand blue itself stays reserved for
-   * the elements spec §3 says it should identify.
+   * stays calm while the brand colors identify the shell and key actions.
    *
    * Cards stay pure white deliberately: that contrast against the tinted
    * ground is what makes them read as raised.
@@ -48,20 +66,20 @@
   /* Form outlines use the strong border: a field must read as an affordance,
    * not as a divider. */
   --input: #c3d4ea;
-  --ring: #0152a9; /* focus carries brand identity */
+  --ring: var(--brand-orange); /* focus carries brand identity */
 
   /* Brand — spec §12.3 */
-  --primary: #0152a9; /* TGC Blue, blue-600 */
+  --primary: #b05d25; /* accessible orange for white button labels */
   --primary-foreground: #ffffff;
-  --primary-hover: #00458f; /* blue-700 */
-  --primary-active: #00366f; /* blue-800 */
-  --primary-subtle: #eff6ff; /* blue-50 */
-  --institutional: #074c70; /* TGC Teal, teal-800 */
+  --primary-hover: #994f1f;
+  --primary-active: #80421a;
+  --primary-subtle: color-mix(in oklab, var(--primary) 12%, var(--card));
+  --institutional: var(--brand-navy);
   --institutional-foreground: #ffffff;
-  --institutional-subtle: #eef8fb; /* teal-50 */
-  --gold: #e4a41e; /* TGC Gold, gold-500 */
-  --gold-foreground: #452a05; /* gold-950 — gold is too light for white text */
-  --gold-subtle: #fffaeb; /* gold-50 */
+  --institutional-subtle: #edf3f8;
+  --gold: var(--brand-orange);
+  --gold-foreground: #0f172a;
+  --gold-subtle: color-mix(in oklab, var(--gold) 12%, var(--card));
 
   /*
    * Framework hover and chip surfaces.
@@ -111,14 +129,13 @@
   --info-subtle: color-mix(in oklab, var(--info) 12%, var(--card));
   --info-border: color-mix(in oklab, var(--info) 30%, var(--card));
 
-  /* Categorical chart sequence — spec §35. Order is fixed: Blue, Teal, Gold,
-   * then supporting shades, then neutral. */
-  --chart-1: #0152a9;
-  --chart-2: #074c70;
-  --chart-3: #e4a41e;
-  --chart-4: #3d8dd4;
-  --chart-5: #45a6bd;
-  --chart-6: #94a3b8;
+  /* Categorical chart sequence starts with the new navy and orange brand. */
+  --chart-1: var(--brand-navy);
+  --chart-2: var(--brand-orange);
+  --chart-3: var(--brand-blue-highlight);
+  --chart-4: #587895;
+  --chart-5: #8ea4b8;
+  --chart-6: #c0ccd7;
 
   /*
    * The sidebar is a distinct surface, not the same sheet as the content.
@@ -127,19 +144,17 @@
    * floats on it as a --background card, so this one value is what makes the
    * content read as raised.
    *
-   * Blue, not teal: spec §16's light navigation puts the active item on
-   * #EFF6FF, and taking that as the whole track keeps navigation in the
-   * primary brand colour rather than the institutional one. Teal keeps its own
-   * role under --institutional, and still owns the dark theme's navigation.
+   * Light navigation uses the same navy as the app header. A translucent white
+   * hover surface stays visible over the gradient, while the active item uses
+   * accessible brand orange.
    */
-  --sidebar: #eff6ff; /* blue-50 — spec §4 "light surface" */
-  --sidebar-foreground: var(--foreground);
+  --sidebar: var(--brand-navy);
+  --sidebar-foreground: #f8fafc;
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  /* Distinctly darker than the track, or hover is invisible on the tint. */
-  --sidebar-accent: #dcebfa; /* blue-100 */
-  --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: #c7ddf5;
+  --sidebar-accent: rgb(255 255 255 / 16%);
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #24415f;
   --sidebar-ring: var(--ring);
 
   /*
@@ -184,6 +199,7 @@
   --institutional-foreground: #f8fafc;
   --institutional-subtle: color-mix(in oklab, #45a6bd 15%, var(--card));
   --gold: #f0b832; /* gold-400 */
+  --gold-foreground: #452a05;
   --gold-subtle: color-mix(in oklab, var(--gold) 15%, var(--card));
 
   --secondary: #1e293b;

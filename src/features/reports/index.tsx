@@ -155,7 +155,7 @@ export function ReportsPage({ kind, search, onChange }: Props) {
             </Button>
             <Button
               variant='default'
-              className='bg-institutional text-institutional-foreground hover:bg-institutional/90'
+              className='bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-institutional dark:text-institutional-foreground dark:hover:bg-institutional/90'
               disabled={
                 !data ||
                 !!problem ||
