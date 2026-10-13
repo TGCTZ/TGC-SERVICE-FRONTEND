@@ -97,12 +97,10 @@ function CertificatesContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <PageHeading
-            title='Certificates'
-            description='Issued certificates are available to view, print, and download.'
-          />
-        </div>
+        <PageHeading
+          title='Certificates'
+          description='Issued certificates are available to view, print, and download.'
+        />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />

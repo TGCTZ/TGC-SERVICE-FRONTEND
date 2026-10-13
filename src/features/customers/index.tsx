@@ -81,9 +81,7 @@ function CustomersContent() {
       </Header>
 
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <PageHeading title='Customers' />
-        </div>
+        <PageHeading title='Customers' />
 
         {isError ? (
           <GeneralError minimal className='h-auto py-12' />
