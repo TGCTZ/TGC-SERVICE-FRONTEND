@@ -12,20 +12,28 @@ source of truth for token names and values.
   `--color-background` makes `bg-background` available.
 - `--radius` sets the base used by the radius utilities.
 
-## Current light palette
+## Light-mode brand palette
 
-- Navy `#0F2743` anchors the app shell and full-page panels.
-- Mid and highlight blues `#112A48` and `#204B76` create the page-heading
-  gradient.
-- Orange `#C77530` is the highlight color. Primary buttons use the deeper
-  `#B05D25` so white labels meet contrast requirements.
-- Page, card, form-field, and table surfaces stay neutral for readable content.
-- Page headings layer a low-contrast geometric line mesh over the gradient.
+- `--brand-navy` (`#0F2743`) anchors the app shell and full-page panels.
+- `--brand-blue-mid` (`#112A48`) and `--brand-blue-highlight` (`#204B76`)
+  complete the blue palette.
+- `--brand-orange` (`#C77530`) is used for borders and decorative highlights.
+  Primary actions use the deeper `#B05D25` (`--primary`) for contrast with
+  white labels.
+- Page headings use a navy-to-blue gradient with a subtle geometric line mesh.
+  The clean gradient is available without the mesh for other surfaces.
+- The light-mode sidebar uses a left-to-right navy gradient. Its hover surface
+  is translucent white; its active item uses orange with white text.
+- The main header and the sidebar's top and footer sections are white, with
+  orange divider borders.
+- Page, card, field, and table surfaces remain neutral so content stays clear
+  against the branded panels.
 
-Dark mode has its own existing token values and is not changed by the light-mode
-rebrand. Semantic status colors use success, warning, danger, and info tokens.
-A CSS variable alone does not create a Tailwind utility; add a mapping in
-`@theme inline` when a component needs one.
+Dark mode keeps its existing appearance. Light-mode sidebar and selected-tab
+overrides are scoped so they do not alter dark-mode styles. Semantic status
+colors use success, warning, danger, and info tokens. A CSS variable alone does
+not create a Tailwind utility; add a mapping in `@theme inline` when a component
+needs one.
 
 ## Change a token
 
