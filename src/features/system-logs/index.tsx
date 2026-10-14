@@ -122,10 +122,7 @@ export function SystemLogs() {
       ),
       enableSorting: false,
       cell: ({ row }) => (
-        <Badge
-          variant='outline'
-          className={getLevelStyle(row.original.level)}
-        >
+        <Badge variant='outline' className={getLevelStyle(row.original.level)}>
           {row.original.level}
         </Badge>
       ),
