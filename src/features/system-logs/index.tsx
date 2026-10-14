@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
-import { X } from 'lucide-react'
+import { Copy, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatDate, formatTime } from '@/lib/format'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -47,6 +47,12 @@ const levelStyles: Record<string, string> = {
   notice: 'border-sky-600/40 bg-sky-500/10 text-sky-700 dark:text-sky-400',
   info: 'border-sky-600/40 bg-sky-500/10 text-sky-700 dark:text-sky-400',
   debug: 'border-muted-foreground/30 bg-muted text-muted-foreground',
+}
+const fallbackLevelStyle =
+  'border-muted-foreground/30 bg-muted text-muted-foreground'
+
+function getLevelStyle(level: string) {
+  return levelStyles[level.toLowerCase()] ?? fallbackLevelStyle
 }
 
 export function SystemLogs() {
@@ -116,13 +122,7 @@ export function SystemLogs() {
       ),
       enableSorting: false,
       cell: ({ row }) => (
-        <Badge
-          variant='outline'
-          className={cn(
-            levelStyles[row.original.level] ??
-              'border-muted-foreground/30 bg-muted text-muted-foreground'
-          )}
-        >
+        <Badge variant='outline' className={getLevelStyle(row.original.level)}>
           {row.original.level}
         </Badge>
       ),
@@ -149,6 +149,38 @@ export function SystemLogs() {
         <span className='text-xs text-muted-foreground'>
           {row.original.file}
         </span>
+      ),
+    },
+    {
+      id: 'copy',
+      header: () => <span className='sr-only'>Copy log</span>,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className='size-8'
+          aria-label='Copy log entry'
+          title='Copy log entry'
+          onClick={async (event) => {
+            event.stopPropagation()
+            const entry = row.original
+            const text = [
+              `[${formatDate(entry.logged_at)} ${formatTime(entry.logged_at)}]`,
+              `${entry.level} ${entry.file}: ${entry.message}`,
+            ].join(' ')
+
+            try {
+              await navigator.clipboard.writeText(text)
+              toast.success('Log entry copied')
+            } catch {
+              toast.error('Could not copy log entry')
+            }
+          }}
+        >
+          <Copy aria-hidden='true' />
+        </Button>
       ),
     },
   ]
@@ -272,7 +304,7 @@ export function SystemLogs() {
                 <DialogTitle className='flex flex-wrap items-center gap-2'>
                   <Badge
                     variant='outline'
-                    className={cn(levelStyles[selected.level])}
+                    className={getLevelStyle(selected.level)}
                   >
                     {selected.level}
                   </Badge>
