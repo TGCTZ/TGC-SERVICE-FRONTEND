@@ -39,7 +39,7 @@ export function AppSidebar() {
       {/* The seams are borders rather than <SidebarSeparator>: the nav scrolls
           between them, and a separator inside that scroll region would travel
           with the content instead of marking where the region begins. */}
-      <SidebarHeader className='border-b border-border bg-background text-foreground dark:border-sidebar-border dark:bg-transparent dark:text-sidebar-foreground'>
+      <SidebarHeader className='border-b border-border bg-background text-foreground group-data-[variant=inset]:-ms-2 dark:border-sidebar-border dark:bg-transparent dark:text-sidebar-foreground'>
         <AppTitle />
       </SidebarHeader>
       <SidebarContent>
@@ -47,7 +47,7 @@ export function AppSidebar() {
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
-      <SidebarFooter className='border-t border-border bg-background text-foreground dark:border-sidebar-border dark:bg-transparent dark:text-sidebar-foreground'>
+      <SidebarFooter className='border-t border-border bg-background text-foreground group-data-[variant=inset]:-ms-2 dark:border-sidebar-border dark:bg-transparent dark:text-sidebar-foreground'>
         <NavUser />
       </SidebarFooter>
       <SidebarRail />

@@ -13,8 +13,10 @@ import { type UserWithTemporaryPassword } from '../data/api'
  */
 export function CredentialsPanel({
   user,
+  isPasswordReset = false,
 }: {
   user: UserWithTemporaryPassword
+  isPasswordReset?: boolean
 }) {
   const rows = [
     { label: 'Email', value: user.email },
@@ -28,14 +30,16 @@ export function CredentialsPanel({
 
   return (
     <div className='space-y-4'>
-      <Alert>
-        <Mail aria-hidden />
-        <AlertDescription>
-          An email with these details is on its way to{' '}
-          <span className='font-medium text-foreground'>{user.email}</span>. If
-          it does not arrive, share them with the user yourself.
-        </AlertDescription>
-      </Alert>
+      {!isPasswordReset && (
+        <Alert>
+          <Mail aria-hidden />
+          <AlertDescription>
+            An email with these details is on its way to{' '}
+            <span className='font-medium text-foreground'>{user.email}</span>.
+            If it does not arrive, share them with the user yourself.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <dl className='divide-y rounded-md border'>
         {rows.map((row) => (
@@ -57,11 +61,13 @@ export function CredentialsPanel({
         ))}
       </dl>
 
-      <p className='flex items-start gap-2 text-xs text-muted-foreground'>
-        <TriangleAlert className='mt-0.5 size-3.5 shrink-0' aria-hidden />
-        This password is shown only now. The user must replace it and complete
-        their profile when they first sign in.
-      </p>
+      {!isPasswordReset && (
+        <p className='flex items-start gap-2 text-xs text-muted-foreground'>
+          <TriangleAlert className='mt-0.5 size-3.5 shrink-0' aria-hidden />
+          This password is shown only now. The user must replace it and complete
+          their profile when they first sign in.
+        </p>
+      )}
     </div>
   )
 }

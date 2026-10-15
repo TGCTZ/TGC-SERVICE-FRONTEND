@@ -32,7 +32,7 @@ export function NavUser() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size='lg'
-                className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                className='hover:bg-muted hover:text-foreground data-[state=open]:bg-muted data-[state=open]:text-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground dark:data-[state=open]:bg-sidebar-accent dark:data-[state=open]:text-sidebar-accent-foreground'
               >
                 <UserIdentity className='flex flex-1 items-center gap-2 overflow-hidden' />
                 <ChevronsUpDown className='ms-auto size-4' />

@@ -26,6 +26,8 @@ export function useUserActions(user: User | null): RowAction[] {
   if (!user) return []
 
   const isDeleted = Boolean(user.deleted_at)
+  const isAdmin =
+    me?.roles.some((role) => role === 'admin' || role === 'superadmin') ?? false
   // Accounts ranked at or above the requester's own are read-only to them;
   // the API refuses the edit and the delete, so neither is offered.
   const readOnly = !user.can_manage
@@ -53,7 +55,7 @@ export function useUserActions(user: User | null): RowAction[] {
       icon: KeyRound,
       permission: perm('users', 'change'),
       onSelect: () => select('reset-password'),
-      hidden: isDeleted || readOnly || user.id === me?.id,
+      hidden: !isAdmin || isDeleted || readOnly || user.id === me?.id,
     },
     {
       label: 'Restore',

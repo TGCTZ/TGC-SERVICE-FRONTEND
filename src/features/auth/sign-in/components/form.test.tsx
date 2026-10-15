@@ -126,7 +126,7 @@ describe('UserAuthForm', () => {
       )
     })
 
-    it('puts a rejected sign-in on the email field, not in a toast', async () => {
+    it('puts a rejected sign-in below the password field, not in a toast', async () => {
       mocks.login.mockRejectedValueOnce(unauthorized())
 
       await userEvent.fill(emailInput, 'a@b.com')
@@ -134,10 +134,13 @@ describe('UserAuthForm', () => {
       await userEvent.click(signInButton)
 
       await expect
+        .element(screen.getByText('Email or password is incorrect.'))
+        .toBeInTheDocument()
+      await expect
         .element(
           screen.getByText('No active account found with the given credentials')
         )
-        .toBeInTheDocument()
+        .not.toBeInTheDocument()
       expect(mocks.navigate).not.toHaveBeenCalled()
     })
   })

@@ -53,15 +53,11 @@ export function UserAuthForm({
       toast.success(`Welcome back, ${user.full_name || user.email}!`)
       navigate({ to: redirectTo || '/', replace: true })
     } catch (error) {
-      // A rejected sign-in is a 401 carrying `detail`; surface it on the
-      // field so the user sees it in context rather than as a floating toast.
+      // The API intentionally does not distinguish an unknown email from a
+      // wrong password, so keep the message accurate and attach it to password.
       if (error instanceof AxiosError && error.response?.status === 401) {
-        const detail = error.response.data?.detail
-        form.setError('email', {
-          message:
-            typeof detail === 'string' && detail
-              ? detail
-              : 'These credentials do not match our records.',
+        form.setError('password', {
+          message: 'Email or password is incorrect.',
         })
       } else if (
         error instanceof AxiosError &&
