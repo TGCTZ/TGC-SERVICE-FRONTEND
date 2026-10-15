@@ -215,7 +215,7 @@ function CountBadge({ query }: { query: NavCount }) {
 
   return (
     <>
-      <Badge className='ms-auto rounded-full px-1.5 py-0 text-xs tabular-nums group-data-[collapsible=icon]:hidden'>
+      <Badge className='ms-auto me-6 rounded-full px-1.5 py-0 text-xs tabular-nums group-data-[collapsible=icon]:hidden'>
         {count > 99 ? '99+' : count}
         <span className='sr-only'> waiting</span>
       </Badge>
