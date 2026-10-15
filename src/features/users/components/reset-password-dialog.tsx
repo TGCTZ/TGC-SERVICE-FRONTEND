@@ -55,8 +55,8 @@ export function UserResetPasswordDialog({
           </DialogTitle>
           <DialogDescription>
             {reset
-              ? `${name} must change it at next sign-in.`
-              : 'A temporary password is emailed; all sessions end and a change is required at next sign-in.'}
+              ? `${name} must choose a new password at next sign-in. Profile setup is not required.`
+              : 'A temporary password is emailed; all sessions end and a new password is required at next sign-in. Profile setup is skipped.'}
           </DialogDescription>
         </DialogHeader>
 
