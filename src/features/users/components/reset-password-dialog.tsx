@@ -15,9 +15,8 @@ import { type User } from '../data/schema'
 import { CredentialsPanel } from './credentials-panel'
 
 /**
- * Issue a new temporary password - for credentials that never arrived, or a
- * forgotten password. Confirms first, since it signs the user out everywhere,
- * then shows the new details once.
+ * Admins issue a temporary password for manual handoff. Confirms first, since
+ * it signs the user out everywhere, then shows the new details once.
  */
 export function UserResetPasswordDialog({
   open,
@@ -55,12 +54,12 @@ export function UserResetPasswordDialog({
           </DialogTitle>
           <DialogDescription>
             {reset
-              ? `${name} must choose a new password at next sign-in. Profile setup is not required.`
-              : 'A temporary password is emailed; all sessions end and a new password is required at next sign-in. Profile setup is skipped.'}
+              ? `${name} must set a new password at sign-in.`
+              : 'Ends all sessions. The user must set a new password at sign-in.'}
           </DialogDescription>
         </DialogHeader>
 
-        {reset && <CredentialsPanel user={reset} />}
+        {reset && <CredentialsPanel user={reset} isPasswordReset />}
 
         <DialogFooter>
           {reset ? (
@@ -78,7 +77,7 @@ export function UserResetPasswordDialog({
                 onClick={() => mutation.mutate()}
                 disabled={mutation.isPending}
               >
-                {mutation.isPending ? 'Resetting…' : 'Reset and send'}
+                {mutation.isPending ? 'Resetting…' : 'Reset password'}
               </Button>
             </>
           )}

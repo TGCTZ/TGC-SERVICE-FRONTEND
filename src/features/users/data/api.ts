@@ -76,7 +76,7 @@ function encode(payload: UserPayload): UserPayload | FormData {
   return payload.avatar instanceof File ? toFormData(payload) : payload
 }
 
-/** What creating or resetting an account answers with: the account, and - once only - its temporary password. */
+/** What creating or resetting an account answers with: the account and its one-time temporary password. */
 const withTemporaryPasswordSchema = userSchema.extend({
   temporary_password: z.string(),
 })
@@ -97,7 +97,7 @@ export async function createUser(payload: {
   return withTemporaryPasswordSchema.parse(res.data)
 }
 
-/** Issue a new temporary password, email it, and get it back once. */
+/** Issue a temporary password for an admin to hand to the user once. */
 export async function resetUserPassword(
   id: number
 ): Promise<UserWithTemporaryPassword> {
