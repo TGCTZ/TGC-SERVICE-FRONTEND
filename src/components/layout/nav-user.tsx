@@ -8,10 +8,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { SignOutDialog } from '@/components/sign-out-dialog'
-import {
-  UserIdentity,
-  useUserIdentity,
-} from '@/components/user-menu-content'
+import { UserIdentity, useUserIdentity } from '@/components/user-menu-content'
 
 /** Sidebar profile with direct settings navigation and sign-out confirmation. */
 export function NavUser() {
@@ -33,10 +30,13 @@ export function NavUser() {
                 showRole={false}
                 className='flex flex-1 items-center gap-2 overflow-hidden'
               />
-              <Settings className='ms-auto size-4 shrink-0' aria-hidden='true' />
+              <Settings
+                className='ms-auto size-4 shrink-0'
+                aria-hidden='true'
+              />
             </Link>
           </SidebarMenuButton>
-          <div className='flex items-center justify-between gap-2 pe-2 pb-2 ps-12 group-data-[collapsible=icon]:hidden'>
+          <div className='flex items-center justify-between gap-2 ps-12 pe-2 pb-2 group-data-[collapsible=icon]:hidden'>
             {roleLabel && (
               <Badge
                 variant='outline'
