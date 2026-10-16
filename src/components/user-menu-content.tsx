@@ -3,6 +3,7 @@ import { LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 import { getDisplayNameInitials } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -21,18 +22,34 @@ export function useUserIdentity() {
   const user = useAuthStore((state) => state.auth.user)
 
   const name = user?.full_name || user?.username || 'Signed out'
+  const roles = user?.roles ?? []
+  const roleLabel = roles
+    .map((role) =>
+      role
+        .split(/[_\s-]+/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ')
+    )
+    .join(' · ')
 
   return {
     name,
     email: user?.email ?? '',
     avatar: user?.avatar ?? '',
     initials: getDisplayNameInitials(name),
+    roleLabel,
   }
 }
 
-/** The identity block: avatar, name and email. */
-export function UserIdentity({ className }: { className?: string }) {
-  const { name, email, avatar, initials } = useUserIdentity()
+/** The identity block: avatar, name, email and assigned roles. */
+export function UserIdentity({
+  className,
+  showRole = true,
+}: {
+  className?: string
+  showRole?: boolean
+}) {
+  const { name, email, avatar, initials, roleLabel } = useUserIdentity()
 
   return (
     <div className={className}>
@@ -40,23 +57,24 @@ export function UserIdentity({ className }: { className?: string }) {
         <AvatarImage src={avatar} alt={name} />
         <AvatarFallback className='rounded-lg'>{initials}</AvatarFallback>
       </Avatar>
-      <div className='grid flex-1 text-start text-sm leading-tight'>
+      <div className='grid min-w-0 flex-1 text-start text-sm leading-tight'>
         <span className='truncate font-semibold'>{name}</span>
         <span className='truncate text-xs'>{email}</span>
+        {showRole && roleLabel && (
+          <Badge
+            variant='outline'
+            className='mt-1 max-w-full border-transparent bg-success px-2 py-0.5 text-xs text-success-foreground'
+            title={`Role: ${roleLabel}`}
+          >
+            <span className='truncate'>{roleLabel}</span>
+          </Badge>
+        )}
       </div>
     </div>
   )
 }
 
-/**
- * The contents of the user menu, shared by the sidebar footer and the header
- * avatar.
- *
- * Both entry points must offer the same actions — a user who finds an item in
- * one place and not the other has to learn which menu is the "real" one. Only
- * the trigger and the popover placement differ, so only those live in the two
- * host components.
- */
+/** Header avatar menu; the sidebar exposes settings and sign out directly. */
 export function UserMenuContent({ onSignOut }: { onSignOut: () => void }) {
   return (
     <>
