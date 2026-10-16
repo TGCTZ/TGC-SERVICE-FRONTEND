@@ -90,8 +90,17 @@
     url('../assets/custom/brand-grid.svg'), var(--brand-gradient-clean);
 }
 
+.brand-lines-white {
+  background-color: var(--card);
+  background-image: url('../assets/custom/brand-grid.svg');
+}
+
 .dark .brand-gradient-clean,
 .dark .brand-gradient-lines {
+  background-image: none;
+}
+
+.dark .brand-lines-white {
   background-image: none;
 }
 
