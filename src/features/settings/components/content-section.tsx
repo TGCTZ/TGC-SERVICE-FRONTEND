@@ -9,19 +9,15 @@ type ContentSectionProps = {
 
 export function ContentSection({ title, desc, children }: ContentSectionProps) {
   return (
-    <div
-      className={`${brandPanelClassName} flex flex-1 flex-col p-4 dark:rounded-none dark:border-transparent dark:bg-transparent dark:p-0 dark:text-foreground dark:shadow-none`}
-    >
-      <div className='flex-none'>
+    <section className={`${brandPanelClassName} w-full p-4 sm:p-6`}>
+      <div className='space-y-1'>
         <h3 className='text-lg font-medium'>{title}</h3>
         <p className='text-sm text-primary-foreground/80 dark:text-muted-foreground'>
           {desc}
         </p>
       </div>
-      <Separator className='my-4 flex-none' />
-      <div className='faded-bottom h-full w-full overflow-y-auto scroll-smooth pe-4 pb-12'>
-        <div className='-mx-1 px-1.5 lg:max-w-xl'>{children}</div>
-      </div>
-    </div>
+      <Separator className='my-4' />
+      <div className='w-full max-w-xl'>{children}</div>
+    </section>
   )
 }

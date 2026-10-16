@@ -1,52 +1,60 @@
-import { ChevronsUpDown } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { LogOut, Settings } from 'lucide-react'
 import useDialogState from '@/hooks/use-dialog-state'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { Badge } from '@/components/ui/badge'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from '@/components/ui/sidebar'
 import { SignOutDialog } from '@/components/sign-out-dialog'
-import { UserIdentity, UserMenuContent } from '@/components/user-menu-content'
+import { UserIdentity, useUserIdentity } from '@/components/user-menu-content'
 
-/**
- * The user menu in the sidebar footer.
- *
- * Shares its contents with the header avatar (`profile-dropdown.tsx`) — only
- * the trigger and the popover placement differ.
- */
+/** Sidebar profile with direct settings navigation and sign-out confirmation. */
 export function NavUser() {
-  const { isMobile } = useSidebar()
   const [open, setOpen] = useDialogState()
+  const { roleLabel } = useUserIdentity()
 
   return (
     <>
       <SidebarMenu>
-        <SidebarMenuItem>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton
-                size='lg'
-                className='hover:bg-muted hover:text-foreground data-[state=open]:bg-muted data-[state=open]:text-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground dark:data-[state=open]:bg-sidebar-accent dark:data-[state=open]:text-sidebar-accent-foreground'
+        <SidebarMenuItem className='rounded-lg bg-muted/50'>
+          <SidebarMenuButton
+            asChild
+            size='lg'
+            tooltip='Settings'
+            className='h-auto hover:bg-muted hover:text-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground'
+          >
+            <Link to='/settings' aria-label='Open account settings'>
+              <UserIdentity
+                showRole={false}
+                className='flex flex-1 items-center gap-2 overflow-hidden'
+              />
+              <Settings
+                className='ms-auto size-4 shrink-0'
+                aria-hidden='true'
+              />
+            </Link>
+          </SidebarMenuButton>
+          <div className='flex items-center justify-between gap-2 ps-12 pe-2 pb-2 group-data-[collapsible=icon]:hidden'>
+            {roleLabel && (
+              <Badge
+                variant='outline'
+                className='min-w-0 shrink border-transparent bg-success px-2 py-0.5 text-xs text-success-foreground'
+                title={`Role: ${roleLabel}`}
               >
-                <UserIdentity className='flex flex-1 items-center gap-2 overflow-hidden' />
-                <ChevronsUpDown className='ms-auto size-4' />
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-              side={isMobile ? 'bottom' : 'right'}
-              align='end'
-              sideOffset={4}
+                <span className='truncate'>{roleLabel}</span>
+              </Badge>
+            )}
+            <button
+              type='button'
+              onClick={() => setOpen(true)}
+              className='ms-auto inline-flex shrink-0 items-center gap-1 rounded-sm text-xs text-destructive hover:underline focus-visible:outline-2 focus-visible:outline-ring'
             >
-              <UserMenuContent onSignOut={() => setOpen(true)} />
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <LogOut className='size-3.5' aria-hidden='true' />
+              Sign out
+            </button>
+          </div>
         </SidebarMenuItem>
       </SidebarMenu>
 

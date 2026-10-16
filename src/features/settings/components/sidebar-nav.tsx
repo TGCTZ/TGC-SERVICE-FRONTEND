@@ -1,8 +1,6 @@
-import { useState, type JSX } from 'react'
-import { useLocation, useNavigate, Link } from '@tanstack/react-router'
+import { type JSX } from 'react'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
-import { buttonVariants } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -22,26 +20,28 @@ type SidebarNavProps = React.HTMLAttributes<HTMLElement> & {
 export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const [val, setVal] = useState(pathname ?? '/settings')
+  const activePath = normalizePath(pathname)
+  const activePathValue = items.find(
+    (item) => normalizePath(item.href) === activePath
+  )?.href
 
   const handleSelect = (e: string) => {
-    setVal(e)
     navigate({ to: e })
   }
 
   return (
     <>
-      <div className='p-1 md:hidden'>
-        <Select value={val} onValueChange={handleSelect}>
-          <SelectTrigger className='h-12 sm:w-48'>
-            <SelectValue placeholder='Theme' />
+      <div className='md:hidden'>
+        <Select value={activePathValue} onValueChange={handleSelect}>
+          <SelectTrigger className='h-10 w-full' aria-label='Settings section'>
+            <SelectValue placeholder='Settings section' />
           </SelectTrigger>
           <SelectContent>
             {items.map((item) => (
               <SelectItem key={item.href} value={item.href}>
-                <div className='flex gap-x-4 px-2 py-1'>
-                  <span className='scale-125'>{item.icon}</span>
-                  <span className='text-md'>{item.title}</span>
+                <div className='flex items-center gap-x-3 px-1 py-1'>
+                  <span>{item.icon}</span>
+                  <span>{item.title}</span>
                 </div>
               </SelectItem>
             ))}
@@ -49,36 +49,38 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
         </Select>
       </div>
 
-      <ScrollArea
-        orientation='horizontal'
-        type='always'
-        className='hidden w-full min-w-40 bg-background px-1 py-2 md:block'
-      >
+      <div className='hidden w-full overflow-x-auto md:block'>
         <nav
-          className={cn(
-            'flex space-x-2 py-1 lg:flex-col lg:space-y-1 lg:space-x-0',
-            className
-          )}
+          className={cn('flex min-w-max border-b', className)}
+          aria-label='Settings sections'
           {...props}
         >
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className={cn(
-                buttonVariants({ variant: 'ghost' }),
-                pathname === item.href
-                  ? 'bg-muted hover:bg-accent'
-                  : 'hover:bg-accent hover:underline',
-                'justify-start'
-              )}
-            >
-              <span className='me-2'>{item.icon}</span>
-              {item.title}
-            </Link>
-          ))}
+          {items.map((item) => {
+            const isActive = normalizePath(item.href) === activePath
+
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={cn(
+                  'inline-flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <span aria-hidden='true'>{item.icon}</span>
+                {item.title}
+              </Link>
+            )
+          })}
         </nav>
-      </ScrollArea>
+      </div>
     </>
   )
+}
+
+function normalizePath(path: string) {
+  return path.replace(/\/+$/, '') || '/'
 }
