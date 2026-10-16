@@ -32,8 +32,6 @@ import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedCertificatesIndexRouteImport } from './routes/_authenticated/certificates/index'
 import { Route as AuthenticatedBillsIndexRouteImport } from './routes/_authenticated/bills/index'
 import { Route as AuthenticatedAuditLogsIndexRouteImport } from './routes/_authenticated/audit-logs/index'
-import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
-import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedReportsOperationalIndexRouteImport } from './routes/_authenticated/reports/operational/index'
@@ -165,18 +163,6 @@ const AuthenticatedAuditLogsIndexRoute =
     path: '/audit-logs/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedSettingsNotificationsRoute =
-  AuthenticatedSettingsNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-const AuthenticatedSettingsDisplayRoute =
-  AuthenticatedSettingsDisplayRouteImport.update({
-    id: '/display',
-    path: '/display',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
 const AuthenticatedSettingsAppearanceRoute =
   AuthenticatedSettingsAppearanceRouteImport.update({
     id: '/appearance',
@@ -220,8 +206,6 @@ export interface FileRoutesByFullPath {
   '/503': typeof errors503Route
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/settings/display': typeof AuthenticatedSettingsDisplayRoute
-  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/audit-logs/': typeof AuthenticatedAuditLogsIndexRoute
   '/bills/': typeof AuthenticatedBillsIndexRoute
   '/certificates/': typeof AuthenticatedCertificatesIndexRoute
@@ -250,8 +234,6 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/settings/display': typeof AuthenticatedSettingsDisplayRoute
-  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/audit-logs': typeof AuthenticatedAuditLogsIndexRoute
   '/bills': typeof AuthenticatedBillsIndexRoute
   '/certificates': typeof AuthenticatedCertificatesIndexRoute
@@ -283,8 +265,6 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
-  '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/audit-logs/': typeof AuthenticatedAuditLogsIndexRoute
   '/_authenticated/bills/': typeof AuthenticatedBillsIndexRoute
   '/_authenticated/certificates/': typeof AuthenticatedCertificatesIndexRoute
@@ -316,8 +296,6 @@ export interface FileRouteTypes {
     | '/503'
     | '/settings/account'
     | '/settings/appearance'
-    | '/settings/display'
-    | '/settings/notifications'
     | '/audit-logs/'
     | '/bills/'
     | '/certificates/'
@@ -346,8 +324,6 @@ export interface FileRouteTypes {
     | '/'
     | '/settings/account'
     | '/settings/appearance'
-    | '/settings/display'
-    | '/settings/notifications'
     | '/audit-logs'
     | '/bills'
     | '/certificates'
@@ -378,8 +354,6 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
-    | '/_authenticated/settings/display'
-    | '/_authenticated/settings/notifications'
     | '/_authenticated/audit-logs/'
     | '/_authenticated/bills/'
     | '/_authenticated/certificates/'
@@ -572,20 +546,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditLogsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings/notifications': {
-      id: '/_authenticated/settings/notifications'
-      path: '/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/settings/display': {
-      id: '/_authenticated/settings/display'
-      path: '/display'
-      fullPath: '/settings/display'
-      preLoaderRoute: typeof AuthenticatedSettingsDisplayRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
     '/_authenticated/settings/appearance': {
       id: '/_authenticated/settings/appearance'
       path: '/appearance'
@@ -627,8 +587,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
-  AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
-  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -636,9 +594,6 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
   {
     AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
     AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
-    AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
-    AuthenticatedSettingsNotificationsRoute:
-      AuthenticatedSettingsNotificationsRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 
