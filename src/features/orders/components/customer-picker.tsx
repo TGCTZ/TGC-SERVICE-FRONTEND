@@ -302,8 +302,6 @@ function ExistingCustomerSearch({
  * other. These are ordinary fields of the order form.
  */
 function NewCustomerFields() {
-  const form = useFormContext()
-
   return (
     <div className='space-y-4 rounded-md border border-dashed p-3'>
       <p className='flex items-center gap-2 text-xs text-muted-foreground'>
