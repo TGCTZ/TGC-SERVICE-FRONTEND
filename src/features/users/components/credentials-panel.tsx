@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Copy, Mail, TriangleAlert } from 'lucide-react'
+import { Check, Copy, Info, TriangleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -8,8 +8,8 @@ import { type UserWithTemporaryPassword } from '../data/api'
 /**
  * The sign-in details for an account that was just created or reset.
  *
- * Shown once: the API never returns the temporary password again, so this is
- * the moment to pass it on if the email does not arrive.
+ * Shown once: the API never returns the temporary password again, so the
+ * creator should share these details before closing the dialog.
  */
 export function CredentialsPanel({
   user,
@@ -32,11 +32,10 @@ export function CredentialsPanel({
     <div className='space-y-4'>
       {!isPasswordReset && (
         <Alert>
-          <Mail aria-hidden />
+          <Info aria-hidden />
           <AlertDescription>
-            An email with these details is on its way to{' '}
+            No email will be sent. Share these details manually with{' '}
             <span className='font-medium text-foreground'>{user.email}</span>.
-            If it does not arrive, share them with the user yourself.
           </AlertDescription>
         </Alert>
       )}

@@ -30,12 +30,7 @@ import { RegionSelect } from '@/components/region-select'
 import { createCustomer, updateCustomer } from '../data/api'
 import { type Customer } from '../data/schema'
 
-/**
- * Only the three the API insists on are required here.
- *
- * The phone number carries a partial unique constraint on the server, so a
- * duplicate comes back as a 400 on that field rather than being caught locally.
- */
+/** Only the three required customer fields are required in this form. */
 const customerFormSchema = z.object({
   first_name: z.string().min(1, 'First name is required.'),
   middle_name: z.string().optional(),
