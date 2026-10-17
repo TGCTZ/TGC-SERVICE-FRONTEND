@@ -86,8 +86,8 @@ export type UserWithTemporaryPassword = z.infer<
 
 /**
  * Create an account from an email and a role. The API fills in the rest and
- * emails the credentials; the temporary password comes back here so it can be
- * shown to whoever created the account, and is not retrievable afterwards.
+ * returns the temporary password so the creator can share it manually. It is
+ * not retrievable afterwards.
  */
 export async function createUser(payload: {
   email: string

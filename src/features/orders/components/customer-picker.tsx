@@ -1,14 +1,7 @@
 import { useState } from 'react'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Check,
-  Loader2,
-  Search,
-  TriangleAlert,
-  UserPlus,
-  X,
-} from 'lucide-react'
+import { Check, Loader2, Search, UserPlus, X } from 'lucide-react'
 import { regionLabel } from '@/lib/regions'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { Badge } from '@/components/ui/badge'
@@ -189,7 +182,7 @@ export function CustomerPicker({ allowCreate = true }: CustomerPickerProps) {
             </TabsContent>
 
             <TabsContent value='new' className='mt-3'>
-              <NewCustomerFields onUseExisting={choose} />
+              <NewCustomerFields />
             </TabsContent>
           </Tabs>
           <FormMessage />
@@ -302,50 +295,13 @@ function ExistingCustomerSearch({
  * another does not compose — focus trapping and scroll locking fight each
  * other. These are ordinary fields of the order form.
  */
-function NewCustomerFields({
-  onUseExisting,
-}: {
-  onUseExisting: (customer: Customer) => void
-}) {
-  const form = useFormContext()
-  const phone = useWatch({ control: form.control, name: 'phone' })
-  const debouncedPhone = useDebouncedValue(String(phone ?? ''), 400)
-
-  const { data: phoneMatches = [] } = useQuery({
-    ...customerSearchQuery(debouncedPhone),
-    enabled: debouncedPhone.trim().length >= 2,
-  })
-
-  // Phone catches a returning customer that a misspelt name would not, and it
-  // is the column the API enforces as unique — so a hit here is the difference
-  // between a helpful offer and a 400 after the form is filled in.
-  const duplicate = phoneMatches.find(
-    (candidate) => candidate.phone === debouncedPhone.trim()
-  )
-
+function NewCustomerFields() {
   return (
     <div className='space-y-4 rounded-md border border-dashed p-3'>
       <p className='flex items-center gap-2 text-xs text-muted-foreground'>
         <Badge variant='secondary'>New</Badge>
         These details are saved as a new customer record with the order.
       </p>
-
-      {duplicate && (
-        <div className='flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-3'>
-          <span className='text-sm'>
-            <TriangleAlert className='me-1 inline size-4' />
-            {duplicate.phone} is already registered to {duplicate.full_name}.
-          </span>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            onClick={() => onUseExisting(duplicate)}
-          >
-            Use this customer instead
-          </Button>
-        </div>
-      )}
 
       <div className='grid gap-4 sm:grid-cols-2'>
         <TextField name='first_name' label='First name' required />

@@ -86,9 +86,8 @@ the permission model is real rather than decorative, and it is the check to
 repeat whenever you add a gated screen.
 
 These demo accounts skip first login. An account created from **Users → Add user**
-does not: its owner signs in with the emailed temporary password and must set a
-password and complete their profile first. In development the email is printed
-to the API's console, and the creator sees the password on screen.
+does not: the admin shares the temporary password shown after creation, and the
+new user must set a password and complete their profile at first sign-in.
 
 ## 4. Walk an order through
 

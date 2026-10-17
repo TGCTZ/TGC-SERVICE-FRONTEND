@@ -134,7 +134,7 @@ export function UserCreateDialog({
                       />
                     </FormControl>
                     <FormDescription>
-                      Used to sign in and receive credentials.
+                      Used to sign in. You will share the credentials manually.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -189,7 +189,7 @@ export function UserCreateDialog({
                 form='user-create-form'
                 disabled={mutation.isPending}
               >
-                {mutation.isPending ? 'Creating…' : 'Create and send details'}
+                {mutation.isPending ? 'Creating…' : 'Create account'}
               </Button>
             </>
           )}
