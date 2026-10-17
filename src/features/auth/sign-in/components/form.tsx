@@ -65,7 +65,9 @@ export function UserAuthForm({
       ) {
         toast.error('Too many attempts. Please wait a minute and try again.')
       } else {
-        toast.error('Could not reach the server. Is the API running?')
+        toast.error(
+          'We’re having trouble connecting right now. Please try again soon.'
+        )
       }
     } finally {
       setIsLoading(false)
