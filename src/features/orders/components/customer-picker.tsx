@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Check,
-  Loader2,
-  Search,
-  UserPlus,
-  X,
-} from 'lucide-react'
+import { Check, Loader2, Search, UserPlus, X } from 'lucide-react'
 import { regionLabel } from '@/lib/regions'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { Badge } from '@/components/ui/badge'
